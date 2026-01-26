@@ -1,0 +1,221 @@
+Secure Messenger Desktop — Project Rules & Architecture
+1. CORE SYSTEM STRUCTURE
+- Secure Messenger Desktop is a single-desktop-client system built using Electron + React + TypeScript, designed to simulate a secure messaging client with:
+    - Efficient local data access (SQLite)
+    - Real-time synchronization (WebSocket)
+    - High-performance UI (virtualization)
+    - Clean, secure client architecture
+
+- Core Applications
+    - Desktop App
+        - Electron Shell
+        - React Renderer (UI)
+        - Preload Bridge (secure IPC)
+        - Main Process (DB + Sync)
+    - Mock Backend
+        - Local WebSocket server (sync simulator)
+
+- High-Level Architecture
+    - Renderer (React) never accesses SQLite or WebSocket directly
+    - All privileged operations live in the Electron Main process
+    - Secure APIs exposed via Preload only
+    - Communication is strictly via typed IPC
+    - Shared logic lives in reusable modules
+    - Always run build to verify
+
+2. MAIN PROJECT DIRECTORY STRUCTURE
+├── electron/
+│   ├── main.ts          → SQLite, WebSocket, IPC handlers
+│   ├── preload.ts       → Secure API bridge
+│
+├── src/
+│   ├── app/
+│   │   ├── store.ts
+│   │   ├── slices/
+│   │   │   ├── chatsSlice.ts
+│   │   │   ├── messagesSlice.ts
+│   │   │   ├── connectionSlice.ts
+│
+│   ├── components/
+│   │   ├── ChatList.tsx
+│   │   ├── ChatItem.tsx
+│   │   ├── MessageList.tsx
+│
+│   ├── pages/
+│   │   ├── Home.tsx
+│
+│   ├── services/
+│   │   ├── ipcClient.ts
+│
+│   ├── index.tsx
+│
+├── server/
+│   ├── ws-server.ts     → Mock WebSocket sync server
+│
+├── docs/
+│   └── specs.md
+│
+├── tooling/
+│   ├── eslint/
+│   └── prettier/
+│
+├── README.md
+└── package.json
+
+3. DOMAIN-DRIVEN ARCHITECTURE (MANDATORY)
+Each business domain must be isolated, testable, and reusable.
+- Required Domains
+    - Auth & Identity
+        - Session handling (simulated)
+        - User identity
+    - Chats
+        - Chat list
+        - Chat metadata
+    - Messages
+        - Message threads
+        - Pagination
+        - Insert/update
+    - Sync
+        - WebSocket client
+        - Heartbeats
+        - Reconnect logic
+    - Storage
+        - SQLite schema
+        - Query layer
+    - Connection Health
+        - Online/offline state
+        - Backoff strategies
+    - Security
+        - IPC boundaries
+        - Logging hygiene
+
+- Each Domain Contains
+    - Services (business logic)
+    - Types
+    - SQLite queries (where applicable)
+    - IPC handlers
+    - Validation schemas (Zod)
+
+4. TECHNOLOGY STACK (MANDATORY)
+- Core
+    - Desktop: Electron
+    - UI: React (latest) + TypeScript (strict)
+    - State: Redux Toolkit
+    - Database: SQLite (better-sqlite3 or sqlite3)
+    - Realtime: WebSocket (ws)
+    - Virtualization: react-window or react-virtualized
+
+- Security & IPC
+    - Secure preload bridge
+    - Typed IPC contracts
+    - No direct Node APIs in React
+    - No direct DB access from UI
+5. USER TYPES & ACCESS LEVELS
+
+- This is a single-user desktop client simulation.
+- User Roles (Simulated)
+    - Local User
+        - Can view chat list
+        - Open message threads
+        - Send messages (mocked)
+    - System (Sync Engine)
+        - Inserts messages
+        - Updates chats
+        - Manages connection health
+
+6. DATA STORAGE & SCHEMA RULES
+- Tables
+    - chats
+        - id (TEXT, PK)
+        - name (TEXT)
+        - last_message (TEXT)
+        - updated_at (INTEGER)
+        - unread_count (INTEGER)
+
+    - messages
+        - id (TEXT, PK)
+        - chat_id (TEXT, indexed)
+        - sender (TEXT)
+        - content (TEXT)
+        - timestamp (INTEGER)
+    - Indexes (Mandatory)
+        - messages(chat_id, timestamp DESC)
+        - chats(updated_at DESC)
+
+- Rules
+    - No “load-all-and-sort-in-JS”
+    - Pagination must be SQL-based
+    - Filtering must be SQL-based
+    - Queries must be optimized
+
+7. REAL-TIME SYNC RULES
+- WebSocket client lives in Electron Main
+- Must implement:
+    - Heartbeats (ping/pong)
+    - Reconnect logic
+    - Exponential backoff
+    - Offline detection
+- Incoming events:
+    - new_message
+    - chat_update
+- All events persisted to SQLite
+- Renderer notified via IPC
+8. UI/UX RULES
+- UI Principles
+    - Fast rendering for large lists
+    - Virtualized chat list
+    - Virtualized message list
+    - Responsive layout
+- Clear connection status:
+    - Connected
+    - Reconnecting
+    - Offline
+- Performance
+    - react-window for lists
+    - Memoized components
+    - Minimal re-renders
+    - Avoid deep Redux selectors
+
+9. SYSTEM-WIDE FUNCTIONAL REQUIREMENTS
+- Core Features
+    - Chat list pagination
+    - Message thread pagination
+    - New message insertion
+    - Real-time sync simulation
+    - Offline mode
+    - Reconnect handling
+    - Connection health indicator
+
+- Sync Behavior
+    - New messages update:
+        - SQLite
+        - Redux
+        - UI
+    - No message loss
+    - No duplicate messages
+10. SECURITY & HYGIENE RULES
+- No sensitive data in logs
+- IPC APIs explicitly whitelisted
+- Preload exposes minimal surface area
+- UI never touches DB or WebSocket
+- Messages sanitized before rendering
+- No global mutable state
+11. CODE QUALITY RULES
+- ESLint + Prettier enforced
+- TypeScript strict mode
+- Zod validation for all IPC inputs
+- Business logic in service modules
+- UI components must be presentational
+- No duplicated logic
+- All shared logic goes into domain services
+
+12. OUTPUT GUIDELINES FOR DEVELOPMENT
+- When generating code or designs:
+    - Always include full file paths
+    - Respect domain boundaries
+    - Use typed IPC
+    - Use SQLite pagination
+    - Match project architecture
+    - refer scalable, production-style solutions
+    - Never access SQLite from React
+    - Always run build to verify
