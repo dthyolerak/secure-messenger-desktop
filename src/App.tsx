@@ -28,7 +28,8 @@ const App: React.FC = () => {
   }, [dispatch]);
 
   const handleLogin = useCallback(
-    (username: string) => {
+    async (username: string, password: string) => {
+      // For demo: ignore password, use username only
       void dispatch(login({ username }));
     },
     [dispatch],
@@ -57,7 +58,7 @@ const App: React.FC = () => {
   }
 
   // Unauthenticated: show Login
-  return <Login isLoading={false} error={authError} onLogin={handleLogin} />;
+  return <Login isLoading={false} error={authError} onSubmit={handleLogin} />;
 
 };
 

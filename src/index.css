@@ -1,7 +1,12 @@
 /* src/index.css */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* Theme variables (branding) */
+@theme {
+  --color-primary: #FF7A00;
+  --color-secondary: #003366;
+  --color-gray-light: #F1F5F9;
+}
 
 /* Legacy styles for components not yet migrated */
 body {
@@ -11,18 +16,6 @@ body {
   margin: 0;
   height: 100vh;
   overflow: hidden;
-}
-
-/* Theme variables (branding) */
-:root {
-  --color-primary: #FF7A00; /* Primary */
-  --color-secondary: #003366; /* Secondary */
-  --color-gray-light: #F1F5F9; /* Gray Light */
-  --radius-lg: 12px;
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
-  --border-color: #e2e8f0;
-  --text-muted: #64748b;
-  --text-bright: #1e293b;
 }
 
 /* Top Navbar */
