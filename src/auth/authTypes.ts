@@ -1,8 +1,12 @@
 // src/auth/authTypes.ts
 export interface AuthUser {
+  id?: string;
   username: string;
+  displayName?: string;
+  email?: string;
   loggedInAt: number; // epoch ms
   expiresAt?: number; // optional expiry epoch ms
+  createdAt?: number;
 }
 
 export interface AuthState {

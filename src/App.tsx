@@ -2,12 +2,16 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from './app/store';
-import { checkSession, login } from './auth/authSlice';
+import { checkSession, login, register } from './auth/authSlice';
 import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 import Welcome from './pages/Welcome';
 import Home from './pages/Home';
 
 const FIRST_LAUNCH_KEY = 'smd.hasCompletedWelcome';
+
+type AuthView = 'login' | 'register' | 'forgot';
 
 const App: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -22,6 +26,7 @@ const App: React.FC = () => {
   );
   const [hasCompletedWelcome, setHasCompletedWelcome] =
     useState<boolean>(initialFlag);
+  const [authView, setAuthView] = useState<AuthView>('login');
 
   useEffect(() => {
     void dispatch(checkSession());
@@ -33,6 +38,21 @@ const App: React.FC = () => {
       void dispatch(login({ username }));
     },
     [dispatch],
+  );
+
+  const handleRegister = useCallback(
+    async (email: string, displayName: string, password: string) => {
+      void dispatch(register({ email, displayName, password }));
+    },
+    [dispatch],
+  );
+
+  const handleForgotPassword = useCallback(
+    async (email: string) => {
+      // For demo: just show success message
+      console.log('Password reset requested for:', email);
+    },
+    [],
   );
 
   const handleWelcomeContinue = useCallback(() => {
@@ -57,9 +77,40 @@ const App: React.FC = () => {
     return <div style={{ padding: 24 }}>Loading…</div>;
   }
 
-  // Unauthenticated: show Login
-  return <Login isLoading={false} error={authError} onSubmit={handleLogin} />;
-
+  // Unauthenticated: show auth views
+  switch (authView) {
+    case 'register':
+      return (
+        <Register
+          isLoading={false}
+          error={authError}
+          onSubmit={handleRegister}
+          onBackToLogin={() => setAuthView('login')}
+        />
+      );
+    
+    case 'forgot':
+      return (
+        <ForgotPassword
+          isLoading={false}
+          error={authError}
+          onSubmit={handleForgotPassword}
+          onBackToLogin={() => setAuthView('login')}
+        />
+      );
+    
+    case 'login':
+    default:
+      return (
+        <Login
+          isLoading={false}
+          error={authError}
+          onSubmit={handleLogin}
+          onCreateAccount={() => setAuthView('register')}
+          onForgotPassword={() => setAuthView('forgot')}
+        />
+      );
+  }
 };
 
 export default App;

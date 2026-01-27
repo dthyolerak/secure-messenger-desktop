@@ -25,7 +25,10 @@ var import_electron = require("electron");
 // src/domains/auth/auth.types.ts
 var AUTH_IPC_CHANNELS = {
   getSession: "auth:getSession",
-  startSession: "auth:startSession"
+  startSession: "auth:startSession",
+  register: "auth:register",
+  login: "auth:login",
+  logout: "auth:logout"
 };
 
 // node_modules/zod/v3/external.js
@@ -4070,13 +4073,22 @@ var coerce = {
 var NEVER = INVALID;
 
 // src/domains/auth/auth.schema.ts
-var StartSessionInputSchema = external_exports.object({
-  displayName: external_exports.string().min(1).max(64).optional()
+var UserSchema = external_exports.object({
+  id: external_exports.string(),
+  email: external_exports.string().email(),
+  displayName: external_exports.string(),
+  passwordHash: external_exports.string(),
+  createdAt: external_exports.number(),
+  updatedAt: external_exports.number()
 });
 var AuthSessionSchema = external_exports.object({
-  id: external_exports.string(),
+  user: UserSchema,
+  token: external_exports.string(),
   createdAt: external_exports.number(),
-  displayName: external_exports.string().optional()
+  expiresAt: external_exports.number()
+});
+var StartSessionInputSchema = external_exports.object({
+  displayName: external_exports.string().min(1).max(64).optional()
 });
 var GetSessionResponseSchema = external_exports.object({
   session: AuthSessionSchema.nullable()

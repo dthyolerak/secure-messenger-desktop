@@ -5,11 +5,19 @@ import { Eye, EyeOff, Lock, Mail, AlertCircle } from 'lucide-react';
 
 export interface LoginProps {
   onSubmit?: (username: string, password: string) => Promise<void>;
+  onCreateAccount?: () => void;
+  onForgotPassword?: () => void;
   isLoading?: boolean;
   error?: string | null;
 }
 
-const Login: React.FC<LoginProps> = ({ onSubmit, isLoading = false, error }) => {
+const Login: React.FC<LoginProps> = ({ 
+  onSubmit, 
+  onCreateAccount, 
+  onForgotPassword, 
+  isLoading = false, 
+  error 
+}) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -162,22 +170,22 @@ const Login: React.FC<LoginProps> = ({ onSubmit, isLoading = false, error }) => 
 
         {/* Footer Links */}
         <div className="mt-6 text-center space-y-2">
-          <a
-            href="#"
+          <button
+            type="button"
             className="text-sm text-primary hover:text-orange-600 font-medium transition-colors"
-            onClick={(e) => e.preventDefault()}
+            onClick={onForgotPassword}
           >
             Forgot password?
-          </a>
+          </button>
           <div className="text-sm text-gray-600">
             Don't have an account?{' '}
-            <a
-              href="#"
+            <button
+              type="button"
               className="text-primary hover:text-orange-600 font-medium transition-colors"
-              onClick={(e) => e.preventDefault()}
+              onClick={onCreateAccount}
             >
               Create account
-            </a>
+            </button>
           </div>
         </div>
       </motion.div>

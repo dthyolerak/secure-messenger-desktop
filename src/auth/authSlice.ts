@@ -3,6 +3,13 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import type { AuthState, AuthUser, LoginPayload } from './authTypes';
 import { validateUsername, createSession, storeSession, loadStoredSession, clearSession } from './authService';
 
+// Register payload interface
+interface RegisterPayload {
+  email: string;
+  displayName: string;
+  password: string;
+}
+
 const initialState: AuthState = {
   user: null,
   status: 'idle',
@@ -26,6 +33,29 @@ export const login = createAsyncThunk<AuthUser, LoginPayload, { rejectValue: str
     const user = createSession(payload);
     storeSession(user);
     return user;
+  },
+);
+
+export const register = createAsyncThunk<AuthUser, RegisterPayload, { rejectValue: string }>(
+  'auth/register',
+  async (payload, { rejectWithValue }) => {
+    try {
+      // For demo: create a simple session from registration data
+      const user: AuthUser = {
+        id: `user_${Date.now()}`,
+        username: payload.displayName,
+        displayName: payload.displayName,
+        email: payload.email,
+        loggedInAt: Date.now(),
+        createdAt: Date.now(),
+      };
+      
+      // Store session
+      storeSession(user);
+      return user;
+    } catch (error) {
+      return rejectWithValue('Registration failed');
+    }
   },
 );
 
@@ -75,6 +105,21 @@ const authSlice = createSlice({
         state.status = 'unauthenticated';
         state.user = null;
         state.error = action.payload ?? 'Login failed';
+      })
+      // register
+      .addCase(register.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(register.fulfilled, (state, action) => {
+        state.status = 'authenticated';
+        state.user = action.payload;
+        state.error = null;
+      })
+      .addCase(register.rejected, (state, action) => {
+        state.status = 'unauthenticated';
+        state.user = null;
+        state.error = action.payload ?? 'Registration failed';
       })
       // logout
       .addCase(logout.pending, (state) => {

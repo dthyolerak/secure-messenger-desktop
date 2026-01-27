@@ -33,7 +33,10 @@ var import_node_path2 = __toESM(require("node:path"));
 // src/domains/auth/auth.types.ts
 var AUTH_IPC_CHANNELS = {
   getSession: "auth:getSession",
-  startSession: "auth:startSession"
+  startSession: "auth:startSession",
+  register: "auth:register",
+  login: "auth:login",
+  logout: "auth:logout"
 };
 
 // node_modules/zod/v3/external.js
@@ -4078,13 +4081,22 @@ var coerce = {
 var NEVER = INVALID;
 
 // src/domains/auth/auth.schema.ts
-var StartSessionInputSchema = external_exports.object({
-  displayName: external_exports.string().min(1).max(64).optional()
+var UserSchema = external_exports.object({
+  id: external_exports.string(),
+  email: external_exports.string().email(),
+  displayName: external_exports.string(),
+  passwordHash: external_exports.string(),
+  createdAt: external_exports.number(),
+  updatedAt: external_exports.number()
 });
 var AuthSessionSchema = external_exports.object({
-  id: external_exports.string(),
+  user: UserSchema,
+  token: external_exports.string(),
   createdAt: external_exports.number(),
-  displayName: external_exports.string().optional()
+  expiresAt: external_exports.number()
+});
+var StartSessionInputSchema = external_exports.object({
+  displayName: external_exports.string().min(1).max(64).optional()
 });
 var GetSessionResponseSchema = external_exports.object({
   session: AuthSessionSchema.nullable()
@@ -4098,6 +4110,12 @@ var import_electron = require("electron");
 var import_fs = require("fs");
 var import_node_path = __toESM(require("node:path"));
 var import_node_crypto = require("node:crypto");
+
+// node_modules/bcryptjs/index.js
+var nextTick = typeof setImmediate === "function" ? setImmediate : typeof scheduler === "object" && typeof scheduler.postTask === "function" ? scheduler.postTask.bind(scheduler) : setTimeout;
+var BASE64_CODE = "./ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".split("");
+
+// src/domains/auth/auth.service.ts
 var SESSION_FILE_NAME = "auth-session.json";
 function getSessionFilePath() {
   const userData = import_electron.app.getPath("userData");
@@ -4108,7 +4126,12 @@ async function loadSession() {
   try {
     const raw = await import_fs.promises.readFile(filePath, "utf-8");
     const json = JSON.parse(raw);
-    return AuthSessionSchema.parse(json);
+    const session = AuthSessionSchema.parse(json);
+    if (Date.now() > session.expiresAt) {
+      await clearSession();
+      return null;
+    }
+    return session;
   } catch (error) {
     if (error && error.code === "ENOENT") {
       return null;
@@ -4118,14 +4141,33 @@ async function loadSession() {
 }
 async function startNewSession(displayName) {
   const session = {
-    id: (0, import_node_crypto.randomUUID)(),
+    user: {
+      id: (0, import_node_crypto.randomUUID)(),
+      email: "",
+      displayName: displayName || "Guest User",
+      passwordHash: "",
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    },
+    token: (0, import_node_crypto.randomUUID)(),
     createdAt: Date.now(),
-    displayName
+    expiresAt: Date.now() + 24 * 60 * 60 * 1e3
+    // 24 hours
   };
   const filePath = getSessionFilePath();
   await import_fs.promises.mkdir(import_node_path.default.dirname(filePath), { recursive: true });
   await import_fs.promises.writeFile(filePath, JSON.stringify(session), { encoding: "utf-8" });
   return session;
+}
+async function clearSession() {
+  const filePath = getSessionFilePath();
+  try {
+    await import_fs.promises.unlink(filePath);
+  } catch (error) {
+    if (error.code !== "ENOENT") {
+      throw error;
+    }
+  }
 }
 
 // src/domains/auth/auth.ipc.ts
@@ -4337,6 +4379,86 @@ var mockChats = [
     unread_count: 0
   }
 ];
+var mockMessages = {
+  "1": [
+    {
+      id: "m1",
+      chat_id: "1",
+      sender: "Alice Johnson",
+      content: "Hey, are you free later?",
+      timestamp: Date.now() - 1e3 * 60 * 10,
+      is_read: false,
+      is_edited: false
+    },
+    {
+      id: "m2",
+      chat_id: "1",
+      sender: "You",
+      content: "Sure, what's up?",
+      timestamp: Date.now() - 1e3 * 60 * 8,
+      is_read: true,
+      is_edited: false
+    },
+    {
+      id: "m3",
+      chat_id: "1",
+      sender: "Alice Johnson",
+      content: "Want to grab coffee?",
+      timestamp: Date.now() - 1e3 * 60 * 5,
+      is_read: false,
+      is_edited: false
+    },
+    {
+      id: "m4",
+      chat_id: "1",
+      sender: "Alice Johnson",
+      content: "Hey, are you free later?",
+      timestamp: Date.now() - 1e3 * 60,
+      is_read: false,
+      is_edited: false
+    }
+  ],
+  "2": [
+    {
+      id: "m5",
+      chat_id: "2",
+      sender: "Bob Smith",
+      content: "Thanks for the help!",
+      timestamp: Date.now() - 1e3 * 60 * 5,
+      is_read: true,
+      is_edited: false
+    }
+  ],
+  "3": [
+    {
+      id: "m6",
+      chat_id: "3",
+      sender: "Carol",
+      content: "Meeting at 3pm",
+      timestamp: Date.now() - 1e3 * 60 * 15,
+      is_read: false,
+      is_edited: false
+    },
+    {
+      id: "m7",
+      chat_id: "3",
+      sender: "David",
+      content: "I'll be there",
+      timestamp: Date.now() - 1e3 * 60 * 12,
+      is_read: false,
+      is_edited: false
+    },
+    {
+      id: "m8",
+      chat_id: "3",
+      sender: "You",
+      content: "Sounds good!",
+      timestamp: Date.now() - 1e3 * 60 * 10,
+      is_read: false,
+      is_edited: false
+    }
+  ]
+};
 function getChatsMock(request) {
   const { offset, limit } = request;
   const sortedChats = [...mockChats].sort((a, b) => b.updated_at - a.updated_at);
@@ -4394,6 +4516,15 @@ function initializeDatabase() {
     const Database = eval("require")("better-sqlite3");
     db = new Database("chats.db");
     db.exec(`
+      CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        email TEXT UNIQUE NOT NULL,
+        display_name TEXT NOT NULL,
+        password_hash TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+      
       CREATE TABLE IF NOT EXISTS chats (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
@@ -4402,7 +4533,20 @@ function initializeDatabase() {
         unread_count INTEGER DEFAULT 0
       );
       
+      CREATE TABLE IF NOT EXISTS messages (
+        id TEXT PRIMARY KEY,
+        chat_id TEXT NOT NULL,
+        sender TEXT NOT NULL,
+        content TEXT NOT NULL,
+        timestamp INTEGER NOT NULL,
+        is_read INTEGER DEFAULT 0,
+        is_edited INTEGER DEFAULT 0,
+        FOREIGN KEY (chat_id) REFERENCES chats (id) ON DELETE CASCADE
+      );
+      
       CREATE INDEX IF NOT EXISTS idx_chats_updated_at ON chats(updated_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_messages_chat_timestamp ON messages(chat_id, timestamp DESC);
+      CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     `);
     const chatCount = db.prepare("SELECT COUNT(*) as count FROM chats").get();
     if (chatCount.count === 0) {
@@ -4412,12 +4556,30 @@ function initializeDatabase() {
       `);
       const demoChats = [
         ["1", "Alice Johnson", "Hey, are you free later?", Date.now() - 1e3 * 60, 2],
-        ["2", "Bob Smith", "Thanks for the help!", Date.now() - 1e3 * 60 * 5, 0],
+        ["2", "Bob Smith", "Thanks for the help!", Date.now() - 1e3 * 60 * 5, null],
         ["3", "Team Chat", "Meeting at 3pm", Date.now() - 1e3 * 60 * 15, 5],
         ["4", "Carol White", "Can you review this?", Date.now() - 1e3 * 60 * 30, 1],
-        ["5", "David Brown", "Great work on the project", Date.now() - 1e3 * 60 * 60, 0]
+        ["5", "David Brown", "Great work on the project", Date.now() - 1e3 * 60 * 60, null]
       ];
       demoChats.forEach((chat) => insertChat.run(...chat));
+      const insertMessage2 = db.prepare(`
+        INSERT INTO messages (id, chat_id, sender, content, timestamp, is_read, is_edited)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `);
+      const demoMessages = [
+        // Chat 1 messages
+        ["m1", "1", "Alice Johnson", "Hey, are you free later?", Date.now() - 1e3 * 60 * 10, 0, 0],
+        ["m2", "1", "You", "Sure, what's up?", Date.now() - 1e3 * 60 * 8, 1, 0],
+        ["m3", "1", "Alice Johnson", "Want to grab coffee?", Date.now() - 1e3 * 60 * 5, 0, 0],
+        ["m4", "1", "Alice Johnson", "Hey, are you free later?", Date.now() - 1e3 * 60, 0, 0],
+        // Chat 2 messages
+        ["m5", "2", "Bob Smith", "Thanks for the help!", Date.now() - 1e3 * 60 * 5, 1, 0],
+        // Chat 3 messages
+        ["m6", "3", "Carol", "Meeting at 3pm", Date.now() - 1e3 * 60 * 15, 0, 0],
+        ["m7", "3", "David", "I'll be there", Date.now() - 1e3 * 60 * 12, 0, 0],
+        ["m8", "3", "You", "Sounds good!", Date.now() - 1e3 * 60 * 10, 0, 0]
+      ];
+      demoMessages.forEach((msg) => insertMessage2.run(...msg));
     }
     console.log("Database initialized successfully");
   } catch (error) {
