@@ -219,3 +219,11 @@ Each business domain must be isolated, testable, and reusable.
     - refer scalable, production-style solutions
     - Never access SQLite from React
     - Always run build to verify
+13 DESIGN & BRANDING
+Use the official HSEDU / INFI-TECH palette:
+•	Primary: #FF7A00
+•	Secondary: #003366
+•	Gray-light: #F1F5F9
+•	Success: #16A34A
+•	Warning: #FACC15
+•	Danger: #DC2626

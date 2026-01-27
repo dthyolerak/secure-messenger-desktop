@@ -1,37 +1,43 @@
 // src/pages/Welcome.tsx
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import type { RootState, AppDispatch } from '../app/store';
-import { startSession } from '../app/slices/authSlice';
 
-const Welcome: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const status = useSelector((state: RootState) => state.auth.status);
-  const isLoading = status === 'loading';
+export interface WelcomeProps {
+  isLoading?: boolean;
+  onContinue: () => void;
+}
 
-  const handleGetStarted = () => {
-    if (isLoading) return;
-    void dispatch(startSession({}));
-  };
-
+const Welcome: React.FC<WelcomeProps> = ({ isLoading = false, onContinue }) => {
   return (
-    <div className="welcome-root">
-      <div className="welcome-card">
-        <div className="welcome-logo">🔒</div>
-        <h1 className="welcome-title">Secure Messenger Desktop</h1>
+    <main className="welcome-root app-bg" role="main">
+      <section className="welcome-card fade-in" aria-labelledby="welcome-title">
+        <div className="welcome-logo" aria-hidden>
+          🔒
+        </div>
+        <h1 id="welcome-title" className="welcome-title accent">
+          Secure Messenger Desktop
+        </h1>
         <p className="welcome-subtitle">
-          A secure, local-first messenger simulation with real-world architecture.
+          A secure, high-performance desktop messaging client.
         </p>
-        <button
-          type="button"
-          className="welcome-primary-button"
-          onClick={handleGetStarted}
-          disabled={isLoading}
-        >
-          {isLoading ? 'Preparing your workspace…' : 'Get Started'}
-        </button>
-      </div>
-    </div>
+        <ul className="welcome-points" aria-label="Key features">
+          <li>Local encrypted storage (simulated)</li>
+          <li>Real-time sync (WebSocket)</li>
+          <li>Built for performance & reliability</li>
+        </ul>
+        <div className="welcome-actions">
+          <button
+            type="button"
+            className="welcome-primary-button"
+            onClick={onContinue}
+            disabled={isLoading}
+            aria-busy={isLoading}
+            autoFocus
+          >
+            {isLoading ? 'Preparing your workspace…' : 'Get Started'}
+          </button>
+        </div>
+      </section>
+    </main>
   );
 };
 

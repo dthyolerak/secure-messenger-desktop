@@ -1085,7 +1085,7 @@
             }
             return dispatcher.useContext(Context);
           }
-          function useState(initialState2) {
+          function useState3(initialState2) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useState(initialState2);
           }
@@ -1109,11 +1109,11 @@
             var dispatcher = resolveDispatcher();
             return dispatcher.useLayoutEffect(create, deps);
           }
-          function useCallback2(callback, deps) {
+          function useCallback3(callback, deps) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useCallback(callback, deps);
           }
-          function useMemo2(create, deps) {
+          function useMemo3(create, deps) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useMemo(create, deps);
           }
@@ -1876,7 +1876,7 @@
           exports.memo = memo2;
           exports.startTransition = startTransition;
           exports.unstable_act = act;
-          exports.useCallback = useCallback2;
+          exports.useCallback = useCallback3;
           exports.useContext = useContext2;
           exports.useDebugValue = useDebugValue2;
           exports.useDeferredValue = useDeferredValue;
@@ -1885,10 +1885,10 @@
           exports.useImperativeHandle = useImperativeHandle;
           exports.useInsertionEffect = useInsertionEffect;
           exports.useLayoutEffect = useLayoutEffect2;
-          exports.useMemo = useMemo2;
+          exports.useMemo = useMemo3;
           exports.useReducer = useReducer;
           exports.useRef = useRef2;
-          exports.useState = useState;
+          exports.useState = useState3;
           exports.useSyncExternalStore = useSyncExternalStore2;
           exports.useTransition = useTransition;
           exports.version = ReactVersion;
@@ -2384,9 +2384,9 @@
           if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === "function") {
             __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(new Error());
           }
-          var React4 = require_react();
+          var React5 = require_react();
           var Scheduler = require_scheduler();
-          var ReactSharedInternals = React4.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React5.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           var suppressWarning = false;
           function setSuppressWarning(newSuppressWarning) {
             {
@@ -3991,7 +3991,7 @@
             {
               if (props.value == null) {
                 if (typeof props.children === "object" && props.children !== null) {
-                  React4.Children.forEach(props.children, function(child) {
+                  React5.Children.forEach(props.children, function(child) {
                     if (child == null) {
                       return;
                     }
@@ -23562,7 +23562,7 @@
           return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React4 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React4.useSyncExternalStore, useRef2 = React4.useRef, useEffect3 = React4.useEffect, useMemo2 = React4.useMemo, useDebugValue2 = React4.useDebugValue;
+        var React5 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React5.useSyncExternalStore, useRef2 = React5.useRef, useEffect3 = React5.useEffect, useMemo3 = React5.useMemo, useDebugValue2 = React5.useDebugValue;
         exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
           var instRef = useRef2(null);
           if (null === instRef.current) {
@@ -23570,7 +23570,7 @@
             instRef.current = inst;
           } else
             inst = instRef.current;
-          instRef = useMemo2(
+          instRef = useMemo3(
             function() {
               function memoizedSelector(nextSnapshot) {
                 if (!hasMemo) {
@@ -23640,7 +23640,7 @@
       if (true) {
         (function() {
           "use strict";
-          var React4 = require_react();
+          var React5 = require_react();
           var REACT_ELEMENT_TYPE = Symbol.for("react.element");
           var REACT_PORTAL_TYPE = Symbol.for("react.portal");
           var REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
@@ -23666,7 +23666,7 @@
             }
             return null;
           }
-          var ReactSharedInternals = React4.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React5.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           function error(format) {
             {
               {
@@ -24516,11 +24516,11 @@
               return jsxWithValidation(type, props, key, false);
             }
           }
-          var jsx4 = jsxWithValidationDynamic;
-          var jsxs2 = jsxWithValidationStatic;
+          var jsx6 = jsxWithValidationDynamic;
+          var jsxs4 = jsxWithValidationStatic;
           exports.Fragment = REACT_FRAGMENT_TYPE;
-          exports.jsx = jsx4;
-          exports.jsxs = jsxs2;
+          exports.jsx = jsx6;
+          exports.jsxs = jsxs4;
         })();
       }
     }
@@ -24539,7 +24539,7 @@
   });
 
   // src/index.tsx
-  var import_react2 = __toESM(require_react());
+  var import_react3 = __toESM(require_react());
   var import_client = __toESM(require_client());
 
   // node_modules/react-redux/dist/react-redux.mjs
@@ -27261,131 +27261,298 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   });
   var ORIGINAL_STATE = Symbol.for("rtk-state-proxy-original");
 
-  // src/services/ipcClient.ts
-  function requireApi() {
-    if (!window.secureMessenger) {
-      throw new Error("secureMessenger API is not available");
+  // src/auth/authService.ts
+  var SESSION_KEY = "smd.authSession";
+  var SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1e3;
+  function validateUsername(username) {
+    const trimmed = username.trim();
+    if (!trimmed)
+      return "Username is required";
+    if (trimmed.length < 2)
+      return "Username must be at least 2 characters";
+    if (trimmed.length > 32)
+      return "Username must be 32 characters or fewer";
+    if (!/^[a-zA-Z0-9_\-\s]+$/.test(trimmed)) {
+      return "Username can only contain letters, numbers, underscores, hyphens, and spaces";
     }
-    return window.secureMessenger;
+    return null;
   }
-  var api = requireApi();
-  var ipcClient = {
-    auth: {
-      getSession: () => api.auth.getSession(),
-      startSession: (payload) => api.auth.startSession(payload)
+  function createSession(payload) {
+    const now = Date.now();
+    return {
+      username: payload.username.trim(),
+      loggedInAt: now,
+      expiresAt: now + SESSION_DURATION_MS
+    };
+  }
+  function storeSession(user) {
+    try {
+      const session = { user };
+      window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    } catch {
     }
-  };
+  }
+  function loadStoredSession() {
+    try {
+      const raw = window.localStorage.getItem(SESSION_KEY);
+      if (!raw)
+        return null;
+      const session = JSON.parse(raw);
+      if (!session.user || typeof session.user.username !== "string" || typeof session.user.loggedInAt !== "number" || session.user.expiresAt !== void 0 && typeof session.user.expiresAt !== "number") {
+        clearSession();
+        return null;
+      }
+      if (session.user.expiresAt && Date.now() > session.user.expiresAt) {
+        clearSession();
+        return null;
+      }
+      return session.user;
+    } catch {
+      clearSession();
+      return null;
+    }
+  }
+  function clearSession() {
+    try {
+      window.localStorage.removeItem(SESSION_KEY);
+    } catch {
+    }
+  }
 
-  // src/app/slices/authSlice.ts
+  // src/auth/authSlice.ts
   var initialState = {
-    status: "loading",
-    session: null
+    user: null,
+    status: "idle",
+    error: null
   };
   var checkSession = createAsyncThunk(
     "auth/checkSession",
     async () => {
-      const session = await ipcClient.auth.getSession();
-      return { session };
+      return loadStoredSession();
     }
   );
-  var startSession = createAsyncThunk(
-    "auth/startSession",
-    async (payload) => {
-      const session = await ipcClient.auth.startSession(payload);
-      return { session };
+  var login = createAsyncThunk(
+    "auth/login",
+    async (payload, { rejectWithValue }) => {
+      const validationError = validateUsername(payload.username);
+      if (validationError) {
+        return rejectWithValue(validationError);
+      }
+      const user = createSession(payload);
+      storeSession(user);
+      return user;
+    }
+  );
+  var logout = createAsyncThunk(
+    "auth/logout",
+    async () => {
+      clearSession();
     }
   );
   var authSlice = createSlice({
     name: "auth",
     initialState,
-    reducers: {},
+    reducers: {
+      clearError(state) {
+        state.error = null;
+      }
+    },
     extraReducers: (builder) => {
       builder.addCase(checkSession.pending, (state) => {
         state.status = "loading";
+        state.error = null;
       }).addCase(checkSession.fulfilled, (state, action) => {
-        const session = action.payload.session;
-        if (session) {
-          state.status = "authenticated";
-          state.session = session;
-        } else {
-          state.status = "unauthenticated";
-          state.session = null;
-        }
+        state.status = action.payload ? "authenticated" : "unauthenticated";
+        state.user = action.payload;
+        state.error = null;
       }).addCase(checkSession.rejected, (state) => {
         state.status = "unauthenticated";
-        state.session = null;
-      }).addCase(startSession.pending, (state) => {
+        state.user = null;
+        state.error = "Failed to restore session";
+      }).addCase(login.pending, (state) => {
         state.status = "loading";
-      }).addCase(startSession.fulfilled, (state, action) => {
+        state.error = null;
+      }).addCase(login.fulfilled, (state, action) => {
         state.status = "authenticated";
-        state.session = action.payload.session;
-      }).addCase(startSession.rejected, (state) => {
+        state.user = action.payload;
+        state.error = null;
+      }).addCase(login.rejected, (state, action) => {
         state.status = "unauthenticated";
-        state.session = null;
+        state.user = null;
+        state.error = action.payload ?? "Login failed";
+      }).addCase(logout.pending, (state) => {
+        state.status = "loading";
+      }).addCase(logout.fulfilled, (state) => {
+        state.status = "unauthenticated";
+        state.user = null;
+        state.error = null;
+      }).addCase(logout.rejected, (state) => {
+        state.status = "unauthenticated";
+        state.user = null;
+        state.error = "Logout failed";
       });
     }
   });
-  var authReducer = authSlice.reducer;
+  var { clearError } = authSlice.actions;
+  var authSlice_default = authSlice.reducer;
 
   // src/app/store.ts
   var store = configureStore({
     reducer: {
-      auth: authReducer
+      auth: authSlice_default
     }
   });
 
   // src/App.tsx
-  var import_react = __toESM(require_react());
+  var import_react2 = __toESM(require_react());
 
-  // src/pages/Welcome.tsx
+  // src/pages/Login.tsx
+  var import_react = __toESM(require_react());
   var import_jsx_runtime = __toESM(require_jsx_runtime());
-  var Welcome = () => {
-    const dispatch = useDispatch();
-    const status = useSelector((state) => state.auth.status);
-    const isLoading = status === "loading";
-    const handleGetStarted = () => {
+  var Login = ({ isLoading = false, error, onLogin }) => {
+    const [username, setUsername] = (0, import_react.useState)("");
+    const handleSubmit = (e) => {
+      e.preventDefault();
       if (isLoading)
         return;
-      void dispatch(startSession({}));
+      onLogin(username);
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "welcome-root", children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "welcome-card", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "welcome-logo", children: "\u{1F512}" }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", { className: "welcome-title", children: "Secure Messenger Desktop" }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { className: "welcome-subtitle", children: "A secure, local-first messenger simulation with real-world architecture." }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("main", { className: "login-root app-bg", role: "main", children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", { className: "login-card fade-in", "aria-labelledby": "login-title", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "login-logo", "aria-hidden": true, children: "\u{1F512}" }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", { id: "login-title", className: "login-title accent", children: "Secure Messenger Desktop" }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { className: "login-subtitle", children: "Enter your username to continue." }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", { onSubmit: handleSubmit, noValidate: true, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "login-field", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", { htmlFor: "username", children: "Username" }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+            "input",
+            {
+              id: "username",
+              type: "text",
+              value: username,
+              onChange: (e) => setUsername(e.target.value),
+              disabled: isLoading,
+              autoComplete: "username",
+              autoFocus: true,
+              required: true
+            }
+          )
+        ] }),
+        error && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "login-error", role: "alert", children: error }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "login-actions", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+          "button",
+          {
+            type: "submit",
+            className: "login-primary-button",
+            disabled: isLoading || !username.trim(),
+            "aria-busy": isLoading,
+            children: isLoading ? "Signing in\u2026" : "Continue"
+          }
+        ) })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { className: "login-helper", children: "This is a simulated local login." })
+    ] }) });
+  };
+  var Login_default = Login;
+
+  // src/pages/Welcome.tsx
+  var import_jsx_runtime2 = __toESM(require_jsx_runtime());
+  var Welcome = ({ isLoading = false, onContinue }) => {
+    return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("main", { className: "welcome-root app-bg", role: "main", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("section", { className: "welcome-card fade-in", "aria-labelledby": "welcome-title", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "welcome-logo", "aria-hidden": true, children: "\u{1F512}" }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("h1", { id: "welcome-title", className: "welcome-title accent", children: "Secure Messenger Desktop" }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("p", { className: "welcome-subtitle", children: "A secure, high-performance desktop messaging client." }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("ul", { className: "welcome-points", "aria-label": "Key features", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("li", { children: "Local encrypted storage (simulated)" }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("li", { children: "Real-time sync (WebSocket)" }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("li", { children: "Built for performance & reliability" })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "welcome-actions", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
         "button",
         {
           type: "button",
           className: "welcome-primary-button",
-          onClick: handleGetStarted,
+          onClick: onContinue,
           disabled: isLoading,
+          "aria-busy": isLoading,
+          autoFocus: true,
           children: isLoading ? "Preparing your workspace\u2026" : "Get Started"
         }
-      )
+      ) })
     ] }) });
   };
   var Welcome_default = Welcome;
 
+  // src/pages/Home.tsx
+  var import_jsx_runtime3 = __toESM(require_jsx_runtime());
+  var Home = () => {
+    const dispatch = useDispatch();
+    const user = useSelector((s) => s.auth.user);
+    const handleLogout = () => {
+      void dispatch(logout());
+    };
+    return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { style: { padding: 24 }, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("h1", { children: "Home" }),
+      user && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("p", { children: [
+        "Signed in as: ",
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("strong", { children: user.username })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { children: "Welcome to Secure Messenger Desktop." }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("button", { onClick: handleLogout, children: "Logout" })
+    ] });
+  };
+  var Home_default = Home;
+
   // src/App.tsx
-  var import_jsx_runtime2 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime4 = __toESM(require_jsx_runtime());
+  var FIRST_LAUNCH_KEY = "smd.hasCompletedWelcome";
   var App = () => {
     const dispatch = useDispatch();
-    (0, import_react.useEffect)(() => {
+    const authStatus = useSelector((s) => s.auth.status);
+    const authError = useSelector((s) => s.auth.error);
+    const initialFlag = (0, import_react2.useMemo)(
+      () => typeof window !== "undefined" && window.localStorage.getItem(FIRST_LAUNCH_KEY) === "true",
+      []
+    );
+    const [hasCompletedWelcome, setHasCompletedWelcome] = (0, import_react2.useState)(initialFlag);
+    (0, import_react2.useEffect)(() => {
       void dispatch(checkSession());
     }, [dispatch]);
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Welcome_default, {});
+    const handleLogin = (0, import_react2.useCallback)(
+      (username) => {
+        void dispatch(login({ username }));
+      },
+      [dispatch]
+    );
+    const handleWelcomeContinue = (0, import_react2.useCallback)(() => {
+      try {
+        window.localStorage.setItem(FIRST_LAUNCH_KEY, "true");
+        setHasCompletedWelcome(true);
+      } catch {
+      }
+    }, []);
+    if (authStatus === "authenticated") {
+      if (!hasCompletedWelcome) {
+        return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Welcome_default, { isLoading: false, onContinue: handleWelcomeContinue });
+      }
+      return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Home_default, {});
+    }
+    if (authStatus === "idle") {
+      return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: { padding: 24 }, children: "Loading\u2026" });
+    }
+    return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Login_default, { isLoading: false, error: authError, onLogin: handleLogin });
   };
   var App_default = App;
 
   // src/index.tsx
-  var import_jsx_runtime3 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime5 = __toESM(require_jsx_runtime());
   var container = document.getElementById("root");
   if (!container) {
     throw new Error("Root element #root not found");
   }
   var root = (0, import_client.createRoot)(container);
   root.render(
-    /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_react2.default.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(Provider_default, { store, children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(App_default, {}) }) })
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(import_react3.default.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Provider_default, { store, children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(App_default, {}) }) })
   );
 })();
 /*! Bundled license information:
