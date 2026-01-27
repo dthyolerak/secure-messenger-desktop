@@ -12,7 +12,8 @@
     "build:main": "esbuild electron/main.ts --bundle --platform=node --format=cjs --external:electron --outfile=dist/electron/main.js",
     "build:preload": "esbuild electron/preload.ts --bundle --platform=node --format=cjs --external:electron --outfile=dist/electron/preload.js",
     "build:renderer": "esbuild src/index.tsx --bundle --platform=browser --format=iife --outfile=dist/src/renderer.js",
-    "copy:assets": "cpx src/index.html dist/src && cpx src/index.css dist/src",
+    "build:css": "node -e \"const fs = require('fs'); const path = require('path'); const src = fs.readFileSync('./src/index.css', 'utf8'); const preflight = fs.readFileSync('node_modules/tailwindcss/preflight.css', 'utf8'); const theme = fs.readFileSync('node_modules/tailwindcss/theme.css', 'utf8'); const utilities = fs.readFileSync('node_modules/tailwindcss/utilities.css', 'utf8'); const out = preflight + '\\n' + theme + '\\n' + utilities + '\\n' + src.replace(/@tailwind[^;]+;?/g, ''); fs.writeFileSync('./dist/src/index.css', out);\"",
+    "copy:assets": "cpx src/index.html dist/src && npm run build:css",
     "package": "npm run build && electron-forge package",
     "make": "npm run build && electron-forge make",
     "publish": "npm run build && electron-forge publish",
@@ -45,9 +46,13 @@
     "@types/node": "22.7.4",
     "@types/react": "^18.2.67",
     "@types/react-dom": "^18.2.21",
+    "autoprefixer": "^10.4.23",
     "cpx": "^1.5.0",
     "electron": "40.0.0",
     "esbuild": "^0.20.2",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   }
 }
