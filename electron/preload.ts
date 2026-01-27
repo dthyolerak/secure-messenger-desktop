@@ -10,6 +10,12 @@ import {
   StartSessionInputSchema,
   StartSessionResponseSchema,
 } from '../src/domains/auth/auth.schema';
+import {
+  MESSAGES_IPC_CHANNELS,
+  type InsertMessagePayload,
+  type Message,
+} from '../src/domains/messages/messages.types';
+import { z } from 'zod';
 
 const authApi = {
   async getSession(): Promise<AuthSession | null> {
@@ -29,10 +35,38 @@ const authApi = {
   },
 };
 
+const messagesApi = {
+  async insertMessage(payload: InsertMessagePayload): Promise<Message> {
+    const raw = await ipcRenderer.invoke(MESSAGES_IPC_CHANNELS.INSERT_MESSAGE, payload);
+    const MessageSchema = z.object({
+      id: z.string(),
+      chat_id: z.string(),
+      sender: z.string(),
+      content: z.string(),
+      timestamp: z.number(),
+    });
+    return MessageSchema.parse(raw);
+  },
+
+  async listMessages(chatId: string): Promise<Message[]> {
+    const raw = await ipcRenderer.invoke(MESSAGES_IPC_CHANNELS.LIST_MESSAGES, { chat_id: chatId });
+    const MessageArraySchema = z.array(z.object({
+      id: z.string(),
+      chat_id: z.string(),
+      sender: z.string(),
+      content: z.string(),
+      timestamp: z.number(),
+    }));
+    return MessageArraySchema.parse(raw);
+  },
+};
+
 export type AuthApi = typeof authApi;
+export type MessagesApi = typeof messagesApi;
 
 export interface SecureMessengerApi {
   auth: AuthApi;
+  messages: MessagesApi;
 }
 
 declare global {
@@ -43,4 +77,5 @@ declare global {
 
 contextBridge.exposeInMainWorld('secureMessenger', {
   auth: authApi,
+  messages: messagesApi,
 } satisfies SecureMessengerApi);

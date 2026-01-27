@@ -1,5 +1,5 @@
 // src/components/MessageComposer.tsx
-import React, { useState, FormEvent } from 'react';
+import React, { useState, FormEvent, KeyboardEvent } from 'react';
 
 export interface MessageComposerProps {
   chatId: string;
@@ -21,12 +21,21 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
     setContent('');
   };
 
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    // Send on Enter, new line on Shift+Enter
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
   return (
     <form className="message-composer" onSubmit={handleSubmit}>
       <div className="message-composer-input-wrapper">
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Type a message…"
           disabled={disabled}
           rows={1}

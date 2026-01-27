@@ -2,11 +2,12 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import { registerAuthIpcHandlers } from '../src/domains/auth/auth.ipc';
+import { registerMessageIpc } from '../src/domains/messages/messages.ipc';
 
 function createMainWindow(): void {
   const mainWindow = new BrowserWindow({
-    width: 1024,
-    height: 720,
+    width: 1200,
+    height: 800,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -24,6 +25,7 @@ function createMainWindow(): void {
 
 app.whenReady().then(() => {
   registerAuthIpcHandlers(ipcMain);
+  registerMessageIpc();
 
   createMainWindow();
 

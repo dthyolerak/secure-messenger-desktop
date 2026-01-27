@@ -4085,6 +4085,12 @@ var StartSessionResponseSchema = external_exports.object({
   session: AuthSessionSchema
 });
 
+// src/domains/messages/messages.types.ts
+var MESSAGES_IPC_CHANNELS = {
+  INSERT_MESSAGE: "smd:messages:insert",
+  LIST_MESSAGES: "smd:messages:list"
+};
+
 // electron/preload.ts
 var authApi = {
   async getSession() {
@@ -4102,6 +4108,31 @@ var authApi = {
     return parsed.session;
   }
 };
+var messagesApi = {
+  async insertMessage(payload) {
+    const raw = await import_electron.ipcRenderer.invoke(MESSAGES_IPC_CHANNELS.INSERT_MESSAGE, payload);
+    const MessageSchema = external_exports.object({
+      id: external_exports.string(),
+      chat_id: external_exports.string(),
+      sender: external_exports.string(),
+      content: external_exports.string(),
+      timestamp: external_exports.number()
+    });
+    return MessageSchema.parse(raw);
+  },
+  async listMessages(chatId) {
+    const raw = await import_electron.ipcRenderer.invoke(MESSAGES_IPC_CHANNELS.LIST_MESSAGES, { chat_id: chatId });
+    const MessageArraySchema = external_exports.array(external_exports.object({
+      id: external_exports.string(),
+      chat_id: external_exports.string(),
+      sender: external_exports.string(),
+      content: external_exports.string(),
+      timestamp: external_exports.number()
+    }));
+    return MessageArraySchema.parse(raw);
+  }
+};
 import_electron.contextBridge.exposeInMainWorld("secureMessenger", {
-  auth: authApi
+  auth: authApi,
+  messages: messagesApi
 });

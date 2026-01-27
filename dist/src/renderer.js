@@ -2392,9 +2392,9 @@
           if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === "function") {
             __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(new Error());
           }
-          var React7 = require_react();
+          var React8 = require_react();
           var Scheduler = require_scheduler();
-          var ReactSharedInternals = React7.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React8.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           var suppressWarning = false;
           function setSuppressWarning(newSuppressWarning) {
             {
@@ -2443,7 +2443,7 @@
           var HostPortal = 4;
           var HostComponent = 5;
           var HostText = 6;
-          var Fragment2 = 7;
+          var Fragment = 7;
           var Mode = 8;
           var ContextConsumer = 9;
           var ContextProvider = 10;
@@ -3599,7 +3599,7 @@
                 return "DehydratedFragment";
               case ForwardRef2:
                 return getWrappedName$1(type, type.render, "ForwardRef");
-              case Fragment2:
+              case Fragment:
                 return "Fragment";
               case HostComponent:
                 return type;
@@ -3999,7 +3999,7 @@
             {
               if (props.value == null) {
                 if (typeof props.children === "object" && props.children !== null) {
-                  React7.Children.forEach(props.children, function(child) {
+                  React8.Children.forEach(props.children, function(child) {
                     if (child == null) {
                       return;
                     }
@@ -12000,7 +12000,7 @@
               }
             }
             function updateFragment2(returnFiber, current3, fragment, lanes, key) {
-              if (current3 === null || current3.tag !== Fragment2) {
+              if (current3 === null || current3.tag !== Fragment) {
                 var created = createFiberFromFragment(fragment, returnFiber.mode, lanes, key);
                 created.return = returnFiber;
                 return created;
@@ -12403,7 +12403,7 @@
                 if (child.key === key) {
                   var elementType = element.type;
                   if (elementType === REACT_FRAGMENT_TYPE) {
-                    if (child.tag === Fragment2) {
+                    if (child.tag === Fragment) {
                       deleteRemainingChildren(returnFiber, child.sibling);
                       var existing = useFiber(child, element.props.children);
                       existing.return = returnFiber;
@@ -17880,7 +17880,7 @@
                 var _resolvedProps2 = workInProgress2.elementType === type ? _unresolvedProps2 : resolveDefaultProps(type, _unresolvedProps2);
                 return updateForwardRef(current3, workInProgress2, type, _resolvedProps2, renderLanes2);
               }
-              case Fragment2:
+              case Fragment:
                 return updateFragment(current3, workInProgress2, renderLanes2);
               case Mode:
                 return updateMode(current3, workInProgress2, renderLanes2);
@@ -18153,7 +18153,7 @@
               case SimpleMemoComponent:
               case FunctionComponent:
               case ForwardRef2:
-              case Fragment2:
+              case Fragment:
               case Mode:
               case Profiler:
               case ContextConsumer:
@@ -22412,7 +22412,7 @@
             return fiber;
           }
           function createFiberFromFragment(elements, mode, lanes, key) {
-            var fiber = createFiber(Fragment2, elements, key, mode);
+            var fiber = createFiber(Fragment, elements, key, mode);
             fiber.lanes = lanes;
             return fiber;
           }
@@ -23570,7 +23570,7 @@
           return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React7 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React7.useSyncExternalStore, useRef2 = React7.useRef, useEffect3 = React7.useEffect, useMemo3 = React7.useMemo, useDebugValue2 = React7.useDebugValue;
+        var React8 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React8.useSyncExternalStore, useRef2 = React8.useRef, useEffect3 = React8.useEffect, useMemo3 = React8.useMemo, useDebugValue2 = React8.useDebugValue;
         exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
           var instRef = useRef2(null);
           if (null === instRef.current) {
@@ -26069,23 +26069,57 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     }
   });
 
+  // src/services/messagesIpcClient.ts
+  async function insertMessage(payload) {
+    if (!window.secureMessenger?.messages) {
+      throw new Error("Messages API not available");
+    }
+    return window.secureMessenger.messages.insertMessage(payload);
+  }
+  var init_messagesIpcClient = __esm({
+    "src/services/messagesIpcClient.ts"() {
+      "use strict";
+    }
+  });
+
   // src/app/slices/messagesSlice.ts
   var messagesSlice_exports = {};
   __export(messagesSlice_exports, {
     addMessage: () => addMessage,
     default: () => messagesSlice_default,
+    sendMessage: () => sendMessage,
     setMessagesForChat: () => setMessagesForChat
   });
-  var initialState3, messagesSlice, setMessagesForChat, addMessage, messagesSlice_default;
+  var initialState3, sendMessage, messagesSlice, setMessagesForChat, addMessage, messagesSlice_default;
   var init_messagesSlice = __esm({
     "src/app/slices/messagesSlice.ts"() {
       "use strict";
       init_redux_toolkit_modern();
+      init_messagesIpcClient();
       initialState3 = {
         byChatId: {},
         loading: false,
         error: null
       };
+      sendMessage = createAsyncThunk(
+        "messages/sendMessage",
+        async ({ chatId, content, sender }, { rejectWithValue }) => {
+          try {
+            const payload = { chat_id: chatId, sender, content };
+            const message = await insertMessage(payload);
+            return {
+              id: message.id,
+              chatId: message.chat_id,
+              sender: message.sender,
+              content: message.content,
+              timestamp: message.timestamp,
+              isOwn: sender === message.sender
+            };
+          } catch (e) {
+            return rejectWithValue(e instanceof Error ? e.message : "Failed to send message");
+          }
+        }
+      );
       messagesSlice = createSlice({
         name: "messages",
         initialState: initialState3,
@@ -26101,6 +26135,22 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
             }
             state.byChatId[chatId].push(action.payload);
           }
+        },
+        extraReducers: (builder) => {
+          builder.addCase(sendMessage.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+          }).addCase(sendMessage.fulfilled, (state, action) => {
+            state.loading = false;
+            const { chatId } = action.payload;
+            if (!state.byChatId[chatId]) {
+              state.byChatId[chatId] = [];
+            }
+            state.byChatId[chatId].push(action.payload);
+          }).addCase(sendMessage.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload ?? "Failed to send message";
+          });
         }
       });
       ({ setMessagesForChat, addMessage } = messagesSlice.actions);
@@ -26115,7 +26165,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       if (true) {
         (function() {
           "use strict";
-          var React7 = require_react();
+          var React8 = require_react();
           var REACT_ELEMENT_TYPE = Symbol.for("react.element");
           var REACT_PORTAL_TYPE = Symbol.for("react.portal");
           var REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
@@ -26141,7 +26191,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
             }
             return null;
           }
-          var ReactSharedInternals = React7.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React8.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           function error(format) {
             {
               {
@@ -26991,10 +27041,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
               return jsxWithValidation(type, props, key, false);
             }
           }
-          var jsx12 = jsxWithValidationDynamic;
+          var jsx13 = jsxWithValidationDynamic;
           var jsxs10 = jsxWithValidationStatic;
           exports.Fragment = REACT_FRAGMENT_TYPE;
-          exports.jsx = jsx12;
+          exports.jsx = jsx13;
           exports.jsxs = jsxs10;
         })();
       }
@@ -27014,7 +27064,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   });
 
   // src/index.tsx
-  var import_react5 = __toESM(require_react());
+  var import_react6 = __toESM(require_react());
   var import_client = __toESM(require_client());
 
   // node_modules/react-redux/dist/react-redux.mjs
@@ -27528,7 +27578,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   });
 
   // src/App.tsx
-  var import_react4 = __toESM(require_react());
+  var import_react5 = __toESM(require_react());
 
   // src/pages/Login.tsx
   var import_react = __toESM(require_react());
@@ -27608,18 +27658,43 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var Welcome_default = Welcome;
 
   // src/pages/Home.tsx
+  var import_react4 = __toESM(require_react());
+
+  // src/layouts/MainLayout.tsx
   var import_react3 = __toESM(require_react());
 
-  // src/components/ChatList.tsx
+  // src/components/Sidebar.tsx
   var import_jsx_runtime3 = __toESM(require_jsx_runtime());
+  var Sidebar = ({ items = [] }) => {
+    const defaultItems = [
+      { id: "chat", icon: "\u{1F4AC}", label: "Chat", active: true },
+      { id: "settings", icon: "\u2699\uFE0F", label: "Settings" }
+    ];
+    const sidebarItems = items.length ? items : defaultItems;
+    return /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("aside", { className: "sidebar", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("nav", { className: "sidebar-nav", role: "navigation", "aria-label": "Main", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("ul", { className: "sidebar-items", role: "list", children: sidebarItems.map((item) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("li", { children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+      "button",
+      {
+        type: "button",
+        className: `sidebar-item ${item.active ? "active" : ""}`,
+        onClick: item.onClick,
+        "aria-label": item.label,
+        title: item.label,
+        children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "sidebar-item-icon", "aria-hidden": true, children: item.icon })
+      }
+    ) }, item.id)) }) }) });
+  };
+  var Sidebar_default = Sidebar;
+
+  // src/components/ChatList.tsx
+  var import_jsx_runtime4 = __toESM(require_jsx_runtime());
   var ChatList = ({
     chats = [],
     selectedChatId,
     onSelectChat
   }) => {
-    return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "chat-list", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("header", { className: "chat-list-header", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("h2", { className: "chat-list-title", children: "Chats" }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("ul", { className: "chat-list-items", role: "list", children: chats.map((chat) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("li", { children: /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { className: "chat-list", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("header", { className: "chat-list-header", children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("h2", { className: "chat-list-title", children: "Chats" }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("ul", { className: "chat-list-items", role: "list", children: chats.map((chat) => /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("li", { children: /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(
         "button",
         {
           type: "button",
@@ -27627,14 +27702,14 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           onClick: () => onSelectChat?.(chat.id),
           "aria-selected": selectedChatId === chat.id,
           children: [
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "chat-item-name", children: chat.name }),
-            chat.lastMessage && /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "chat-item-last-message", children: chat.lastMessage }),
-            /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: "chat-item-meta", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "chat-item-time", children: new Date(chat.updatedAt).toLocaleTimeString([], {
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "chat-item-name", children: chat.name }),
+            chat.lastMessage && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "chat-item-last-message", children: chat.lastMessage }),
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { className: "chat-item-meta", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { className: "chat-item-time", children: new Date(chat.updatedAt).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit"
               }) }),
-              chat.unreadCount ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: "chat-item-unread", children: chat.unreadCount }) : null
+              chat.unreadCount ? /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { className: "chat-item-unread", children: chat.unreadCount }) : null
             ] })
           ]
         }
@@ -27644,45 +27719,34 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var ChatList_default = ChatList;
 
   // src/components/MessageList.tsx
-  var import_jsx_runtime4 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime5 = __toESM(require_jsx_runtime());
   var MessageList = ({
     chatId,
     messages = [],
     isLoading = false
   }) => {
     if (isLoading) {
-      return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "message-list-loading", children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { children: "Loading messages\u2026" }) });
+      return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: "message-list-loading", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { children: "Loading messages\u2026" }) });
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "message-list", children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("ul", { className: "message-list-items", role: "list", children: messages.map((msg) => /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: "message-list", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("ul", { className: "message-list-items", role: "list", children: messages.map((msg) => /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(
       "li",
       {
         className: `message-item ${msg.isOwn ? "own" : "other"}`,
         children: [
-          /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { className: "message-header", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { className: "message-sender", children: msg.sender }),
-            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { className: "message-time", children: new Date(msg.timestamp).toLocaleTimeString([], {
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "message-header", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { className: "message-sender", children: msg.sender }),
+            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { className: "message-time", children: new Date(msg.timestamp).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit"
             }) })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "message-content", children: msg.content })
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: "message-content", children: msg.content })
         ]
       },
       msg.id
     )) }) });
   };
   var MessageList_default = MessageList;
-
-  // src/components/EmptyState.tsx
-  var import_jsx_runtime5 = __toESM(require_jsx_runtime());
-  var EmptyState = () => {
-    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "empty-state", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: "empty-state-icon", "aria-hidden": true, children: "\u{1F4AC}" }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("h2", { className: "empty-state-title", children: "Select a chat to start messaging" }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("p", { className: "empty-state-subtitle", children: "Choose a conversation from the list to view and send messages." })
-    ] });
-  };
-  var EmptyState_default = EmptyState;
 
   // src/components/MessageComposer.tsx
   var import_react2 = __toESM(require_react());
@@ -27700,12 +27764,19 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       onSend?.(chatId, content.trim());
       setContent("");
     };
+    const handleKeyDown = (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSubmit(e);
+      }
+    };
     return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("form", { className: "message-composer", onSubmit: handleSubmit, children: [
       /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "message-composer-input-wrapper", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
         "textarea",
         {
           value: content,
           onChange: (e) => setContent(e.target.value),
+          onKeyDown: handleKeyDown,
           placeholder: "Type a message\u2026",
           disabled,
           rows: 1,
@@ -27726,57 +27797,91 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   };
   var MessageComposer_default = MessageComposer;
 
-  // src/components/ConnectionStatusBar.tsx
+  // src/components/EmptyState.tsx
   var import_jsx_runtime7 = __toESM(require_jsx_runtime());
-  var ConnectionStatusBar = ({
-    status = "offline"
-  }) => {
-    const statusInfo = {
-      online: { text: "Connected", className: "online" },
-      offline: { text: "Offline", className: "offline" },
-      reconnecting: { text: "Reconnecting\u2026", className: "reconnecting" }
-    }[status];
-    return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "connection-status-bar", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: `connection-status ${statusInfo.className}`, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "connection-status-dot", "aria-hidden": true }),
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "connection-status-text", children: statusInfo.text })
-    ] }) });
+  var EmptyState = () => {
+    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "empty-state", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "empty-state-icon", "aria-hidden": true, children: "\u{1F4AC}" }),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("h2", { className: "empty-state-title", children: "Select a chat to start messaging" }),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { className: "empty-state-subtitle", children: "Choose a conversation from the list to view and send messages." })
+    ] });
   };
-  var ConnectionStatusBar_default = ConnectionStatusBar;
+  var EmptyState_default = EmptyState;
+
+  // src/components/MessageThread.tsx
+  var import_jsx_runtime8 = __toESM(require_jsx_runtime());
+  var MessageThread = ({
+    chatId,
+    chatName,
+    messages = [],
+    isLoading = false,
+    onSendMessage
+  }) => {
+    if (!chatId) {
+      return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(EmptyState_default, {});
+    }
+    return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("main", { className: "message-thread", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("header", { className: "message-thread-header", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("h2", { className: "message-thread-title", children: chatName || "Chat" }),
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "message-thread-actions", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { className: "message-thread-action", "aria-label": "Search", title: "Search", children: "\u{1F50D}" }),
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { className: "message-thread-action", "aria-label": "Menu", title: "Menu", children: "\u22EF" })
+        ] })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(MessageList_default, { chatId, messages, isLoading }),
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(MessageComposer_default, { chatId, onSend: onSendMessage })
+    ] });
+  };
+  var MessageThread_default = MessageThread;
 
   // src/layouts/MainLayout.tsx
   init_chatsSlice();
-  var import_jsx_runtime8 = __toESM(require_jsx_runtime());
+  init_messagesSlice();
+  var import_jsx_runtime9 = __toESM(require_jsx_runtime());
   var MainLayout = () => {
     const dispatch = useDispatch();
     const selectedChatId = useSelector((s) => s.chats.selectedChatId);
     const chats = useSelector((s) => s.chats.items);
     const messagesByChat = useSelector((s) => s.messages.byChatId);
+    const user = useSelector((s) => s.auth.user);
     const handleSelectChat = (chatId) => {
       dispatch(selectChat(chatId));
     };
+    const selectedChat = chats.find((c) => c.id === selectedChatId);
     const selectedMessages = selectedChatId ? messagesByChat[selectedChatId] ?? [] : [];
-    return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "main-layout", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "main-layout-panes", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("aside", { className: "chat-list-pane", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
-          ChatList_default,
-          {
-            chats,
-            selectedChatId,
-            onSelectChat: handleSelectChat
-          }
-        ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("main", { className: "message-thread-pane", children: selectedChatId ? /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(import_jsx_runtime8.Fragment, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(MessageList_default, { chatId: selectedChatId, messages: selectedMessages }),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(MessageComposer_default, { chatId: selectedChatId })
-        ] }) : /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(EmptyState_default, {}) })
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("footer", { className: "connection-status-bar", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(ConnectionStatusBar_default, {}) })
-    ] });
+    const handleSendMessage = import_react3.default.useCallback(
+      (chatId, content) => {
+        if (!user?.username)
+          return;
+        dispatch(sendMessage({ chatId, content, sender: user.username }));
+      },
+      [dispatch, user?.username]
+    );
+    return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "main-layout", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "main-layout-panes", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Sidebar_default, {}),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("aside", { className: "chat-list-panel", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        ChatList_default,
+        {
+          chats,
+          selectedChatId,
+          onSelectChat: handleSelectChat
+        }
+      ) }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("section", { className: "message-thread-panel", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        MessageThread_default,
+        {
+          chatId: selectedChatId,
+          chatName: selectedChat?.name,
+          messages: selectedMessages,
+          onSendMessage: handleSendMessage
+        }
+      ) })
+    ] }) });
   };
   var MainLayout_default = MainLayout;
 
   // src/pages/Home.tsx
-  var import_jsx_runtime9 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime10 = __toESM(require_jsx_runtime());
   var Home = () => {
     const dispatch = useDispatch();
     const user = useSelector((s) => s.auth.user);
@@ -27801,7 +27906,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         { id: "m5", chatId: "3", sender: "Carol", content: "Meeting at 3pm", timestamp: Date.now() - 1e3 * 60 * 15 }
       ]
     };
-    import_react3.default.useEffect(() => {
+    import_react4.default.useEffect(() => {
       const { setChats: setChats2 } = (init_chatsSlice(), __toCommonJS(chatsSlice_exports));
       const { setMessagesForChat: setMessagesForChat2 } = (init_messagesSlice(), __toCommonJS(messagesSlice_exports));
       dispatch(setChats2(demoChats));
@@ -27809,42 +27914,42 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         dispatch(setMessagesForChat2({ chatId, messages }));
       });
     }, [dispatch]);
-    return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "home-container", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("header", { className: "home-header", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("h1", { children: "Secure Messenger Desktop" }),
-        user && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("span", { className: "home-user", children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "home-container", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("header", { className: "home-header", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("h1", { children: "Secure Messenger Desktop" }),
+        user && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { className: "home-user", children: [
           "Signed in as: ",
           user.username
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("button", { onClick: handleLogout, className: "home-logout", children: "Logout" })
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("button", { onClick: handleLogout, className: "home-logout", children: "Logout" })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(MainLayout_default, {})
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(MainLayout_default, {})
     ] });
   };
   var Home_default = Home;
 
   // src/App.tsx
-  var import_jsx_runtime10 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime11 = __toESM(require_jsx_runtime());
   var FIRST_LAUNCH_KEY = "smd.hasCompletedWelcome";
   var App = () => {
     const dispatch = useDispatch();
     const authStatus = useSelector((s) => s.auth.status);
     const authError = useSelector((s) => s.auth.error);
-    const initialFlag = (0, import_react4.useMemo)(
+    const initialFlag = (0, import_react5.useMemo)(
       () => typeof window !== "undefined" && window.localStorage.getItem(FIRST_LAUNCH_KEY) === "true",
       []
     );
-    const [hasCompletedWelcome, setHasCompletedWelcome] = (0, import_react4.useState)(initialFlag);
-    (0, import_react4.useEffect)(() => {
+    const [hasCompletedWelcome, setHasCompletedWelcome] = (0, import_react5.useState)(initialFlag);
+    (0, import_react5.useEffect)(() => {
       void dispatch(checkSession());
     }, [dispatch]);
-    const handleLogin = (0, import_react4.useCallback)(
+    const handleLogin = (0, import_react5.useCallback)(
       (username) => {
         void dispatch(login({ username }));
       },
       [dispatch]
     );
-    const handleWelcomeContinue = (0, import_react4.useCallback)(() => {
+    const handleWelcomeContinue = (0, import_react5.useCallback)(() => {
       try {
         window.localStorage.setItem(FIRST_LAUNCH_KEY, "true");
         setHasCompletedWelcome(true);
@@ -27853,26 +27958,26 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     }, []);
     if (authStatus === "authenticated") {
       if (!hasCompletedWelcome) {
-        return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Welcome_default, { isLoading: false, onContinue: handleWelcomeContinue });
+        return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(Welcome_default, { isLoading: false, onContinue: handleWelcomeContinue });
       }
-      return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Home_default, {});
+      return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(Home_default, {});
     }
     if (authStatus === "idle") {
-      return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style: { padding: 24 }, children: "Loading\u2026" });
+      return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { padding: 24 }, children: "Loading\u2026" });
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Login_default, { isLoading: false, error: authError, onLogin: handleLogin });
+    return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(Login_default, { isLoading: false, error: authError, onLogin: handleLogin });
   };
   var App_default = App;
 
   // src/index.tsx
-  var import_jsx_runtime11 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime12 = __toESM(require_jsx_runtime());
   var container = document.getElementById("root");
   if (!container) {
     throw new Error("Root element #root not found");
   }
   var root = (0, import_client.createRoot)(container);
   root.render(
-    /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(import_react5.default.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(Provider_default, { store, children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(App_default, {}) }) })
+    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(import_react6.default.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Provider_default, { store, children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(App_default, {}) }) })
   );
 })();
 /*! Bundled license information:

@@ -27,7 +27,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 
 // electron/main.ts
-var import_electron2 = require("electron");
+var import_electron3 = require("electron");
 var import_node_path2 = __toESM(require("node:path"));
 
 // src/domains/auth/auth.types.ts
@@ -4129,12 +4129,12 @@ async function startNewSession(displayName) {
 }
 
 // src/domains/auth/auth.ipc.ts
-function registerAuthIpcHandlers(ipcMain2) {
-  ipcMain2.handle(AUTH_IPC_CHANNELS.getSession, async () => {
+function registerAuthIpcHandlers(ipcMain3) {
+  ipcMain3.handle(AUTH_IPC_CHANNELS.getSession, async () => {
     const session = await loadSession();
     return GetSessionResponseSchema.parse({ session });
   });
-  ipcMain2.handle(
+  ipcMain3.handle(
     AUTH_IPC_CHANNELS.startSession,
     async (_event, rawPayload) => {
       const payload = StartSessionInputSchema.parse(rawPayload);
@@ -4144,11 +4144,61 @@ function registerAuthIpcHandlers(ipcMain2) {
   );
 }
 
+// src/domains/messages/messages.ipc.ts
+var import_electron2 = require("electron");
+
+// src/domains/messages/messages.types.ts
+var MESSAGES_IPC_CHANNELS = {
+  INSERT_MESSAGE: "smd:messages:insert",
+  LIST_MESSAGES: "smd:messages:list"
+};
+
+// src/domains/messages/messages.service.ts
+async function insertMessage(payload) {
+  const message = {
+    id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    chat_id: payload.chat_id,
+    sender: payload.sender,
+    content: payload.content,
+    timestamp: Date.now()
+  };
+  return message;
+}
+async function listMessages(chatId) {
+  return [];
+}
+
+// src/domains/messages/messages.ipc.ts
+var InsertMessageSchema = external_exports.object({
+  chat_id: external_exports.string(),
+  sender: external_exports.string(),
+  content: external_exports.string().min(1)
+});
+var ListMessagesSchema = external_exports.object({
+  chat_id: external_exports.string()
+});
+function registerMessageIpc() {
+  import_electron2.ipcMain.handle(MESSAGES_IPC_CHANNELS.INSERT_MESSAGE, async (_event, raw) => {
+    const parsed = InsertMessageSchema.safeParse(raw);
+    if (!parsed.success) {
+      throw new Error("Invalid insertMessage payload");
+    }
+    return await insertMessage(parsed.data);
+  });
+  import_electron2.ipcMain.handle(MESSAGES_IPC_CHANNELS.LIST_MESSAGES, async (_event, raw) => {
+    const parsed = ListMessagesSchema.safeParse(raw);
+    if (!parsed.success) {
+      throw new Error("Invalid listMessages payload");
+    }
+    return await listMessages(parsed.data.chat_id);
+  });
+}
+
 // electron/main.ts
 function createMainWindow() {
-  const mainWindow = new import_electron2.BrowserWindow({
-    width: 1024,
-    height: 720,
+  const mainWindow = new import_electron3.BrowserWindow({
+    width: 1200,
+    height: 800,
     webPreferences: {
       preload: import_node_path2.default.join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -4156,21 +4206,22 @@ function createMainWindow() {
     }
   });
   mainWindow.loadFile(import_node_path2.default.join(__dirname, "..", "src", "index.html"));
-  if (!import_electron2.app.isPackaged) {
+  if (!import_electron3.app.isPackaged) {
     mainWindow.webContents.openDevTools();
   }
 }
-import_electron2.app.whenReady().then(() => {
-  registerAuthIpcHandlers(import_electron2.ipcMain);
+import_electron3.app.whenReady().then(() => {
+  registerAuthIpcHandlers(import_electron3.ipcMain);
+  registerMessageIpc();
   createMainWindow();
-  import_electron2.app.on("activate", () => {
-    if (import_electron2.BrowserWindow.getAllWindows().length === 0) {
+  import_electron3.app.on("activate", () => {
+    if (import_electron3.BrowserWindow.getAllWindows().length === 0) {
       createMainWindow();
     }
   });
 });
-import_electron2.app.on("window-all-closed", () => {
+import_electron3.app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
-    import_electron2.app.quit();
+    import_electron3.app.quit();
   }
 });

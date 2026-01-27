@@ -26,21 +26,72 @@ body {
   min-height: 100vh;
 }
 
-/* Main Layout */
+/* Main Layout — 3-Column Teams Style */
 .main-layout {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  background: var(--color-gray-light);
 }
 
 .main-layout-panes {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 60px 320px 1fr;
   flex: 1;
   overflow: hidden;
 }
 
-.chat-list-pane {
+/* Sidebar */
+.sidebar {
+  background: #2c2c2c;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #444;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 0;
+}
+
+.sidebar-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-item {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-item.active {
+  background: var(--color-primary);
+}
+
+.sidebar-item-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Chat List Panel */
+.chat-list-panel {
   background: #fff;
   border-right: 1px solid var(--border-color);
   display: flex;
@@ -48,17 +99,47 @@ body {
   overflow: hidden;
 }
 
-.message-thread-pane {
+/* Message Thread Panel */
+.message-thread-panel {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: #fff;
 }
 
-.connection-status-bar {
-  background: #fff;
-  border-top: 1px solid var(--border-color);
-  padding: 4px 16px;
+.message-thread-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
+}
+
+.message-thread-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+
+.message-thread-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.message-thread-action {
+  background: none;
+  border: none;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
+}
+
+.message-thread-action:hover {
+  background: var(--color-gray-light);
 }
 
 /* Chat List */
