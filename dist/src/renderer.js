@@ -1108,7 +1108,7 @@
             var dispatcher = resolveDispatcher();
             return dispatcher.useReducer(reducer, initialArg, init);
           }
-          function useRef5(initialValue) {
+          function useRef6(initialValue) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useRef(initialValue);
           }
@@ -1128,7 +1128,7 @@
             var dispatcher = resolveDispatcher();
             return dispatcher.useCallback(callback, deps);
           }
-          function useMemo7(create, deps) {
+          function useMemo8(create, deps) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useMemo(create, deps);
           }
@@ -1900,9 +1900,9 @@
           exports.useImperativeHandle = useImperativeHandle;
           exports.useInsertionEffect = useInsertionEffect3;
           exports.useLayoutEffect = useLayoutEffect3;
-          exports.useMemo = useMemo7;
+          exports.useMemo = useMemo8;
           exports.useReducer = useReducer;
-          exports.useRef = useRef5;
+          exports.useRef = useRef6;
           exports.useState = useState5;
           exports.useSyncExternalStore = useSyncExternalStore2;
           exports.useTransition = useTransition;
@@ -2399,9 +2399,9 @@
           if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === "function") {
             __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(new Error());
           }
-          var React9 = require_react();
+          var React10 = require_react();
           var Scheduler = require_scheduler();
-          var ReactSharedInternals = React9.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React10.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           var suppressWarning = false;
           function setSuppressWarning(newSuppressWarning) {
             {
@@ -4006,7 +4006,7 @@
             {
               if (props.value == null) {
                 if (typeof props.children === "object" && props.children !== null) {
-                  React9.Children.forEach(props.children, function(child) {
+                  React10.Children.forEach(props.children, function(child) {
                     if (child == null) {
                       return;
                     }
@@ -23577,15 +23577,15 @@
           return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React9 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React9.useSyncExternalStore, useRef5 = React9.useRef, useEffect7 = React9.useEffect, useMemo7 = React9.useMemo, useDebugValue2 = React9.useDebugValue;
+        var React10 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React10.useSyncExternalStore, useRef6 = React10.useRef, useEffect7 = React10.useEffect, useMemo8 = React10.useMemo, useDebugValue2 = React10.useDebugValue;
         exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
-          var instRef = useRef5(null);
+          var instRef = useRef6(null);
           if (null === instRef.current) {
             var inst = { hasValue: false, value: null };
             instRef.current = inst;
           } else
             inst = instRef.current;
-          instRef = useMemo7(
+          instRef = useMemo8(
             function() {
               function memoizedSelector(nextSnapshot) {
                 if (!hasMemo) {
@@ -26172,7 +26172,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       if (true) {
         (function() {
           "use strict";
-          var React9 = require_react();
+          var React10 = require_react();
           var REACT_ELEMENT_TYPE = Symbol.for("react.element");
           var REACT_PORTAL_TYPE = Symbol.for("react.portal");
           var REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
@@ -26198,7 +26198,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
             }
             return null;
           }
-          var ReactSharedInternals = React9.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React10.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           function error(format) {
             {
               {
@@ -27049,10 +27049,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
             }
           }
           var jsx16 = jsxWithValidationDynamic;
-          var jsxs12 = jsxWithValidationStatic;
+          var jsxs13 = jsxWithValidationStatic;
           exports.Fragment = REACT_FRAGMENT_TYPE;
           exports.jsx = jsx16;
-          exports.jsxs = jsxs12;
+          exports.jsxs = jsxs13;
         })();
       }
     }
@@ -27071,7 +27071,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   });
 
   // src/index.tsx
-  var import_react29 = __toESM(require_react());
+  var import_react30 = __toESM(require_react());
   var import_client = __toESM(require_client());
 
   // node_modules/react-redux/dist/react-redux.mjs
@@ -27585,7 +27585,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   });
 
   // src/App.tsx
-  var import_react28 = __toESM(require_react());
+  var import_react29 = __toESM(require_react());
 
   // src/pages/Login.tsx
   var import_react22 = __toESM(require_react());
@@ -35752,30 +35752,34 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   ];
   var Eye = createLucideIcon("eye", __iconNode5);
 
+  // node_modules/lucide-react/dist/esm/icons/loader-circle.js
+  var __iconNode6 = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
+  var LoaderCircle = createLucideIcon("loader-circle", __iconNode6);
+
   // node_modules/lucide-react/dist/esm/icons/lock.js
-  var __iconNode6 = [
+  var __iconNode7 = [
     ["rect", { width: "18", height: "11", x: "3", y: "11", rx: "2", ry: "2", key: "1w4ew1" }],
     ["path", { d: "M7 11V7a5 5 0 0 1 10 0v4", key: "fwvmzm" }]
   ];
-  var Lock = createLucideIcon("lock", __iconNode6);
+  var Lock = createLucideIcon("lock", __iconNode7);
 
   // node_modules/lucide-react/dist/esm/icons/log-out.js
-  var __iconNode7 = [
+  var __iconNode8 = [
     ["path", { d: "m16 17 5-5-5-5", key: "1bji2h" }],
     ["path", { d: "M21 12H9", key: "dn1m92" }],
     ["path", { d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4", key: "1uf3rs" }]
   ];
-  var LogOut = createLucideIcon("log-out", __iconNode7);
+  var LogOut = createLucideIcon("log-out", __iconNode8);
 
   // node_modules/lucide-react/dist/esm/icons/mail.js
-  var __iconNode8 = [
+  var __iconNode9 = [
     ["path", { d: "m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7", key: "132q7q" }],
     ["rect", { x: "2", y: "4", width: "20", height: "16", rx: "2", key: "izxlao" }]
   ];
-  var Mail = createLucideIcon("mail", __iconNode8);
+  var Mail = createLucideIcon("mail", __iconNode9);
 
   // node_modules/lucide-react/dist/esm/icons/message-circle.js
-  var __iconNode9 = [
+  var __iconNode10 = [
     [
       "path",
       {
@@ -35784,10 +35788,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var MessageCircle = createLucideIcon("message-circle", __iconNode9);
+  var MessageCircle = createLucideIcon("message-circle", __iconNode10);
 
   // node_modules/lucide-react/dist/esm/icons/message-square.js
-  var __iconNode10 = [
+  var __iconNode11 = [
     [
       "path",
       {
@@ -35796,17 +35800,54 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var MessageSquare = createLucideIcon("message-square", __iconNode10);
+  var MessageSquare = createLucideIcon("message-square", __iconNode11);
+
+  // node_modules/lucide-react/dist/esm/icons/paperclip.js
+  var __iconNode12 = [
+    [
+      "path",
+      {
+        d: "m16 6-8.414 8.586a2 2 0 0 0 2.829 2.829l8.414-8.586a4 4 0 1 0-5.657-5.657l-8.379 8.551a6 6 0 1 0 8.485 8.485l8.379-8.551",
+        key: "1miecu"
+      }
+    ]
+  ];
+  var Paperclip = createLucideIcon("paperclip", __iconNode12);
+
+  // node_modules/lucide-react/dist/esm/icons/phone.js
+  var __iconNode13 = [
+    [
+      "path",
+      {
+        d: "M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384",
+        key: "9njp5v"
+      }
+    ]
+  ];
+  var Phone = createLucideIcon("phone", __iconNode13);
 
   // node_modules/lucide-react/dist/esm/icons/search.js
-  var __iconNode11 = [
+  var __iconNode14 = [
     ["path", { d: "m21 21-4.34-4.34", key: "14j7rj" }],
     ["circle", { cx: "11", cy: "11", r: "8", key: "4ej97u" }]
   ];
-  var Search = createLucideIcon("search", __iconNode11);
+  var Search = createLucideIcon("search", __iconNode14);
+
+  // node_modules/lucide-react/dist/esm/icons/send.js
+  var __iconNode15 = [
+    [
+      "path",
+      {
+        d: "M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z",
+        key: "1ffxy3"
+      }
+    ],
+    ["path", { d: "m21.854 2.147-10.94 10.939", key: "12cjpa" }]
+  ];
+  var Send = createLucideIcon("send", __iconNode15);
 
   // node_modules/lucide-react/dist/esm/icons/settings.js
-  var __iconNode12 = [
+  var __iconNode16 = [
     [
       "path",
       {
@@ -35816,14 +35857,57 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
   ];
-  var Settings = createLucideIcon("settings", __iconNode12);
+  var Settings = createLucideIcon("settings", __iconNode16);
+
+  // node_modules/lucide-react/dist/esm/icons/smile.js
+  var __iconNode17 = [
+    ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
+    ["path", { d: "M8 14s1.5 2 4 2 4-2 4-2", key: "1y1vjs" }],
+    ["line", { x1: "9", x2: "9.01", y1: "9", y2: "9", key: "yxxnd0" }],
+    ["line", { x1: "15", x2: "15.01", y1: "9", y2: "9", key: "1p4y9e" }]
+  ];
+  var Smile = createLucideIcon("smile", __iconNode17);
 
   // node_modules/lucide-react/dist/esm/icons/user.js
-  var __iconNode13 = [
+  var __iconNode18 = [
     ["path", { d: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2", key: "975kel" }],
     ["circle", { cx: "12", cy: "7", r: "4", key: "17ys0d" }]
   ];
-  var User = createLucideIcon("user", __iconNode13);
+  var User = createLucideIcon("user", __iconNode18);
+
+  // node_modules/lucide-react/dist/esm/icons/video.js
+  var __iconNode19 = [
+    [
+      "path",
+      {
+        d: "m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5",
+        key: "ftymec"
+      }
+    ],
+    ["rect", { x: "2", y: "6", width: "14", height: "12", rx: "2", key: "158x01" }]
+  ];
+  var Video = createLucideIcon("video", __iconNode19);
+
+  // node_modules/lucide-react/dist/esm/icons/wifi-off.js
+  var __iconNode20 = [
+    ["path", { d: "M12 20h.01", key: "zekei9" }],
+    ["path", { d: "M8.5 16.429a5 5 0 0 1 7 0", key: "1bycff" }],
+    ["path", { d: "M5 12.859a10 10 0 0 1 5.17-2.69", key: "1dl1wf" }],
+    ["path", { d: "M19 12.859a10 10 0 0 0-2.007-1.523", key: "4k23kn" }],
+    ["path", { d: "M2 8.82a15 15 0 0 1 4.177-2.643", key: "1grhjp" }],
+    ["path", { d: "M22 8.82a15 15 0 0 0-11.288-3.764", key: "z3jwby" }],
+    ["path", { d: "m2 2 20 20", key: "1ooewy" }]
+  ];
+  var WifiOff = createLucideIcon("wifi-off", __iconNode20);
+
+  // node_modules/lucide-react/dist/esm/icons/wifi.js
+  var __iconNode21 = [
+    ["path", { d: "M12 20h.01", key: "zekei9" }],
+    ["path", { d: "M2 8.82a15 15 0 0 1 20 0", key: "dnpr2z" }],
+    ["path", { d: "M5 12.859a10 10 0 0 1 14 0", key: "1x1e6c" }],
+    ["path", { d: "M8.5 16.429a5 5 0 0 1 7 0", key: "1bycff" }]
+  ];
+  var Wifi = createLucideIcon("wifi", __iconNode21);
 
   // src/pages/Login.tsx
   var import_jsx_runtime3 = __toESM(require_jsx_runtime());
@@ -36036,111 +36120,157 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var Welcome_default = Welcome;
 
   // src/pages/Home.tsx
-  var import_react27 = __toESM(require_react());
+  var import_react28 = __toESM(require_react());
 
   // src/layouts/MainLayout.tsx
-  var import_react24 = __toESM(require_react());
+  var import_react25 = __toESM(require_react());
 
   // src/components/Sidebar.tsx
   var import_jsx_runtime5 = __toESM(require_jsx_runtime());
   var Sidebar = ({ items = [] }) => {
+    const user = useSelector((s) => s.auth.user);
+    const connectionStatus = "connected";
     const defaultItems = [
       { id: "chat", icon: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(MessageSquare, { size: 20 }), label: "Chat", active: true },
       { id: "settings", icon: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Settings, { size: 20 }), label: "Settings" }
     ];
     const sidebarItems = items.length ? items : defaultItems;
-    return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("aside", { className: "sidebar", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("nav", { className: "sidebar-nav", role: "navigation", "aria-label": "Main", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("ul", { className: "sidebar-items", role: "list", children: sidebarItems.map((item) => /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("li", { children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
-      "button",
-      {
-        type: "button",
-        className: `sidebar-item ${item.active ? "active" : ""}`,
-        onClick: item.onClick,
-        "aria-label": item.label,
-        title: item.label,
-        children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { className: "sidebar-item-icon", "aria-hidden": true, children: item.icon })
+    const getConnectionIcon = () => {
+      switch (connectionStatus) {
+        case "connected":
+          return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Wifi, { size: 16, className: "text-green-500" });
+        case "reconnecting":
+          return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(LoaderCircle, { size: 16, className: "text-yellow-500 animate-spin" });
+        case "offline":
+          return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(WifiOff, { size: 16, className: "text-red-500" });
+        default:
+          return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(WifiOff, { size: 16, className: "text-gray-400" });
       }
-    ) }, item.id)) }) }) });
+    };
+    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("aside", { className: "w-16 bg-secondary flex flex-col items-center py-4", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: "mb-8", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: "w-10 h-10 bg-primary rounded-xl flex items-center justify-center", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(MessageSquare, { size: 24, className: "text-white" }) }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("nav", { className: "flex-1", role: "navigation", "aria-label": "Main", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("ul", { className: "space-y-2", role: "list", children: sidebarItems.map((item) => /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("li", { children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+        "button",
+        {
+          type: "button",
+          className: `w-12 h-12 rounded-lg flex items-center justify-center transition-all ${item.active ? "bg-primary text-white shadow-md" : "text-gray-400 hover:text-white hover:bg-white/10"}`,
+          onClick: item.onClick,
+          "aria-label": item.label,
+          title: item.label,
+          children: item.icon
+        }
+      ) }, item.id)) }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: "mb-4 flex items-center justify-center", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+        "div",
+        {
+          className: "w-8 h-8 rounded-full bg-gray-800/50 flex items-center justify-center",
+          title: `Connection: ${connectionStatus}`,
+          children: getConnectionIcon()
+        }
+      ) }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: "flex items-center justify-center", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+        "div",
+        {
+          className: "w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-white font-semibold text-sm",
+          title: user?.username || "Guest",
+          children: user?.username?.charAt(0).toUpperCase() || /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(User, { size: 20 })
+        }
+      ) })
+    ] });
   };
   var Sidebar_default = Sidebar;
 
   // src/components/ChatList.tsx
+  var import_react23 = __toESM(require_react());
+
+  // src/components/ChatItem.tsx
   var import_jsx_runtime6 = __toESM(require_jsx_runtime());
+  var ChatItem = ({ chat, isSelected = false, onClick }) => {
+    const formatTime = (timestamp) => {
+      const date = new Date(timestamp);
+      const now2 = /* @__PURE__ */ new Date();
+      const diffMs = now2.getTime() - date.getTime();
+      const diffDays = Math.floor(diffMs / (1e3 * 60 * 60 * 24));
+      if (diffDays === 0) {
+        return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      } else if (diffDays === 1) {
+        return "Yesterday";
+      } else if (diffDays < 7) {
+        return date.toLocaleDateString([], { weekday: "short" });
+      } else {
+        return date.toLocaleDateString([], { month: "short", day: "numeric" });
+      }
+    };
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(
+      "button",
+      {
+        type: "button",
+        onClick,
+        className: `w-full px-4 py-3 flex items-start space-x-3 transition-colors ${isSelected ? "bg-gray-light border-l-4 border-primary" : "hover:bg-gray-50 border-l-4 border-transparent"}`,
+        "aria-selected": isSelected,
+        children: [
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "flex-shrink-0", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-white font-semibold", children: chat.name.charAt(0).toUpperCase() }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "flex-1 min-w-0 text-left", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "flex items-center justify-between mb-1", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("h3", { className: `text-sm font-medium truncate ${isSelected ? "text-secondary" : "text-gray-900"}`, children: chat.name }),
+              /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: `text-xs ${isSelected ? "text-primary" : "text-gray-500"}`, children: formatTime(chat.updatedAt) })
+            ] }),
+            chat.lastMessage && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("p", { className: `text-sm truncate ${isSelected ? "text-gray-700" : "text-gray-600"}`, children: chat.lastMessage })
+          ] }),
+          chat.unreadCount && chat.unreadCount > 0 && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "flex-shrink-0", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-primary rounded-full", children: chat.unreadCount > 99 ? "99+" : chat.unreadCount }) })
+        ]
+      }
+    );
+  };
+  var ChatItem_default = ChatItem;
+
+  // src/components/ChatList.tsx
+  var import_jsx_runtime7 = __toESM(require_jsx_runtime());
   var ChatList = ({
     chats = [],
     selectedChatId,
     onSelectChat
   }) => {
-    return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "chat-list", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("header", { className: "chat-list-header", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("h2", { className: "chat-list-title", children: "Chats" }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("ul", { className: "chat-list-items", role: "list", children: chats.map((chat) => /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("li", { children: /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(
-        "button",
+    const sortedChats = (0, import_react23.useMemo)(
+      () => [...chats].sort((a, b) => b.updatedAt - a.updatedAt),
+      [chats]
+    );
+    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "flex flex-col h-full", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("header", { className: "px-4 py-3 border-b border-gray-200 bg-white", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("h2", { className: "text-lg font-semibold text-secondary", children: "Chats" }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "flex-1 overflow-y-auto", children: sortedChats.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "flex items-center justify-center h-full text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "text-center", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { className: "text-sm", children: "No chats yet" }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { className: "text-xs mt-1", children: "Start a conversation to see it here" })
+      ] }) }) : /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("ul", { className: "divide-y divide-gray-100", children: sortedChats.map((chat) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("li", { children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+        ChatItem_default,
         {
-          type: "button",
-          className: `chat-list-item ${selectedChatId === chat.id ? "selected" : ""}`,
-          onClick: () => onSelectChat?.(chat.id),
-          "aria-selected": selectedChatId === chat.id,
-          children: [
-            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "chat-item-name", children: chat.name }),
-            chat.lastMessage && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "chat-item-last-message", children: chat.lastMessage }),
-            /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "chat-item-meta", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "chat-item-time", children: new Date(chat.updatedAt).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit"
-              }) }),
-              chat.unreadCount ? /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "chat-item-unread", children: chat.unreadCount }) : null
-            ] })
-          ]
+          chat,
+          isSelected: selectedChatId === chat.id,
+          onClick: () => onSelectChat?.(chat.id)
         }
-      ) }, chat.id)) })
+      ) }, chat.id)) }) })
     ] });
   };
   var ChatList_default = ChatList;
 
-  // src/components/MessageList.tsx
-  var import_jsx_runtime7 = __toESM(require_jsx_runtime());
-  var MessageList = ({
-    chatId,
-    messages = [],
-    isLoading = false
-  }) => {
-    if (isLoading) {
-      return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "message-list-loading", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { children: "Loading messages\u2026" }) });
-    }
-    return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "message-list", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("ul", { className: "message-list-items", role: "list", children: messages.map((msg) => /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(
-      "li",
-      {
-        className: `message-item ${msg.isOwn ? "own" : "other"}`,
-        children: [
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "message-header", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "message-sender", children: msg.sender }),
-            /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "message-time", children: new Date(msg.timestamp).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit"
-            }) })
-          ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "message-content", children: msg.content })
-        ]
-      },
-      msg.id
-    )) }) });
-  };
-  var MessageList_default = MessageList;
-
   // src/components/MessageComposer.tsx
-  var import_react23 = __toESM(require_react());
+  var import_react24 = __toESM(require_react());
   var import_jsx_runtime8 = __toESM(require_jsx_runtime());
   var MessageComposer = ({
     chatId,
     onSend,
     disabled = false
   }) => {
-    const [content, setContent] = (0, import_react23.useState)("");
+    const [content, setContent] = (0, import_react24.useState)("");
+    const textareaRef = (0, import_react24.useRef)(null);
     const handleSubmit = (e) => {
       e.preventDefault();
       if (!content.trim() || disabled)
         return;
       onSend?.(chatId, content.trim());
       setContent("");
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
+      }
     };
     const handleKeyDown = (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
@@ -36148,30 +36278,65 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         handleSubmit(e);
       }
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("form", { className: "message-composer", onSubmit: handleSubmit, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "message-composer-input-wrapper", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+    const handleInputChange = (e) => {
+      setContent(e.target.value);
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
+        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+      }
+    };
+    return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "px-6 py-4 border-t border-gray-200 bg-white", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("form", { onSubmit: handleSubmit, className: "flex items-end space-x-2", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+        "button",
+        {
+          type: "button",
+          disabled,
+          className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+          "aria-label": "Attach file",
+          title: "Attach file",
+          children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Paperclip, { size: 20 })
+        }
+      ),
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "flex-1 relative", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
         "textarea",
         {
+          ref: textareaRef,
           value: content,
-          onChange: (e) => setContent(e.target.value),
+          onChange: handleInputChange,
           onKeyDown: handleKeyDown,
-          placeholder: "Type a message\u2026",
+          placeholder: "Type a message...",
           disabled,
           rows: 1,
-          className: "message-composer-input"
+          className: "w-full px-4 py-2 bg-gray-light border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all",
+          style: {
+            minHeight: "40px",
+            maxHeight: "120px"
+          }
         }
       ) }),
       /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
         "button",
         {
+          type: "button",
+          disabled,
+          className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+          "aria-label": "Add emoji",
+          title: "Add emoji",
+          children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Smile, { size: 20 })
+        }
+      ),
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+        "button",
+        {
           type: "submit",
           disabled: !content.trim() || disabled,
-          className: "message-composer-send",
+          className: "p-2 bg-primary text-white rounded-lg hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all",
           "aria-label": "Send message",
-          children: "Send"
+          title: "Send message (Enter)",
+          children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Send, { size: 20 })
         }
       )
-    ] });
+    ] }) });
   };
   var MessageComposer_default = MessageComposer;
 
@@ -36198,15 +36363,83 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     if (!chatId) {
       return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(EmptyState_default, {});
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("main", { className: "message-thread", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("header", { className: "message-thread-header", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("h2", { className: "message-thread-title", children: chatName || "Chat" }),
-        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "message-thread-actions", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("button", { className: "message-thread-action", "aria-label": "Search", title: "Search", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Search, { size: 18 }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("button", { className: "message-thread-action", "aria-label": "Menu", title: "Menu", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(EllipsisVertical, { size: 18 }) })
+    return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("main", { className: "flex flex-col h-full bg-white", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("header", { className: "px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-white", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "flex items-center space-x-3", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-white font-semibold", children: chatName?.charAt(0).toUpperCase() }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("h2", { className: "text-lg font-semibold text-secondary", children: chatName || "Chat" }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-xs text-gray-500", children: "Active now" })
+          ] })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "flex items-center space-x-2", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+            "button",
+            {
+              className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
+              "aria-label": "Voice call",
+              title: "Voice call",
+              children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Phone, { size: 18 })
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+            "button",
+            {
+              className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
+              "aria-label": "Video call",
+              title: "Video call",
+              children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Video, { size: 18 })
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+            "button",
+            {
+              className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
+              "aria-label": "Search",
+              title: "Search",
+              children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Search, { size: 18 })
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+            "button",
+            {
+              className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
+              "aria-label": "More options",
+              title: "More options",
+              children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(EllipsisVertical, { size: 18 })
+            }
+          )
         ] })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(MessageList_default, { chatId, messages, isLoading }),
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "flex-1 overflow-y-auto px-6 py-4 space-y-4", children: messages.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "flex items-center justify-center h-full text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "text-center", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-sm", children: "No messages yet" }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-xs mt-1", children: "Start the conversation" })
+      ] }) }) : messages.map((message) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+        "div",
+        {
+          className: `flex ${message.sender === "You" ? "justify-end" : "justify-start"}`,
+          children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
+            "div",
+            {
+              className: `max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.sender === "You" ? "bg-primary text-white" : "bg-gray-100 text-gray-900"}`,
+              children: [
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-sm", children: message.content }),
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+                  "p",
+                  {
+                    className: `text-xs mt-1 ${message.sender === "You" ? "text-orange-100" : "text-gray-500"}`,
+                    children: new Date(message.timestamp).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit"
+                    })
+                  }
+                )
+              ]
+            }
+          )
+        },
+        message.id
+      )) }),
       /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(MessageComposer_default, { chatId, onSend: onSendMessage })
     ] });
   };
@@ -36222,12 +36455,15 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const chats = useSelector((s) => s.chats.items);
     const messagesByChat = useSelector((s) => s.messages.byChatId);
     const user = useSelector((s) => s.auth.user);
-    const handleSelectChat = (chatId) => {
-      dispatch(selectChat(chatId));
-    };
+    const handleSelectChat = import_react25.default.useCallback(
+      (chatId) => {
+        dispatch(selectChat(chatId));
+      },
+      [dispatch]
+    );
     const selectedChat = chats.find((c) => c.id === selectedChatId);
     const selectedMessages = selectedChatId ? messagesByChat[selectedChatId] ?? [] : [];
-    const handleSendMessage = import_react24.default.useCallback(
+    const handleSendMessage = import_react25.default.useCallback(
       (chatId, content) => {
         if (!user?.username)
           return;
@@ -36235,9 +36471,9 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       },
       [dispatch, user?.username]
     );
-    return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "main-layout", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "main-layout-panes", children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "flex h-screen bg-gray-light", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "flex flex-1", children: [
       /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(Sidebar_default, {}),
-      /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("aside", { className: "chat-list-panel", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("aside", { className: "w-80 bg-white border-r border-gray-200 flex flex-col", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
         ChatList_default,
         {
           chats,
@@ -36245,7 +36481,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           onSelectChat: handleSelectChat
         }
       ) }),
-      /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("section", { className: "message-thread-panel", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("section", { className: "flex-1 flex flex-col bg-white", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
         MessageThread_default,
         {
           chatId: selectedChatId,
@@ -36259,12 +36495,12 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var MainLayout_default = MainLayout;
 
   // src/components/TopNavbar.tsx
-  var import_react25 = __toESM(require_react());
+  var import_react26 = __toESM(require_react());
   var import_jsx_runtime12 = __toESM(require_jsx_runtime());
   var TopNavbar = () => {
     const dispatch = useDispatch();
     const user = useSelector((s) => s.auth.user);
-    const [dropdownOpen, setDropdownOpen] = (0, import_react25.useState)(false);
+    const [dropdownOpen, setDropdownOpen] = (0, import_react26.useState)(false);
     const handleLogout = () => {
       setDropdownOpen(false);
       void dispatch(logout());
@@ -36313,11 +36549,11 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var TopNavbar_default = TopNavbar;
 
   // src/hooks/useKeyboardShortcuts.ts
-  var import_react26 = __toESM(require_react());
+  var import_react27 = __toESM(require_react());
   init_chatsSlice();
   function useKeyboardShortcuts(shortcuts) {
     const dispatch = useDispatch();
-    (0, import_react26.useEffect)(() => {
+    (0, import_react27.useEffect)(() => {
       const handleKeyDown = (event) => {
         for (const shortcut of shortcuts) {
           const {
@@ -36379,7 +36615,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const demoMessagesByChat = {
       "1": [
         { id: "m1", chatId: "1", sender: "Alice", content: "Hey, are you free later?", timestamp: Date.now() - 1e3 * 60 * 10 },
-        { id: "m2", chatId: "1", sender: "You", content: "Sure, what\u2019s up?", timestamp: Date.now() - 1e3 * 60 * 8 },
+        { id: "m2", chatId: "1", sender: "You", content: "Sure, what's up?", timestamp: Date.now() - 1e3 * 60 * 8 },
         { id: "m3", chatId: "1", sender: "Alice", content: "See you tomorrow!", timestamp: Date.now() - 1e3 * 60 }
       ],
       "2": [
@@ -36389,7 +36625,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         { id: "m5", chatId: "3", sender: "Carol", content: "Meeting at 3pm", timestamp: Date.now() - 1e3 * 60 * 15 }
       ]
     };
-    import_react27.default.useEffect(() => {
+    import_react28.default.useEffect(() => {
       const { setChats: setChats2 } = (init_chatsSlice(), __toCommonJS(chatsSlice_exports));
       const { setMessagesForChat: setMessagesForChat2 } = (init_messagesSlice(), __toCommonJS(messagesSlice_exports));
       dispatch(setChats2(demoChats));
@@ -36411,21 +36647,21 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const dispatch = useDispatch();
     const authStatus = useSelector((s) => s.auth.status);
     const authError = useSelector((s) => s.auth.error);
-    const initialFlag = (0, import_react28.useMemo)(
+    const initialFlag = (0, import_react29.useMemo)(
       () => typeof window !== "undefined" && window.localStorage.getItem(FIRST_LAUNCH_KEY) === "true",
       []
     );
-    const [hasCompletedWelcome, setHasCompletedWelcome] = (0, import_react28.useState)(initialFlag);
-    (0, import_react28.useEffect)(() => {
+    const [hasCompletedWelcome, setHasCompletedWelcome] = (0, import_react29.useState)(initialFlag);
+    (0, import_react29.useEffect)(() => {
       void dispatch(checkSession());
     }, [dispatch]);
-    const handleLogin = (0, import_react28.useCallback)(
+    const handleLogin = (0, import_react29.useCallback)(
       async (username, password) => {
         void dispatch(login({ username }));
       },
       [dispatch]
     );
-    const handleWelcomeContinue = (0, import_react28.useCallback)(() => {
+    const handleWelcomeContinue = (0, import_react29.useCallback)(() => {
       try {
         window.localStorage.setItem(FIRST_LAUNCH_KEY, "true");
         setHasCompletedWelcome(true);
@@ -36453,7 +36689,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   }
   var root = (0, import_client.createRoot)(container);
   root.render(
-    /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(import_react29.default.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(Provider_default, { store, children: /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(App_default, {}) }) })
+    /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(import_react30.default.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(Provider_default, { store, children: /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(App_default, {}) }) })
   );
 })();
 /*! Bundled license information:
@@ -36630,6 +36866,14 @@ lucide-react/dist/esm/icons/eye.js:
    * See the LICENSE file in the root directory of this source tree.
    *)
 
+lucide-react/dist/esm/icons/loader-circle.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
 lucide-react/dist/esm/icons/lock.js:
   (**
    * @license lucide-react v0.563.0 - ISC
@@ -36670,7 +36914,31 @@ lucide-react/dist/esm/icons/message-square.js:
    * See the LICENSE file in the root directory of this source tree.
    *)
 
+lucide-react/dist/esm/icons/paperclip.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/phone.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
 lucide-react/dist/esm/icons/search.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/send.js:
   (**
    * @license lucide-react v0.563.0 - ISC
    *
@@ -36686,7 +36954,39 @@ lucide-react/dist/esm/icons/settings.js:
    * See the LICENSE file in the root directory of this source tree.
    *)
 
+lucide-react/dist/esm/icons/smile.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
 lucide-react/dist/esm/icons/user.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/video.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/wifi-off.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/wifi.js:
   (**
    * @license lucide-react v0.563.0 - ISC
    *

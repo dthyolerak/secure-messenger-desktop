@@ -7,8 +7,8 @@ import MainLayout from '../layouts/MainLayout';
 import TopNavbar from '../components/TopNavbar';
 import { selectChat } from '../app/slices/chatsSlice';
 import { useKeyboardShortcuts, createAppShortcuts } from '../hooks/useKeyboardShortcuts';
-import type { ChatItem } from '../components/ChatList';
-import type { MessageItem } from '../components/MessageList';
+import type { ChatListItem } from '../components/ChatList';
+import type { MessageItem } from '../components/MessageThread';
 
 const Home: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -22,7 +22,7 @@ const Home: React.FC = () => {
   useKeyboardShortcuts(createAppShortcuts(dispatch));
 
   // Demo data (replace with real data later)
-  const demoChats: ChatItem[] = [
+  const demoChats: ChatListItem[] = [
     { id: '1', name: 'Alice', lastMessage: 'See you tomorrow!', updatedAt: Date.now() - 1000 * 60, unreadCount: 2 },
     { id: '2', name: 'Bob', lastMessage: 'Thanks for the help', updatedAt: Date.now() - 1000 * 60 * 5 },
     { id: '3', name: 'Team Chat', lastMessage: 'Meeting at 3pm', updatedAt: Date.now() - 1000 * 60 * 15, unreadCount: 5 },
@@ -31,7 +31,7 @@ const Home: React.FC = () => {
   const demoMessagesByChat: Record<string, MessageItem[]> = {
     '1': [
       { id: 'm1', chatId: '1', sender: 'Alice', content: 'Hey, are you free later?', timestamp: Date.now() - 1000 * 60 * 10 },
-      { id: 'm2', chatId: '1', sender: 'You', content: 'Sure, what’s up?', timestamp: Date.now() - 1000 * 60 * 8 },
+      { id: 'm2', chatId: '1', sender: 'You', content: 'Sure, what\'s up?', timestamp: Date.now() - 1000 * 60 * 8 },
       { id: 'm3', chatId: '1', sender: 'Alice', content: 'See you tomorrow!', timestamp: Date.now() - 1000 * 60 },
     ],
     '2': [
@@ -45,7 +45,7 @@ const Home: React.FC = () => {
   // Populate Redux with demo data on mount (temporary)
   React.useEffect(() => {
     // In a real app, this would be fetched from the backend
-    // For demo, we’ll dispatch actions to populate state
+    // For demo, we'll dispatch actions to populate state
     const { setChats } = require('../app/slices/chatsSlice');
     const { setMessagesForChat } = require('../app/slices/messagesSlice');
     dispatch(setChats(demoChats));
