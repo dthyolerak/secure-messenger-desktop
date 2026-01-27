@@ -4,7 +4,9 @@ import { useSelector, useDispatch } from 'react-redux';
 import type { RootState, AppDispatch } from '../app/store';
 import { logout } from '../auth/authSlice';
 import MainLayout from '../layouts/MainLayout';
+import TopNavbar from '../components/TopNavbar';
 import { selectChat } from '../app/slices/chatsSlice';
+import { useKeyboardShortcuts, createAppShortcuts } from '../hooks/useKeyboardShortcuts';
 import type { ChatItem } from '../components/ChatList';
 import type { MessageItem } from '../components/MessageList';
 
@@ -15,6 +17,9 @@ const Home: React.FC = () => {
   const handleLogout = () => {
     void dispatch(logout());
   };
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts(createAppShortcuts(dispatch));
 
   // Demo data (replace with real data later)
   const demoChats: ChatItem[] = [
@@ -51,11 +56,7 @@ const Home: React.FC = () => {
 
   return (
     <div className="home-container">
-      <header className="home-header">
-        <h1>Secure Messenger Desktop</h1>
-        {user && <span className="home-user">Signed in as: {user.username}</span>}
-        <button onClick={handleLogout} className="home-logout">Logout</button>
-      </header>
+      <TopNavbar />
       <MainLayout />
     </div>
   );

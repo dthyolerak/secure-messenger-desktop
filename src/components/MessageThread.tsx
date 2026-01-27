@@ -1,5 +1,6 @@
 // src/components/MessageThread.tsx
 import React from 'react';
+import { Search, MoreVertical } from 'lucide-react';
 import type { MessageItem } from './MessageList';
 import MessageList from './MessageList';
 import MessageComposer from './MessageComposer';
@@ -29,12 +30,11 @@ const MessageThread: React.FC<MessageThreadProps> = ({
       <header className="message-thread-header">
         <h2 className="message-thread-title">{chatName || 'Chat'}</h2>
         <div className="message-thread-actions">
-          {/* Placeholder icons for future features */}
           <button className="message-thread-action" aria-label="Search" title="Search">
-            🔍
+            <Search size={18} />
           </button>
           <button className="message-thread-action" aria-label="Menu" title="Menu">
-            ⋯
+            <MoreVertical size={18} />
           </button>
         </div>
       </header>

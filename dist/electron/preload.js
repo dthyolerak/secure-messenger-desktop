@@ -4091,6 +4091,13 @@ var MESSAGES_IPC_CHANNELS = {
   LIST_MESSAGES: "smd:messages:list"
 };
 
+// src/domains/sync/sync.types.ts
+var SYNC_IPC_CHANNELS = {
+  TYPING_EVENT: "smd:sync:typing",
+  PRESENCE_EVENT: "smd:sync:presence",
+  SEARCH_CHATS: "smd:sync:searchChats"
+};
+
 // electron/preload.ts
 var authApi = {
   async getSession() {
@@ -4132,7 +4139,22 @@ var messagesApi = {
     return MessageArraySchema.parse(raw);
   }
 };
+var syncApi = {
+  async sendTypingEvent(event) {
+    const raw = await import_electron.ipcRenderer.invoke(SYNC_IPC_CHANNELS.TYPING_EVENT, event);
+    return external_exports.object({ success: external_exports.boolean() }).parse(raw);
+  },
+  async sendPresenceEvent(event) {
+    const raw = await import_electron.ipcRenderer.invoke(SYNC_IPC_CHANNELS.PRESENCE_EVENT, event);
+    return external_exports.object({ success: external_exports.boolean() }).parse(raw);
+  },
+  async searchChats(query) {
+    const raw = await import_electron.ipcRenderer.invoke(SYNC_IPC_CHANNELS.SEARCH_CHATS, { query });
+    return external_exports.object({ chats: external_exports.array(external_exports.any()), total: external_exports.number() }).parse(raw);
+  }
+};
 import_electron.contextBridge.exposeInMainWorld("secureMessenger", {
   auth: authApi,
-  messages: messagesApi
+  messages: messagesApi,
+  sync: syncApi
 });

@@ -27,7 +27,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 
 // electron/main.ts
-var import_electron3 = require("electron");
+var import_electron4 = require("electron");
 var import_node_path2 = __toESM(require("node:path"));
 
 // src/domains/auth/auth.types.ts
@@ -4129,12 +4129,12 @@ async function startNewSession(displayName) {
 }
 
 // src/domains/auth/auth.ipc.ts
-function registerAuthIpcHandlers(ipcMain3) {
-  ipcMain3.handle(AUTH_IPC_CHANNELS.getSession, async () => {
+function registerAuthIpcHandlers(ipcMain4) {
+  ipcMain4.handle(AUTH_IPC_CHANNELS.getSession, async () => {
     const session = await loadSession();
     return GetSessionResponseSchema.parse({ session });
   });
-  ipcMain3.handle(
+  ipcMain4.handle(
     AUTH_IPC_CHANNELS.startSession,
     async (_event, rawPayload) => {
       const payload = StartSessionInputSchema.parse(rawPayload);
@@ -4194,9 +4194,79 @@ function registerMessageIpc() {
   });
 }
 
+// src/domains/sync/sync.ipc.ts
+var import_electron3 = require("electron");
+
+// src/domains/sync/sync.types.ts
+var SYNC_IPC_CHANNELS = {
+  TYPING_EVENT: "smd:sync:typing",
+  PRESENCE_EVENT: "smd:sync:presence",
+  SEARCH_CHATS: "smd:sync:searchChats"
+};
+
+// src/domains/sync/sync.service.ts
+var typingState = /* @__PURE__ */ new Map();
+function addTypingUser(chatId, username) {
+  if (!typingState.has(chatId)) {
+    typingState.set(chatId, /* @__PURE__ */ new Set());
+  }
+  typingState.get(chatId).add(username);
+}
+function removeTypingUser(chatId, username) {
+  typingState.get(chatId)?.delete(username);
+  if (typingState.get(chatId)?.size === 0) {
+    typingState.delete(chatId);
+  }
+}
+
+// src/domains/sync/sync.ipc.ts
+var TypingEventSchema = external_exports.object({
+  chatId: external_exports.string(),
+  username: external_exports.string(),
+  type: external_exports.enum(["start", "stop"]),
+  timestamp: external_exports.number()
+});
+var PresenceEventSchema = external_exports.object({
+  username: external_exports.string(),
+  status: external_exports.enum(["online", "offline"]),
+  timestamp: external_exports.number()
+});
+var SearchChatsSchema = external_exports.object({
+  query: external_exports.string()
+});
+function registerSyncIpc() {
+  import_electron3.ipcMain.handle(SYNC_IPC_CHANNELS.TYPING_EVENT, async (_event, raw) => {
+    const parsed = TypingEventSchema.safeParse(raw);
+    if (!parsed.success) {
+      throw new Error("Invalid typing event payload");
+    }
+    const { chatId, username, type } = parsed.data;
+    if (type === "start") {
+      addTypingUser(chatId, username);
+    } else {
+      removeTypingUser(chatId, username);
+    }
+    return { success: true };
+  });
+  import_electron3.ipcMain.handle(SYNC_IPC_CHANNELS.PRESENCE_EVENT, async (_event, raw) => {
+    const parsed = PresenceEventSchema.safeParse(raw);
+    if (!parsed.success) {
+      throw new Error("Invalid presence event payload");
+    }
+    return { success: true };
+  });
+  import_electron3.ipcMain.handle(SYNC_IPC_CHANNELS.SEARCH_CHATS, async (_event, raw) => {
+    const parsed = SearchChatsSchema.safeParse(raw);
+    if (!parsed.success) {
+      throw new Error("Invalid searchChats payload");
+    }
+    return { chats: [], total: 0 };
+  });
+}
+
 // electron/main.ts
 function createMainWindow() {
-  const mainWindow = new import_electron3.BrowserWindow({
+  const mainWindow = new import_electron4.BrowserWindow({
     width: 1200,
     height: 800,
     webPreferences: {
@@ -4206,22 +4276,23 @@ function createMainWindow() {
     }
   });
   mainWindow.loadFile(import_node_path2.default.join(__dirname, "..", "src", "index.html"));
-  if (!import_electron3.app.isPackaged) {
+  if (!import_electron4.app.isPackaged) {
     mainWindow.webContents.openDevTools();
   }
 }
-import_electron3.app.whenReady().then(() => {
-  registerAuthIpcHandlers(import_electron3.ipcMain);
+import_electron4.app.whenReady().then(() => {
+  registerAuthIpcHandlers(import_electron4.ipcMain);
   registerMessageIpc();
+  registerSyncIpc();
   createMainWindow();
-  import_electron3.app.on("activate", () => {
-    if (import_electron3.BrowserWindow.getAllWindows().length === 0) {
+  import_electron4.app.on("activate", () => {
+    if (import_electron4.BrowserWindow.getAllWindows().length === 0) {
       createMainWindow();
     }
   });
 });
-import_electron3.app.on("window-all-closed", () => {
+import_electron4.app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
-    import_electron3.app.quit();
+    import_electron4.app.quit();
   }
 });

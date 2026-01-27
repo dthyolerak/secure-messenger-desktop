@@ -15,6 +15,11 @@ import {
   type InsertMessagePayload,
   type Message,
 } from '../src/domains/messages/messages.types';
+import {
+  SYNC_IPC_CHANNELS,
+  type TypingEvent,
+  type PresenceEvent,
+} from '../src/domains/sync/sync.types';
 import { z } from 'zod';
 
 const authApi = {
@@ -61,12 +66,31 @@ const messagesApi = {
   },
 };
 
+const syncApi = {
+  async sendTypingEvent(event: TypingEvent): Promise<{ success: boolean }> {
+    const raw = await ipcRenderer.invoke(SYNC_IPC_CHANNELS.TYPING_EVENT, event);
+    return z.object({ success: z.boolean() }).parse(raw);
+  },
+
+  async sendPresenceEvent(event: PresenceEvent): Promise<{ success: boolean }> {
+    const raw = await ipcRenderer.invoke(SYNC_IPC_CHANNELS.PRESENCE_EVENT, event);
+    return z.object({ success: z.boolean() }).parse(raw);
+  },
+
+  async searchChats(query: string): Promise<{ chats: any[]; total: number }> {
+    const raw = await ipcRenderer.invoke(SYNC_IPC_CHANNELS.SEARCH_CHATS, { query });
+    return z.object({ chats: z.array(z.any()), total: z.number() }).parse(raw);
+  },
+};
+
 export type AuthApi = typeof authApi;
 export type MessagesApi = typeof messagesApi;
+export type SyncApi = typeof syncApi;
 
 export interface SecureMessengerApi {
   auth: AuthApi;
   messages: MessagesApi;
+  sync: SyncApi;
 }
 
 declare global {
@@ -78,4 +102,5 @@ declare global {
 contextBridge.exposeInMainWorld('secureMessenger', {
   auth: authApi,
   messages: messagesApi,
+  sync: syncApi,
 } satisfies SecureMessengerApi);

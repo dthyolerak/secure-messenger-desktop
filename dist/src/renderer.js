@@ -519,7 +519,7 @@
             }
             return element;
           };
-          function createElement2(type, config, children) {
+          function createElement4(type, config, children) {
             var propName;
             var props = {};
             var key = null;
@@ -980,7 +980,7 @@
             }
             return lazyType;
           }
-          function forwardRef2(render) {
+          function forwardRef4(render) {
             {
               if (render != null && render.$$typeof === REACT_MEMO_TYPE2) {
                 error("forwardRef requires a render function but received a `memo` component. Instead of forwardRef(memo(...)), use memo(forwardRef(...)).");
@@ -1093,7 +1093,7 @@
             }
             return dispatcher.useContext(Context);
           }
-          function useState4(initialState4) {
+          function useState5(initialState4) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useState(initialState4);
           }
@@ -1105,7 +1105,7 @@
             var dispatcher = resolveDispatcher();
             return dispatcher.useRef(initialValue);
           }
-          function useEffect3(create, deps) {
+          function useEffect4(create, deps) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useEffect(create, deps);
           }
@@ -1618,7 +1618,7 @@
                 error("React.createElement: type is invalid -- expected a string (for built-in components) or a class/function (for composite components) but got: %s.%s", typeString, info);
               }
             }
-            var element = createElement2.apply(this, arguments);
+            var element = createElement4.apply(this, arguments);
             if (element == null) {
               return element;
             }
@@ -1878,7 +1878,7 @@
           exports.createElement = createElement$1;
           exports.createFactory = createFactory;
           exports.createRef = createRef;
-          exports.forwardRef = forwardRef2;
+          exports.forwardRef = forwardRef4;
           exports.isValidElement = isValidElement;
           exports.lazy = lazy;
           exports.memo = memo2;
@@ -1888,7 +1888,7 @@
           exports.useContext = useContext2;
           exports.useDebugValue = useDebugValue2;
           exports.useDeferredValue = useDeferredValue;
-          exports.useEffect = useEffect3;
+          exports.useEffect = useEffect4;
           exports.useId = useId;
           exports.useImperativeHandle = useImperativeHandle;
           exports.useInsertionEffect = useInsertionEffect;
@@ -1896,7 +1896,7 @@
           exports.useMemo = useMemo3;
           exports.useReducer = useReducer;
           exports.useRef = useRef2;
-          exports.useState = useState4;
+          exports.useState = useState5;
           exports.useSyncExternalStore = useSyncExternalStore2;
           exports.useTransition = useTransition;
           exports.version = ReactVersion;
@@ -2392,9 +2392,9 @@
           if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === "function") {
             __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(new Error());
           }
-          var React8 = require_react();
+          var React9 = require_react();
           var Scheduler = require_scheduler();
-          var ReactSharedInternals = React8.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React9.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           var suppressWarning = false;
           function setSuppressWarning(newSuppressWarning) {
             {
@@ -3999,7 +3999,7 @@
             {
               if (props.value == null) {
                 if (typeof props.children === "object" && props.children !== null) {
-                  React8.Children.forEach(props.children, function(child) {
+                  React9.Children.forEach(props.children, function(child) {
                     if (child == null) {
                       return;
                     }
@@ -9398,7 +9398,7 @@
               }
             }
           }
-          function createElement2(type, props, rootContainerElement, parentNamespace) {
+          function createElement4(type, props, rootContainerElement, parentNamespace) {
             var isCustomComponentTag;
             var ownerDocument = getOwnerDocumentFromRootContainer(rootContainerElement);
             var domElement;
@@ -10259,7 +10259,7 @@
               }
               parentNamespace = hostContextDev.namespace;
             }
-            var domElement = createElement2(type, props, rootContainerInstance, parentNamespace);
+            var domElement = createElement4(type, props, rootContainerInstance, parentNamespace);
             precacheFiberNode(internalInstanceHandle, domElement);
             updateFiberProps(domElement, props);
             return domElement;
@@ -23570,7 +23570,7 @@
           return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React8 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React8.useSyncExternalStore, useRef2 = React8.useRef, useEffect3 = React8.useEffect, useMemo3 = React8.useMemo, useDebugValue2 = React8.useDebugValue;
+        var React9 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React9.useSyncExternalStore, useRef2 = React9.useRef, useEffect4 = React9.useEffect, useMemo3 = React9.useMemo, useDebugValue2 = React9.useDebugValue;
         exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
           var instRef = useRef2(null);
           if (null === instRef.current) {
@@ -23614,7 +23614,7 @@
             [getSnapshot, getServerSnapshot, selector, isEqual]
           );
           var value = useSyncExternalStore2(subscribe, instRef[0], instRef[1]);
-          useEffect3(
+          useEffect4(
             function() {
               inst.hasValue = true;
               inst.value = value;
@@ -26165,7 +26165,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       if (true) {
         (function() {
           "use strict";
-          var React8 = require_react();
+          var React9 = require_react();
           var REACT_ELEMENT_TYPE = Symbol.for("react.element");
           var REACT_PORTAL_TYPE = Symbol.for("react.portal");
           var REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
@@ -26191,7 +26191,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
             }
             return null;
           }
-          var ReactSharedInternals = React8.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React9.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           function error(format) {
             {
               {
@@ -27041,11 +27041,11 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
               return jsxWithValidation(type, props, key, false);
             }
           }
-          var jsx13 = jsxWithValidationDynamic;
-          var jsxs10 = jsxWithValidationStatic;
+          var jsx14 = jsxWithValidationDynamic;
+          var jsxs11 = jsxWithValidationStatic;
           exports.Fragment = REACT_FRAGMENT_TYPE;
-          exports.jsx = jsx13;
-          exports.jsxs = jsxs10;
+          exports.jsx = jsx14;
+          exports.jsxs = jsxs11;
         })();
       }
     }
@@ -27064,7 +27064,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   });
 
   // src/index.tsx
-  var import_react6 = __toESM(require_react());
+  var import_react10 = __toESM(require_react());
   var import_client = __toESM(require_client());
 
   // node_modules/react-redux/dist/react-redux.mjs
@@ -27578,7 +27578,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   });
 
   // src/App.tsx
-  var import_react5 = __toESM(require_react());
+  var import_react9 = __toESM(require_react());
 
   // src/pages/Login.tsx
   var import_react = __toESM(require_react());
@@ -27658,17 +27658,186 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var Welcome_default = Welcome;
 
   // src/pages/Home.tsx
-  var import_react4 = __toESM(require_react());
+  var import_react8 = __toESM(require_react());
 
   // src/layouts/MainLayout.tsx
+  var import_react5 = __toESM(require_react());
+
+  // node_modules/lucide-react/dist/esm/createLucideIcon.js
   var import_react3 = __toESM(require_react());
+
+  // node_modules/lucide-react/dist/esm/shared/src/utils/mergeClasses.js
+  var mergeClasses = (...classes) => classes.filter((className, index, array) => {
+    return Boolean(className) && className.trim() !== "" && array.indexOf(className) === index;
+  }).join(" ").trim();
+
+  // node_modules/lucide-react/dist/esm/shared/src/utils/toKebabCase.js
+  var toKebabCase = (string) => string.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+
+  // node_modules/lucide-react/dist/esm/shared/src/utils/toCamelCase.js
+  var toCamelCase = (string) => string.replace(
+    /^([A-Z])|[\s-_]+(\w)/g,
+    (match, p1, p2) => p2 ? p2.toUpperCase() : p1.toLowerCase()
+  );
+
+  // node_modules/lucide-react/dist/esm/shared/src/utils/toPascalCase.js
+  var toPascalCase = (string) => {
+    const camelCase = toCamelCase(string);
+    return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
+  };
+
+  // node_modules/lucide-react/dist/esm/Icon.js
+  var import_react2 = __toESM(require_react());
+
+  // node_modules/lucide-react/dist/esm/defaultAttributes.js
+  var defaultAttributes = {
+    xmlns: "http://www.w3.org/2000/svg",
+    width: 24,
+    height: 24,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2,
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  };
+
+  // node_modules/lucide-react/dist/esm/shared/src/utils/hasA11yProp.js
+  var hasA11yProp = (props) => {
+    for (const prop in props) {
+      if (prop.startsWith("aria-") || prop === "role" || prop === "title") {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // node_modules/lucide-react/dist/esm/Icon.js
+  var Icon = (0, import_react2.forwardRef)(
+    ({
+      color = "currentColor",
+      size = 24,
+      strokeWidth = 2,
+      absoluteStrokeWidth,
+      className = "",
+      children,
+      iconNode,
+      ...rest
+    }, ref) => (0, import_react2.createElement)(
+      "svg",
+      {
+        ref,
+        ...defaultAttributes,
+        width: size,
+        height: size,
+        stroke: color,
+        strokeWidth: absoluteStrokeWidth ? Number(strokeWidth) * 24 / Number(size) : strokeWidth,
+        className: mergeClasses("lucide", className),
+        ...!children && !hasA11yProp(rest) && { "aria-hidden": "true" },
+        ...rest
+      },
+      [
+        ...iconNode.map(([tag, attrs]) => (0, import_react2.createElement)(tag, attrs)),
+        ...Array.isArray(children) ? children : [children]
+      ]
+    )
+  );
+
+  // node_modules/lucide-react/dist/esm/createLucideIcon.js
+  var createLucideIcon = (iconName, iconNode) => {
+    const Component = (0, import_react3.forwardRef)(
+      ({ className, ...props }, ref) => (0, import_react3.createElement)(Icon, {
+        ref,
+        iconNode,
+        className: mergeClasses(
+          `lucide-${toKebabCase(toPascalCase(iconName))}`,
+          `lucide-${iconName}`,
+          className
+        ),
+        ...props
+      })
+    );
+    Component.displayName = toPascalCase(iconName);
+    return Component;
+  };
+
+  // node_modules/lucide-react/dist/esm/icons/chevron-down.js
+  var __iconNode = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
+  var ChevronDown = createLucideIcon("chevron-down", __iconNode);
+
+  // node_modules/lucide-react/dist/esm/icons/ellipsis-vertical.js
+  var __iconNode2 = [
+    ["circle", { cx: "12", cy: "12", r: "1", key: "41hilf" }],
+    ["circle", { cx: "12", cy: "5", r: "1", key: "gxeob9" }],
+    ["circle", { cx: "12", cy: "19", r: "1", key: "lyex9k" }]
+  ];
+  var EllipsisVertical = createLucideIcon("ellipsis-vertical", __iconNode2);
+
+  // node_modules/lucide-react/dist/esm/icons/log-out.js
+  var __iconNode3 = [
+    ["path", { d: "m16 17 5-5-5-5", key: "1bji2h" }],
+    ["path", { d: "M21 12H9", key: "dn1m92" }],
+    ["path", { d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4", key: "1uf3rs" }]
+  ];
+  var LogOut = createLucideIcon("log-out", __iconNode3);
+
+  // node_modules/lucide-react/dist/esm/icons/message-circle.js
+  var __iconNode4 = [
+    [
+      "path",
+      {
+        d: "M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719",
+        key: "1sd12s"
+      }
+    ]
+  ];
+  var MessageCircle = createLucideIcon("message-circle", __iconNode4);
+
+  // node_modules/lucide-react/dist/esm/icons/message-square.js
+  var __iconNode5 = [
+    [
+      "path",
+      {
+        d: "M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z",
+        key: "18887p"
+      }
+    ]
+  ];
+  var MessageSquare = createLucideIcon("message-square", __iconNode5);
+
+  // node_modules/lucide-react/dist/esm/icons/search.js
+  var __iconNode6 = [
+    ["path", { d: "m21 21-4.34-4.34", key: "14j7rj" }],
+    ["circle", { cx: "11", cy: "11", r: "8", key: "4ej97u" }]
+  ];
+  var Search = createLucideIcon("search", __iconNode6);
+
+  // node_modules/lucide-react/dist/esm/icons/settings.js
+  var __iconNode7 = [
+    [
+      "path",
+      {
+        d: "M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915",
+        key: "1i5ecw"
+      }
+    ],
+    ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
+  ];
+  var Settings = createLucideIcon("settings", __iconNode7);
+
+  // node_modules/lucide-react/dist/esm/icons/user.js
+  var __iconNode8 = [
+    ["path", { d: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2", key: "975kel" }],
+    ["circle", { cx: "12", cy: "7", r: "4", key: "17ys0d" }]
+  ];
+  var User = createLucideIcon("user", __iconNode8);
 
   // src/components/Sidebar.tsx
   var import_jsx_runtime3 = __toESM(require_jsx_runtime());
   var Sidebar = ({ items = [] }) => {
     const defaultItems = [
-      { id: "chat", icon: "\u{1F4AC}", label: "Chat", active: true },
-      { id: "settings", icon: "\u2699\uFE0F", label: "Settings" }
+      { id: "chat", icon: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(MessageSquare, { size: 20 }), label: "Chat", active: true },
+      { id: "settings", icon: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(Settings, { size: 20 }), label: "Settings" }
     ];
     const sidebarItems = items.length ? items : defaultItems;
     return /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("aside", { className: "sidebar", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("nav", { className: "sidebar-nav", role: "navigation", "aria-label": "Main", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("ul", { className: "sidebar-items", role: "list", children: sidebarItems.map((item) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("li", { children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
@@ -27749,14 +27918,14 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var MessageList_default = MessageList;
 
   // src/components/MessageComposer.tsx
-  var import_react2 = __toESM(require_react());
+  var import_react4 = __toESM(require_react());
   var import_jsx_runtime6 = __toESM(require_jsx_runtime());
   var MessageComposer = ({
     chatId,
     onSend,
     disabled = false
   }) => {
-    const [content, setContent] = (0, import_react2.useState)("");
+    const [content, setContent] = (0, import_react4.useState)("");
     const handleSubmit = (e) => {
       e.preventDefault();
       if (!content.trim() || disabled)
@@ -27801,7 +27970,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var import_jsx_runtime7 = __toESM(require_jsx_runtime());
   var EmptyState = () => {
     return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "empty-state", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "empty-state-icon", "aria-hidden": true, children: "\u{1F4AC}" }),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(MessageCircle, { size: 48, className: "empty-state-icon" }),
       /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("h2", { className: "empty-state-title", children: "Select a chat to start messaging" }),
       /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { className: "empty-state-subtitle", children: "Choose a conversation from the list to view and send messages." })
     ] });
@@ -27824,8 +27993,8 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("header", { className: "message-thread-header", children: [
         /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("h2", { className: "message-thread-title", children: chatName || "Chat" }),
         /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "message-thread-actions", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { className: "message-thread-action", "aria-label": "Search", title: "Search", children: "\u{1F50D}" }),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { className: "message-thread-action", "aria-label": "Menu", title: "Menu", children: "\u22EF" })
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { className: "message-thread-action", "aria-label": "Search", title: "Search", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Search, { size: 18 }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { className: "message-thread-action", "aria-label": "Menu", title: "Menu", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(EllipsisVertical, { size: 18 }) })
         ] })
       ] }),
       /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(MessageList_default, { chatId, messages, isLoading }),
@@ -27849,7 +28018,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     };
     const selectedChat = chats.find((c) => c.id === selectedChatId);
     const selectedMessages = selectedChatId ? messagesByChat[selectedChatId] ?? [] : [];
-    const handleSendMessage = import_react3.default.useCallback(
+    const handleSendMessage = import_react5.default.useCallback(
       (chatId, content) => {
         if (!user?.username)
           return;
@@ -27880,14 +28049,119 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   };
   var MainLayout_default = MainLayout;
 
-  // src/pages/Home.tsx
+  // src/components/TopNavbar.tsx
+  var import_react6 = __toESM(require_react());
   var import_jsx_runtime10 = __toESM(require_jsx_runtime());
+  var TopNavbar = () => {
+    const dispatch = useDispatch();
+    const user = useSelector((s) => s.auth.user);
+    const [dropdownOpen, setDropdownOpen] = (0, import_react6.useState)(false);
+    const handleLogout = () => {
+      setDropdownOpen(false);
+      void dispatch(logout());
+    };
+    return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("header", { className: "top-navbar", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "top-navbar-left", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("h1", { className: "top-navbar-title", children: "Secure Messenger" }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "top-navbar-right", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
+          "button",
+          {
+            type: "button",
+            className: "top-navbar-user",
+            onClick: () => setDropdownOpen((o) => !o),
+            "aria-label": "User menu",
+            "aria-expanded": dropdownOpen,
+            "aria-haspopup": "menu",
+            children: [
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(User, { size: 20 }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { className: "top-navbar-username", children: user?.username }),
+              /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(ChevronDown, { size: 16, className: dropdownOpen ? "rotate" : "" })
+            ]
+          }
+        ),
+        dropdownOpen && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "top-navbar-dropdown", role: "menu", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "top-navbar-dropdown-item", role: "menuitem", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(User, { size: 16 }),
+            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { children: user?.username })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)(
+            "button",
+            {
+              type: "button",
+              className: "top-navbar-dropdown-item top-navbar-dropdown-logout",
+              onClick: handleLogout,
+              role: "menuitem",
+              children: [
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(LogOut, { size: 16 }),
+                /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { children: "Logout" })
+              ]
+            }
+          )
+        ] })
+      ] })
+    ] });
+  };
+  var TopNavbar_default = TopNavbar;
+
+  // src/hooks/useKeyboardShortcuts.ts
+  var import_react7 = __toESM(require_react());
+  init_chatsSlice();
+  function useKeyboardShortcuts(shortcuts) {
+    const dispatch = useDispatch();
+    (0, import_react7.useEffect)(() => {
+      const handleKeyDown = (event) => {
+        for (const shortcut of shortcuts) {
+          const {
+            key,
+            ctrlKey = false,
+            metaKey = false,
+            shiftKey = false,
+            handler
+          } = shortcut;
+          const matchesKey = event.key === key;
+          const matchesCtrl = (event.ctrlKey || event.metaKey) === ctrlKey;
+          const matchesMeta = event.metaKey === metaKey;
+          const matchesShift = event.shiftKey === shiftKey;
+          if (matchesKey && matchesCtrl && matchesMeta && matchesShift) {
+            event.preventDefault();
+            event.stopPropagation();
+            handler();
+            break;
+          }
+        }
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [shortcuts, dispatch]);
+  }
+  var createAppShortcuts = (dispatch, extra = []) => [
+    {
+      key: "Escape",
+      handler: () => dispatch(selectChat(null)),
+      description: "Deselect chat"
+    },
+    {
+      key: "k",
+      ctrlKey: true,
+      metaKey: true,
+      handler: () => {
+        const searchInput = document.querySelector(".chat-search-input");
+        searchInput?.focus();
+      },
+      description: "Focus chat search"
+    },
+    ...extra
+  ];
+
+  // src/pages/Home.tsx
+  var import_jsx_runtime11 = __toESM(require_jsx_runtime());
   var Home = () => {
     const dispatch = useDispatch();
     const user = useSelector((s) => s.auth.user);
     const handleLogout = () => {
       void dispatch(logout());
     };
+    useKeyboardShortcuts(createAppShortcuts(dispatch));
     const demoChats = [
       { id: "1", name: "Alice", lastMessage: "See you tomorrow!", updatedAt: Date.now() - 1e3 * 60, unreadCount: 2 },
       { id: "2", name: "Bob", lastMessage: "Thanks for the help", updatedAt: Date.now() - 1e3 * 60 * 5 },
@@ -27906,7 +28180,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         { id: "m5", chatId: "3", sender: "Carol", content: "Meeting at 3pm", timestamp: Date.now() - 1e3 * 60 * 15 }
       ]
     };
-    import_react4.default.useEffect(() => {
+    import_react8.default.useEffect(() => {
       const { setChats: setChats2 } = (init_chatsSlice(), __toCommonJS(chatsSlice_exports));
       const { setMessagesForChat: setMessagesForChat2 } = (init_messagesSlice(), __toCommonJS(messagesSlice_exports));
       dispatch(setChats2(demoChats));
@@ -27914,42 +28188,35 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         dispatch(setMessagesForChat2({ chatId, messages }));
       });
     }, [dispatch]);
-    return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "home-container", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("header", { className: "home-header", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("h1", { children: "Secure Messenger Desktop" }),
-        user && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("span", { className: "home-user", children: [
-          "Signed in as: ",
-          user.username
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("button", { onClick: handleLogout, className: "home-logout", children: "Logout" })
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(MainLayout_default, {})
+    return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "home-container", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(TopNavbar_default, {}),
+      /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(MainLayout_default, {})
     ] });
   };
   var Home_default = Home;
 
   // src/App.tsx
-  var import_jsx_runtime11 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime12 = __toESM(require_jsx_runtime());
   var FIRST_LAUNCH_KEY = "smd.hasCompletedWelcome";
   var App = () => {
     const dispatch = useDispatch();
     const authStatus = useSelector((s) => s.auth.status);
     const authError = useSelector((s) => s.auth.error);
-    const initialFlag = (0, import_react5.useMemo)(
+    const initialFlag = (0, import_react9.useMemo)(
       () => typeof window !== "undefined" && window.localStorage.getItem(FIRST_LAUNCH_KEY) === "true",
       []
     );
-    const [hasCompletedWelcome, setHasCompletedWelcome] = (0, import_react5.useState)(initialFlag);
-    (0, import_react5.useEffect)(() => {
+    const [hasCompletedWelcome, setHasCompletedWelcome] = (0, import_react9.useState)(initialFlag);
+    (0, import_react9.useEffect)(() => {
       void dispatch(checkSession());
     }, [dispatch]);
-    const handleLogin = (0, import_react5.useCallback)(
+    const handleLogin = (0, import_react9.useCallback)(
       (username) => {
         void dispatch(login({ username }));
       },
       [dispatch]
     );
-    const handleWelcomeContinue = (0, import_react5.useCallback)(() => {
+    const handleWelcomeContinue = (0, import_react9.useCallback)(() => {
       try {
         window.localStorage.setItem(FIRST_LAUNCH_KEY, "true");
         setHasCompletedWelcome(true);
@@ -27958,26 +28225,26 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     }, []);
     if (authStatus === "authenticated") {
       if (!hasCompletedWelcome) {
-        return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(Welcome_default, { isLoading: false, onContinue: handleWelcomeContinue });
+        return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Welcome_default, { isLoading: false, onContinue: handleWelcomeContinue });
       }
-      return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(Home_default, {});
+      return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Home_default, {});
     }
     if (authStatus === "idle") {
-      return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { style: { padding: 24 }, children: "Loading\u2026" });
+      return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { style: { padding: 24 }, children: "Loading\u2026" });
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(Login_default, { isLoading: false, error: authError, onLogin: handleLogin });
+    return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Login_default, { isLoading: false, error: authError, onLogin: handleLogin });
   };
   var App_default = App;
 
   // src/index.tsx
-  var import_jsx_runtime12 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime13 = __toESM(require_jsx_runtime());
   var container = document.getElementById("root");
   if (!container) {
     throw new Error("Root element #root not found");
   }
   var root = (0, import_client.createRoot)(container);
   root.render(
-    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(import_react6.default.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Provider_default, { store, children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(App_default, {}) }) })
+    /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(import_react10.default.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Provider_default, { store, children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(App_default, {}) }) })
   );
 })();
 /*! Bundled license information:
@@ -28048,5 +28315,141 @@ react/cjs/react-jsx-runtime.development.js:
    *
    * This source code is licensed under the MIT license found in the
    * LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/shared/src/utils/mergeClasses.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/shared/src/utils/toKebabCase.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/shared/src/utils/toCamelCase.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/shared/src/utils/toPascalCase.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/defaultAttributes.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/shared/src/utils/hasA11yProp.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/Icon.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/createLucideIcon.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/chevron-down.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/ellipsis-vertical.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/log-out.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/message-circle.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/message-square.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/search.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/settings.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/user.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/lucide-react.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
    *)
 */

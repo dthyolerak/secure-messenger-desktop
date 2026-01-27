@@ -3,6 +3,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import { registerAuthIpcHandlers } from '../src/domains/auth/auth.ipc';
 import { registerMessageIpc } from '../src/domains/messages/messages.ipc';
+import { registerSyncIpc } from '../src/domains/sync/sync.ipc';
 
 function createMainWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -26,6 +27,7 @@ function createMainWindow(): void {
 app.whenReady().then(() => {
   registerAuthIpcHandlers(ipcMain);
   registerMessageIpc();
+  registerSyncIpc();
 
   createMainWindow();
 

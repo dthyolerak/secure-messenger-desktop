@@ -20,10 +20,269 @@ body {
   --text-bright: #1e293b;
 }
 
-/* App background */
-.app-bg {
+/* Top Navbar */
+.top-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 20px;
+  background: #fff;
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  height: 56px;
+}
+
+.top-navbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.top-navbar-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-bright);
+}
+
+.top-navbar-right {
+  position: relative;
+}
+
+.top-navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.top-navbar-user:hover {
   background: var(--color-gray-light);
-  min-height: 100vh;
+}
+
+.top-navbar-username {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+
+.top-navbar-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow-md);
+  min-width: 160px;
+  z-index: 100;
+}
+
+.top-navbar-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 14px;
+  color: var(--text-bright);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.top-navbar-dropdown-item:hover {
+  background: var(--color-gray-light);
+}
+
+.top-navbar-dropdown-logout {
+  color: #dc2626;
+}
+
+.top-navbar-dropdown-logout:hover {
+  background: #fef2f2;
+}
+
+/* Presence Dots */
+.presence-dot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.presence-dot-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #94a3b8;
+}
+
+.presence-dot.presence-online .presence-dot-indicator {
+  background: #22c55e;
+}
+
+.presence-dot.presence-offline .presence-dot-indicator {
+  background: #ef4444;
+}
+
+.presence-dot.presence-reconnecting .presence-dot-indicator {
+  background: #f59e0b;
+  animation: pulse 1.5s infinite;
+}
+
+.presence-dot-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.presence-dot-sm .presence-dot-indicator {
+  width: 6px;
+  height: 6px;
+}
+
+.presence-dot-lg .presence-dot-indicator {
+  width: 10px;
+  height: 10px;
+}
+
+/* Typing Indicator */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  background: #f8fafc;
+  border-top: 1px solid var(--border-color);
+}
+
+.typing-indicator-text {
+  font-style: italic;
+}
+
+.typing-indicator-dots {
+  display: flex;
+  gap: 2px;
+}
+
+.typing-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  animation: typing-bounce 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing-bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-6px);
+  }
+}
+
+/* File Attachments */
+.file-attachment {
+  border-radius: 8px;
+  overflow: hidden;
+  max-width: 300px;
+}
+
+.file-attachment-image {
+  position: relative;
+  display: inline-block;
+}
+
+.file-attachment-preview {
+  max-width: 100%;
+  max-height: 200px;
+  display: block;
+}
+
+.file-attachment-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.file-attachment-image:hover .file-attachment-overlay {
+  opacity: 1;
+}
+
+.file-attachment-download {
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-attachment-generic {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.file-attachment-generic:hover {
+  background: #f1f5f9;
+}
+
+.file-attachment-info {
+  flex: 1;
+  text-align: left;
+}
+
+.file-attachment-name {
+  font-weight: 600;
+  color: var(--text-bright);
+  word-break: break-word;
+}
+
+.file-attachment-size {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.file-attachment-download-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* Home Container */
+.home-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* Main Layout — 3-Column Teams Style */
