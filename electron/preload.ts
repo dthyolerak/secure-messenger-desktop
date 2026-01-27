@@ -20,6 +20,11 @@ import {
   type TypingEvent,
   type PresenceEvent,
 } from '../src/domains/sync/sync.types';
+import {
+  CHATS_IPC_CHANNELS,
+  type GetChatsRequest,
+  type GetChatsResponse,
+} from '../src/domains/chats/chats.types';
 import { z } from 'zod';
 
 const authApi = {
@@ -83,14 +88,44 @@ const syncApi = {
   },
 };
 
+const chatsApi = {
+  async getChats(request: GetChatsRequest): Promise<GetChatsResponse> {
+    const raw = await ipcRenderer.invoke(CHATS_IPC_CHANNELS.GET_CHATS, request);
+    const responseSchema = z.object({
+      success: z.boolean(),
+      data: z.object({
+        chats: z.array(z.object({
+          id: z.string(),
+          name: z.string(),
+          last_message: z.string().optional(),
+          updated_at: z.number(),
+          unread_count: z.number().optional(),
+        })),
+        total: z.number(),
+        hasMore: z.boolean(),
+      }),
+      error: z.string().optional(),
+    });
+    const parsed = responseSchema.parse(raw);
+    
+    if (!parsed.success) {
+      throw new Error(parsed.error || 'Failed to fetch chats');
+    }
+    
+    return parsed.data;
+  },
+};
+
 export type AuthApi = typeof authApi;
 export type MessagesApi = typeof messagesApi;
 export type SyncApi = typeof syncApi;
+export type ChatsApi = typeof chatsApi;
 
 export interface SecureMessengerApi {
   auth: AuthApi;
   messages: MessagesApi;
   sync: SyncApi;
+  chats: ChatsApi;
 }
 
 declare global {
@@ -103,4 +138,5 @@ contextBridge.exposeInMainWorld('secureMessenger', {
   auth: authApi,
   messages: messagesApi,
   sync: syncApi,
+  chats: chatsApi,
 } satisfies SecureMessengerApi);

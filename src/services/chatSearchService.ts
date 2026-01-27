@@ -1,8 +1,8 @@
 // src/services/chatSearchService.ts
-import type { ChatListItem } from '../components/ChatList';
+import type { ChatItem } from '../app/slices/chatsSlice';
 
 export interface ChatSearchResult {
-  chats: ChatListItem[];
+  chats: ChatItem[];
   total: number;
 }
 

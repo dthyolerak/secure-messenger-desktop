@@ -4098,6 +4098,11 @@ var SYNC_IPC_CHANNELS = {
   SEARCH_CHATS: "smd:sync:searchChats"
 };
 
+// src/domains/chats/chats.types.ts
+var CHATS_IPC_CHANNELS = {
+  GET_CHATS: "chats:getChats"
+};
+
 // electron/preload.ts
 var authApi = {
   async getSession() {
@@ -4153,8 +4158,34 @@ var syncApi = {
     return external_exports.object({ chats: external_exports.array(external_exports.any()), total: external_exports.number() }).parse(raw);
   }
 };
+var chatsApi = {
+  async getChats(request) {
+    const raw = await import_electron.ipcRenderer.invoke(CHATS_IPC_CHANNELS.GET_CHATS, request);
+    const responseSchema = external_exports.object({
+      success: external_exports.boolean(),
+      data: external_exports.object({
+        chats: external_exports.array(external_exports.object({
+          id: external_exports.string(),
+          name: external_exports.string(),
+          last_message: external_exports.string().optional(),
+          updated_at: external_exports.number(),
+          unread_count: external_exports.number().optional()
+        })),
+        total: external_exports.number(),
+        hasMore: external_exports.boolean()
+      }),
+      error: external_exports.string().optional()
+    });
+    const parsed = responseSchema.parse(raw);
+    if (!parsed.success) {
+      throw new Error(parsed.error || "Failed to fetch chats");
+    }
+    return parsed.data;
+  }
+};
 import_electron.contextBridge.exposeInMainWorld("secureMessenger", {
   auth: authApi,
   messages: messagesApi,
-  sync: syncApi
+  sync: syncApi,
+  chats: chatsApi
 });

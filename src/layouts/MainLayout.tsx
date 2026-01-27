@@ -48,7 +48,6 @@ const MainLayout: React.FC = () => {
         {/* Chat List Panel - Scrollable, virtualized */}
         <aside className="w-80 bg-white border-r border-gray-200 flex flex-col">
           <ChatList
-            chats={chats}
             selectedChatId={selectedChatId}
             onSelectChat={handleSelectChat}
           />

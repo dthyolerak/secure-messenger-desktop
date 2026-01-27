@@ -27,7 +27,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 
 // electron/main.ts
-var import_electron4 = require("electron");
+var import_electron5 = require("electron");
 var import_node_path2 = __toESM(require("node:path"));
 
 // src/domains/auth/auth.types.ts
@@ -4129,12 +4129,12 @@ async function startNewSession(displayName) {
 }
 
 // src/domains/auth/auth.ipc.ts
-function registerAuthIpcHandlers(ipcMain4) {
-  ipcMain4.handle(AUTH_IPC_CHANNELS.getSession, async () => {
+function registerAuthIpcHandlers(ipcMain5) {
+  ipcMain5.handle(AUTH_IPC_CHANNELS.getSession, async () => {
     const session = await loadSession();
     return GetSessionResponseSchema.parse({ session });
   });
-  ipcMain4.handle(
+  ipcMain5.handle(
     AUTH_IPC_CHANNELS.startSession,
     async (_event, rawPayload) => {
       const payload = StartSessionInputSchema.parse(rawPayload);
@@ -4264,9 +4264,168 @@ function registerSyncIpc() {
   });
 }
 
+// src/domains/chats/chats.ipc.ts
+var import_electron4 = require("electron");
+
+// src/domains/chats/chats.service.ts
+function getChats(db2, request) {
+  if (!db2) {
+    throw new Error("Database not initialized");
+  }
+  const { offset, limit } = request;
+  try {
+    const totalResult = db2.prepare("SELECT COUNT(*) as count FROM chats").get();
+    const total = totalResult.count;
+    const chats = db2.prepare(`
+      SELECT 
+        id,
+        name,
+        last_message,
+        updated_at,
+        unread_count
+      FROM chats
+      ORDER BY updated_at DESC
+      LIMIT ? OFFSET ?
+    `).all(limit, offset);
+    const hasMore = offset + chats.length < total;
+    return {
+      chats,
+      total,
+      hasMore
+    };
+  } catch (error) {
+    console.error("Error in getChats service:", error);
+    throw error;
+  }
+}
+
+// src/domains/chats/chats.mock.ts
+var mockChats = [
+  {
+    id: "1",
+    name: "Alice Johnson",
+    last_message: "Hey, are you free later?",
+    updated_at: Date.now() - 1e3 * 60,
+    unread_count: 2
+  },
+  {
+    id: "2",
+    name: "Bob Smith",
+    last_message: "Thanks for the help!",
+    updated_at: Date.now() - 1e3 * 60 * 5,
+    unread_count: 0
+  },
+  {
+    id: "3",
+    name: "Team Chat",
+    last_message: "Meeting at 3pm",
+    updated_at: Date.now() - 1e3 * 60 * 15,
+    unread_count: 5
+  },
+  {
+    id: "4",
+    name: "Carol White",
+    last_message: "Can you review this?",
+    updated_at: Date.now() - 1e3 * 60 * 30,
+    unread_count: 1
+  },
+  {
+    id: "5",
+    name: "David Brown",
+    last_message: "Great work on the project",
+    updated_at: Date.now() - 1e3 * 60 * 60,
+    unread_count: 0
+  }
+];
+function getChatsMock(request) {
+  const { offset, limit } = request;
+  const sortedChats = [...mockChats].sort((a, b) => b.updated_at - a.updated_at);
+  const paginatedChats = sortedChats.slice(offset, offset + limit);
+  const total = sortedChats.length;
+  const hasMore = offset + paginatedChats.length < total;
+  return {
+    chats: paginatedChats,
+    total,
+    hasMore
+  };
+}
+
+// src/domains/chats/chats.types.ts
+var CHATS_IPC_CHANNELS = {
+  GET_CHATS: "chats:getChats"
+};
+
+// src/domains/chats/chats.ipc.ts
+var GetChatsRequestSchema = external_exports.object({
+  offset: external_exports.number().int().min(0),
+  limit: external_exports.number().int().min(1).max(100)
+});
+function registerChatsIpc(db2) {
+  import_electron4.ipcMain.handle(CHATS_IPC_CHANNELS.GET_CHATS, async (_event, rawRequest) => {
+    try {
+      const request = GetChatsRequestSchema.parse(rawRequest);
+      if (!db2) {
+        console.log("Using mock data - database not initialized");
+        const result2 = getChatsMock(request);
+        return {
+          success: true,
+          data: result2
+        };
+      }
+      const result = getChats(db2, request);
+      return {
+        success: true,
+        data: result
+      };
+    } catch (error) {
+      console.error("Error in getChats IPC:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error"
+      };
+    }
+  });
+}
+
 // electron/main.ts
+var db = null;
+function initializeDatabase() {
+  try {
+    const Database = eval("require")("better-sqlite3");
+    db = new Database("chats.db");
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS chats (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        last_message TEXT,
+        updated_at INTEGER NOT NULL,
+        unread_count INTEGER DEFAULT 0
+      );
+      
+      CREATE INDEX IF NOT EXISTS idx_chats_updated_at ON chats(updated_at DESC);
+    `);
+    const chatCount = db.prepare("SELECT COUNT(*) as count FROM chats").get();
+    if (chatCount.count === 0) {
+      const insertChat = db.prepare(`
+        INSERT INTO chats (id, name, last_message, updated_at, unread_count)
+        VALUES (?, ?, ?, ?, ?)
+      `);
+      const demoChats = [
+        ["1", "Alice Johnson", "Hey, are you free later?", Date.now() - 1e3 * 60, 2],
+        ["2", "Bob Smith", "Thanks for the help!", Date.now() - 1e3 * 60 * 5, 0],
+        ["3", "Team Chat", "Meeting at 3pm", Date.now() - 1e3 * 60 * 15, 5],
+        ["4", "Carol White", "Can you review this?", Date.now() - 1e3 * 60 * 30, 1],
+        ["5", "David Brown", "Great work on the project", Date.now() - 1e3 * 60 * 60, 0]
+      ];
+      demoChats.forEach((chat) => insertChat.run(...chat));
+    }
+    console.log("Database initialized successfully");
+  } catch (error) {
+    console.error("Failed to initialize database:", error);
+  }
+}
 function createMainWindow() {
-  const mainWindow = new import_electron4.BrowserWindow({
+  const mainWindow = new import_electron5.BrowserWindow({
     width: 1200,
     height: 800,
     webPreferences: {
@@ -4276,23 +4435,25 @@ function createMainWindow() {
     }
   });
   mainWindow.loadFile(import_node_path2.default.join(__dirname, "..", "src", "index.html"));
-  if (!import_electron4.app.isPackaged) {
+  if (!import_electron5.app.isPackaged) {
     mainWindow.webContents.openDevTools();
   }
 }
-import_electron4.app.whenReady().then(() => {
-  registerAuthIpcHandlers(import_electron4.ipcMain);
+import_electron5.app.whenReady().then(() => {
+  initializeDatabase();
+  registerAuthIpcHandlers(import_electron5.ipcMain);
   registerMessageIpc();
   registerSyncIpc();
+  registerChatsIpc(db);
   createMainWindow();
-  import_electron4.app.on("activate", () => {
-    if (import_electron4.BrowserWindow.getAllWindows().length === 0) {
+  import_electron5.app.on("activate", () => {
+    if (import_electron5.BrowserWindow.getAllWindows().length === 0) {
       createMainWindow();
     }
   });
 });
-import_electron4.app.on("window-all-closed", () => {
+import_electron5.app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
-    import_electron4.app.quit();
+    import_electron5.app.quit();
   }
 });
