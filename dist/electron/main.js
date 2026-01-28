@@ -5109,6 +5109,11 @@ function registerSyncIPCHandlers(syncQueries2) {
         throw new Error("chatId is required");
       }
       const count = await syncQueries2.markMessagesAsRead(chatId);
+      const chats = await syncQueries2.getAllChats();
+      const updatedChat = chats.find((c) => c.id === chatId);
+      if (updatedChat) {
+        SyncIPCEmitter.emitChatUpdated(updatedChat);
+      }
       return { success: true, data: { markedCount: count } };
     } catch (error) {
       console.error("[IPC] Mark messages read failed:", error);
@@ -5286,6 +5291,12 @@ async function handleSyncEvent(event) {
           if (fullMessage) {
             SyncIPCEmitter.emitMessageInserted(fullMessage);
           }
+          const chats = await syncQueries.getAllChats();
+          const updatedChat = chats.find((c) => c.id === event.payload.chat_id);
+          if (updatedChat) {
+            SyncIPCEmitter.emitChatUpdated(updatedChat);
+          }
+          SyncIPCEmitter.emitChatListUpdated();
         }
         break;
       case "chat_update":

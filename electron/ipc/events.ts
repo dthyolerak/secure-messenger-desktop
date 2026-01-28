@@ -214,6 +214,14 @@ export function registerSyncIPCHandlers(syncQueries: any): void {
       }
       
       const count = await syncQueries.markMessagesAsRead(chatId);
+      
+      // After marking messages as read, emit chat update to refresh UI
+      const chats = await syncQueries.getAllChats();
+      const updatedChat = chats.find((c: any) => c.id === chatId);
+      if (updatedChat) {
+        SyncIPCEmitter.emitChatUpdated(updatedChat);
+      }
+      
       return { success: true, data: { markedCount: count } };
     } catch (error) {
       console.error('[IPC] Mark messages read failed:', error);

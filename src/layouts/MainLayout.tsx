@@ -3,10 +3,12 @@ import React from 'react';
 import Sidebar from '../components/Sidebar';
 import ChatList from '../components/ChatList';
 import MessageThread from '../components/MessageThread';
+import ConnectionStatusBar from '../components/ConnectionStatusBar';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState, AppDispatch } from '../app/store';
 import { selectChat } from '../app/slices/chatsSlice';
 import { sendMessage } from '../app/slices/messagesSlice';
+import { syncIpcClient } from '../services/syncIpcClient';
 
 /**
  * Main 3-pane Teams-style layout:
@@ -24,8 +26,16 @@ const MainLayout: React.FC = () => {
   const handleSelectChat = React.useCallback(
     (chatId: string) => {
       dispatch(selectChat(chatId));
+      
+      // Mark messages as read when chat is opened
+      const selectedChat = chats.find((c) => c.id === chatId);
+      if (selectedChat && selectedChat.unreadCount > 0) {
+        syncIpcClient.markMessagesRead(chatId).catch(error => {
+          console.error('Failed to mark messages as read:', error);
+        });
+      }
     },
-    [dispatch],
+    [dispatch, chats],
   );
 
   const selectedChat = chats.find((c) => c.id === selectedChatId);
@@ -63,6 +73,9 @@ const MainLayout: React.FC = () => {
           />
         </section>
       </div>
+
+      {/* Connection Status Notifications */}
+      <ConnectionStatusBar />
     </div>
   );
 };

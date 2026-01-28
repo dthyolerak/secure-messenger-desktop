@@ -75,11 +75,22 @@ const chatsSlice = createSlice({
       state.items = action.payload;
     },
     addOrUpdateChat(state, action: PayloadAction<ChatItem>) {
-      const existing = state.items.find((c) => c.id === action.payload.id);
-      if (existing) {
-        Object.assign(existing, action.payload);
+      const existingIndex = state.items.findIndex((c) => c.id === action.payload.id);
+      if (existingIndex !== -1) {
+        // Update existing chat
+        state.items[existingIndex] = { ...state.items[existingIndex], ...action.payload };
+        
+        // Move chat to top if it has new activity (updated_at changed)
+        const currentChat = state.items[existingIndex];
+        const topChat = state.items[0];
+        if (currentChat && topChat && currentChat.updatedAt > topChat.updatedAt) {
+          // Remove from current position and add to top
+          state.items.splice(existingIndex, 1);
+          state.items.unshift(currentChat);
+        }
       } else {
-        state.items.push(action.payload);
+        // Add new chat at top
+        state.items.unshift(action.payload);
       }
     },
     resetPagination(state) {

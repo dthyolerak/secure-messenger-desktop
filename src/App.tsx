@@ -8,6 +8,8 @@ import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import Welcome from './pages/Welcome';
 import Home from './pages/Home';
+// Import sync client to initialize event listeners
+import './services/syncIpcClient';
 
 const FIRST_LAUNCH_KEY = 'smd.hasCompletedWelcome';
 

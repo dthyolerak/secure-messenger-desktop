@@ -193,6 +193,14 @@ async function handleSyncEvent(event: any): Promise<void> {
           if (fullMessage) {
             SyncIPCEmitter.emitMessageInserted(fullMessage);
           }
+          
+          // Get updated chat data and emit chat update to trigger reordering
+          const chats = await syncQueries.getAllChats();
+          const updatedChat = chats.find(c => c.id === event.payload.chat_id);
+          if (updatedChat) {
+            SyncIPCEmitter.emitChatUpdated(updatedChat);
+          }
+          SyncIPCEmitter.emitChatListUpdated();
         }
         break;
 

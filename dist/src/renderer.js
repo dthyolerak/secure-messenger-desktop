@@ -1092,9 +1092,9 @@
             }
             return dispatcher.useContext(Context);
           }
-          function useState8(initialState4) {
+          function useState8(initialState5) {
             var dispatcher = resolveDispatcher();
-            return dispatcher.useState(initialState4);
+            return dispatcher.useState(initialState5);
           }
           function useReducer(reducer, initialArg, init) {
             var dispatcher = resolveDispatcher();
@@ -1104,7 +1104,7 @@
             var dispatcher = resolveDispatcher();
             return dispatcher.useRef(initialValue);
           }
-          function useEffect10(create, deps) {
+          function useEffect11(create, deps) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useEffect(create, deps);
           }
@@ -1887,7 +1887,7 @@
           exports.useContext = useContext8;
           exports.useDebugValue = useDebugValue2;
           exports.useDeferredValue = useDeferredValue;
-          exports.useEffect = useEffect10;
+          exports.useEffect = useEffect11;
           exports.useId = useId2;
           exports.useImperativeHandle = useImperativeHandle;
           exports.useInsertionEffect = useInsertionEffect3;
@@ -2391,9 +2391,9 @@
           if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === "function") {
             __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(new Error());
           }
-          var React12 = require_react();
+          var React13 = require_react();
           var Scheduler = require_scheduler();
-          var ReactSharedInternals = React12.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React13.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           var suppressWarning = false;
           function setSuppressWarning(newSuppressWarning) {
             {
@@ -3998,7 +3998,7 @@
             {
               if (props.value == null) {
                 if (typeof props.children === "object" && props.children !== null) {
-                  React12.Children.forEach(props.children, function(child) {
+                  React13.Children.forEach(props.children, function(child) {
                     if (child == null) {
                       return;
                     }
@@ -13638,20 +13638,20 @@
           }
           function mountReducer(reducer, initialArg, init) {
             var hook = mountWorkInProgressHook();
-            var initialState4;
+            var initialState5;
             if (init !== void 0) {
-              initialState4 = init(initialArg);
+              initialState5 = init(initialArg);
             } else {
-              initialState4 = initialArg;
+              initialState5 = initialArg;
             }
-            hook.memoizedState = hook.baseState = initialState4;
+            hook.memoizedState = hook.baseState = initialState5;
             var queue = {
               pending: null,
               interleaved: null,
               lanes: NoLanes,
               dispatch: null,
               lastRenderedReducer: reducer,
-              lastRenderedState: initialState4
+              lastRenderedState: initialState5
             };
             hook.queue = queue;
             var dispatch = queue.dispatch = dispatchReducerAction.bind(null, currentlyRenderingFiber$1, queue);
@@ -13933,28 +13933,28 @@
               scheduleUpdateOnFiber(root3, fiber, SyncLane, NoTimestamp);
             }
           }
-          function mountState(initialState4) {
+          function mountState(initialState5) {
             var hook = mountWorkInProgressHook();
-            if (typeof initialState4 === "function") {
-              initialState4 = initialState4();
+            if (typeof initialState5 === "function") {
+              initialState5 = initialState5();
             }
-            hook.memoizedState = hook.baseState = initialState4;
+            hook.memoizedState = hook.baseState = initialState5;
             var queue = {
               pending: null,
               interleaved: null,
               lanes: NoLanes,
               dispatch: null,
               lastRenderedReducer: basicStateReducer,
-              lastRenderedState: initialState4
+              lastRenderedState: initialState5
             };
             hook.queue = queue;
             var dispatch = queue.dispatch = dispatchSetState.bind(null, currentlyRenderingFiber$1, queue);
             return [hook.memoizedState, dispatch];
           }
-          function updateState(initialState4) {
+          function updateState(initialState5) {
             return updateReducer(basicStateReducer);
           }
-          function rerenderState(initialState4) {
+          function rerenderState(initialState5) {
             return rerenderReducer(basicStateReducer);
           }
           function pushEffect(tag, create, destroy, deps) {
@@ -14470,13 +14470,13 @@
                 mountHookTypesDev();
                 return mountRef(initialValue);
               },
-              useState: function(initialState4) {
+              useState: function(initialState5) {
                 currentHookNameInDev = "useState";
                 mountHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnMountInDEV;
                 try {
-                  return mountState(initialState4);
+                  return mountState(initialState5);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -14574,13 +14574,13 @@
                 updateHookTypesDev();
                 return mountRef(initialValue);
               },
-              useState: function(initialState4) {
+              useState: function(initialState5) {
                 currentHookNameInDev = "useState";
                 updateHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnMountInDEV;
                 try {
-                  return mountState(initialState4);
+                  return mountState(initialState5);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -14678,13 +14678,13 @@
                 updateHookTypesDev();
                 return updateRef();
               },
-              useState: function(initialState4) {
+              useState: function(initialState5) {
                 currentHookNameInDev = "useState";
                 updateHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnUpdateInDEV;
                 try {
-                  return updateState(initialState4);
+                  return updateState(initialState5);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -14782,13 +14782,13 @@
                 updateHookTypesDev();
                 return updateRef();
               },
-              useState: function(initialState4) {
+              useState: function(initialState5) {
                 currentHookNameInDev = "useState";
                 updateHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnRerenderInDEV;
                 try {
-                  return rerenderState(initialState4);
+                  return rerenderState(initialState5);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -14896,14 +14896,14 @@
                 mountHookTypesDev();
                 return mountRef(initialValue);
               },
-              useState: function(initialState4) {
+              useState: function(initialState5) {
                 currentHookNameInDev = "useState";
                 warnInvalidHookAccess();
                 mountHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnMountInDEV;
                 try {
-                  return mountState(initialState4);
+                  return mountState(initialState5);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -15017,14 +15017,14 @@
                 updateHookTypesDev();
                 return updateRef();
               },
-              useState: function(initialState4) {
+              useState: function(initialState5) {
                 currentHookNameInDev = "useState";
                 warnInvalidHookAccess();
                 updateHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnUpdateInDEV;
                 try {
-                  return updateState(initialState4);
+                  return updateState(initialState5);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -15138,14 +15138,14 @@
                 updateHookTypesDev();
                 return updateRef();
               },
-              useState: function(initialState4) {
+              useState: function(initialState5) {
                 currentHookNameInDev = "useState";
                 warnInvalidHookAccess();
                 updateHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnUpdateInDEV;
                 try {
-                  return rerenderState(initialState4);
+                  return rerenderState(initialState5);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -23569,7 +23569,7 @@
           return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React12 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React12.useSyncExternalStore, useRef6 = React12.useRef, useEffect10 = React12.useEffect, useMemo8 = React12.useMemo, useDebugValue2 = React12.useDebugValue;
+        var React13 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React13.useSyncExternalStore, useRef6 = React13.useRef, useEffect11 = React13.useEffect, useMemo8 = React13.useMemo, useDebugValue2 = React13.useDebugValue;
         exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
           var instRef = useRef6(null);
           if (null === instRef.current) {
@@ -23613,7 +23613,7 @@
             [getSnapshot, getServerSnapshot, selector, isEqual]
           );
           var value = useSyncExternalStore2(subscribe, instRef[0], instRef[1]);
-          useEffect10(
+          useEffect11(
             function() {
               inst.hasValue = true;
               inst.value = value;
@@ -23647,7 +23647,7 @@
       if (true) {
         (function() {
           "use strict";
-          var React12 = require_react();
+          var React13 = require_react();
           var REACT_ELEMENT_TYPE = Symbol.for("react.element");
           var REACT_PORTAL_TYPE = Symbol.for("react.portal");
           var REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
@@ -23673,7 +23673,7 @@
             }
             return null;
           }
-          var ReactSharedInternals = React12.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React13.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           function error(format) {
             {
               {
@@ -24523,11 +24523,11 @@
               return jsxWithValidation(type, props, key, false);
             }
           }
-          var jsx18 = jsxWithValidationDynamic;
-          var jsxs15 = jsxWithValidationStatic;
+          var jsx19 = jsxWithValidationDynamic;
+          var jsxs16 = jsxWithValidationStatic;
           exports.Fragment = REACT_FRAGMENT_TYPE;
-          exports.jsx = jsx18;
-          exports.jsxs = jsxs15;
+          exports.jsx = jsx19;
+          exports.jsxs = jsxs16;
         })();
       }
     }
@@ -24546,7 +24546,7 @@
   });
 
   // src/index.tsx
-  var import_react32 = __toESM(require_react());
+  var import_react33 = __toESM(require_react());
   var import_client = __toESM(require_client());
 
   // node_modules/react-redux/dist/react-redux.mjs
@@ -25147,10 +25147,10 @@
   function assertReducerShape(reducers) {
     Object.keys(reducers).forEach((key) => {
       const reducer = reducers[key];
-      const initialState4 = reducer(void 0, {
+      const initialState5 = reducer(void 0, {
         type: actionTypes_default.INIT
       });
-      if (typeof initialState4 === "undefined") {
+      if (typeof initialState5 === "undefined") {
         throw new Error(false ? formatProdErrorMessage(12) : `The slice reducer for key "${key}" returned undefined during initialization. If the state passed to the reducer is undefined, you must explicitly return the initial state. The initial state may not be undefined. If you don't want to set a value for this reducer, you can use null instead of undefined.`);
       }
       if (typeof reducer(void 0, {
@@ -26701,7 +26701,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   function isStateFunction(x) {
     return typeof x === "function";
   }
-  function createReducer(initialState4, mapOrBuilderCallback) {
+  function createReducer(initialState5, mapOrBuilderCallback) {
     if (true) {
       if (typeof mapOrBuilderCallback === "object") {
         throw new Error(false ? formatProdErrorMessage(8) : "The object notation for `createReducer` has been removed. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createReducer");
@@ -26709,10 +26709,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     }
     let [actionsMap, finalActionMatchers, finalDefaultCaseReducer] = executeReducerBuilderCallback(mapOrBuilderCallback);
     let getInitialState;
-    if (isStateFunction(initialState4)) {
-      getInitialState = () => freezeDraftable(initialState4());
+    if (isStateFunction(initialState5)) {
+      getInitialState = () => freezeDraftable(initialState5());
     } else {
-      const frozenInitialState = freezeDraftable(initialState4);
+      const frozenInitialState = freezeDraftable(initialState5);
       getInitialState = () => frozenInitialState;
     }
     function reducer(state = getInitialState(), action) {
@@ -27499,11 +27499,17 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         state.items = action.payload;
       },
       addOrUpdateChat(state, action) {
-        const existing = state.items.find((c) => c.id === action.payload.id);
-        if (existing) {
-          Object.assign(existing, action.payload);
+        const existingIndex = state.items.findIndex((c) => c.id === action.payload.id);
+        if (existingIndex !== -1) {
+          state.items[existingIndex] = { ...state.items[existingIndex], ...action.payload };
+          const currentChat = state.items[existingIndex];
+          const topChat = state.items[0];
+          if (currentChat && topChat && currentChat.updatedAt > topChat.updatedAt) {
+            state.items.splice(existingIndex, 1);
+            state.items.unshift(currentChat);
+          }
         } else {
-          state.items.push(action.payload);
+          state.items.unshift(action.payload);
         }
       },
       resetPagination(state) {
@@ -27615,17 +27621,65 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var { setMessagesForChat, addMessage } = messagesSlice.actions;
   var messagesSlice_default = messagesSlice.reducer;
 
+  // src/app/slices/connectionSlice.ts
+  var initialState4 = {
+    status: "offline",
+    reconnectAttempts: 0,
+    showNotification: false
+  };
+  var connectionSlice = createSlice({
+    name: "connection",
+    initialState: initialState4,
+    reducers: {
+      setConnectionStatus(state, action) {
+        const { status, lastConnected, reconnectAttempts } = action.payload;
+        const previousStatus = state.status;
+        state.status = status;
+        if (lastConnected !== void 0) {
+          state.lastConnected = lastConnected;
+        }
+        if (reconnectAttempts !== void 0) {
+          state.reconnectAttempts = reconnectAttempts;
+        }
+        if (previousStatus !== status) {
+          state.showNotification = true;
+          switch (status) {
+            case "connected":
+              state.notificationMessage = "Connected to server";
+              break;
+            case "reconnecting":
+              state.notificationMessage = `Connection lost... Reconnecting (${reconnectAttempts || 0})`;
+              break;
+            case "offline":
+              state.notificationMessage = "Offline - Working in offline mode";
+              break;
+          }
+        }
+      },
+      hideNotification(state) {
+        state.showNotification = false;
+        state.notificationMessage = void 0;
+      },
+      resetConnection(state) {
+        return { ...initialState4 };
+      }
+    }
+  });
+  var { setConnectionStatus, hideNotification, resetConnection } = connectionSlice.actions;
+  var connectionSlice_default = connectionSlice.reducer;
+
   // src/app/store.ts
   var store = configureStore({
     reducer: {
       auth: authSlice_default,
       chats: chatsSlice_default,
-      messages: messagesSlice_default
+      messages: messagesSlice_default,
+      connection: connectionSlice_default
     }
   });
 
   // src/App.tsx
-  var import_react31 = __toESM(require_react());
+  var import_react32 = __toESM(require_react());
 
   // src/pages/Login.tsx
   var import_react22 = __toESM(require_react());
@@ -35892,15 +35946,24 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   ];
   var Phone = createLucideIcon("phone", __iconNode16);
 
-  // node_modules/lucide-react/dist/esm/icons/search.js
+  // node_modules/lucide-react/dist/esm/icons/refresh-cw.js
   var __iconNode17 = [
+    ["path", { d: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8", key: "v9h5vc" }],
+    ["path", { d: "M21 3v5h-5", key: "1q7to0" }],
+    ["path", { d: "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16", key: "3uifl3" }],
+    ["path", { d: "M8 16H3v5", key: "1cv678" }]
+  ];
+  var RefreshCw = createLucideIcon("refresh-cw", __iconNode17);
+
+  // node_modules/lucide-react/dist/esm/icons/search.js
+  var __iconNode18 = [
     ["path", { d: "m21 21-4.34-4.34", key: "14j7rj" }],
     ["circle", { cx: "11", cy: "11", r: "8", key: "4ej97u" }]
   ];
-  var Search = createLucideIcon("search", __iconNode17);
+  var Search = createLucideIcon("search", __iconNode18);
 
   // node_modules/lucide-react/dist/esm/icons/send.js
-  var __iconNode18 = [
+  var __iconNode19 = [
     [
       "path",
       {
@@ -35910,10 +35973,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["path", { d: "m21.854 2.147-10.94 10.939", key: "12cjpa" }]
   ];
-  var Send = createLucideIcon("send", __iconNode18);
+  var Send = createLucideIcon("send", __iconNode19);
 
   // node_modules/lucide-react/dist/esm/icons/settings.js
-  var __iconNode19 = [
+  var __iconNode20 = [
     [
       "path",
       {
@@ -35923,36 +35986,36 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
   ];
-  var Settings = createLucideIcon("settings", __iconNode19);
+  var Settings = createLucideIcon("settings", __iconNode20);
 
   // node_modules/lucide-react/dist/esm/icons/smile.js
-  var __iconNode20 = [
+  var __iconNode21 = [
     ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
     ["path", { d: "M8 14s1.5 2 4 2 4-2 4-2", key: "1y1vjs" }],
     ["line", { x1: "9", x2: "9.01", y1: "9", y2: "9", key: "yxxnd0" }],
     ["line", { x1: "15", x2: "15.01", y1: "9", y2: "9", key: "1p4y9e" }]
   ];
-  var Smile = createLucideIcon("smile", __iconNode20);
+  var Smile = createLucideIcon("smile", __iconNode21);
 
   // node_modules/lucide-react/dist/esm/icons/trash-2.js
-  var __iconNode21 = [
+  var __iconNode22 = [
     ["path", { d: "M10 11v6", key: "nco0om" }],
     ["path", { d: "M14 11v6", key: "outv1u" }],
     ["path", { d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", key: "miytrc" }],
     ["path", { d: "M3 6h18", key: "d0wm0j" }],
     ["path", { d: "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", key: "e791ji" }]
   ];
-  var Trash2 = createLucideIcon("trash-2", __iconNode21);
+  var Trash2 = createLucideIcon("trash-2", __iconNode22);
 
   // node_modules/lucide-react/dist/esm/icons/user.js
-  var __iconNode22 = [
+  var __iconNode23 = [
     ["path", { d: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2", key: "975kel" }],
     ["circle", { cx: "12", cy: "7", r: "4", key: "17ys0d" }]
   ];
-  var User = createLucideIcon("user", __iconNode22);
+  var User = createLucideIcon("user", __iconNode23);
 
   // node_modules/lucide-react/dist/esm/icons/video.js
-  var __iconNode23 = [
+  var __iconNode24 = [
     [
       "path",
       {
@@ -35962,10 +36025,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["rect", { x: "2", y: "6", width: "14", height: "12", rx: "2", key: "158x01" }]
   ];
-  var Video = createLucideIcon("video", __iconNode23);
+  var Video = createLucideIcon("video", __iconNode24);
 
   // node_modules/lucide-react/dist/esm/icons/wifi-off.js
-  var __iconNode24 = [
+  var __iconNode25 = [
     ["path", { d: "M12 20h.01", key: "zekei9" }],
     ["path", { d: "M8.5 16.429a5 5 0 0 1 7 0", key: "1bycff" }],
     ["path", { d: "M5 12.859a10 10 0 0 1 5.17-2.69", key: "1dl1wf" }],
@@ -35974,16 +36037,23 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ["path", { d: "M22 8.82a15 15 0 0 0-11.288-3.764", key: "z3jwby" }],
     ["path", { d: "m2 2 20 20", key: "1ooewy" }]
   ];
-  var WifiOff = createLucideIcon("wifi-off", __iconNode24);
+  var WifiOff = createLucideIcon("wifi-off", __iconNode25);
 
   // node_modules/lucide-react/dist/esm/icons/wifi.js
-  var __iconNode25 = [
+  var __iconNode26 = [
     ["path", { d: "M12 20h.01", key: "zekei9" }],
     ["path", { d: "M2 8.82a15 15 0 0 1 20 0", key: "dnpr2z" }],
     ["path", { d: "M5 12.859a10 10 0 0 1 14 0", key: "1x1e6c" }],
     ["path", { d: "M8.5 16.429a5 5 0 0 1 7 0", key: "1bycff" }]
   ];
-  var Wifi = createLucideIcon("wifi", __iconNode25);
+  var Wifi = createLucideIcon("wifi", __iconNode26);
+
+  // node_modules/lucide-react/dist/esm/icons/x.js
+  var __iconNode27 = [
+    ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
+    ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
+  ];
+  var X = createLucideIcon("x", __iconNode27);
 
   // src/pages/Login.tsx
   var import_jsx_runtime3 = __toESM(require_jsx_runtime());
@@ -36607,7 +36677,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var Welcome_default = Welcome;
 
   // src/layouts/MainLayout.tsx
-  var import_react28 = __toESM(require_react());
+  var import_react29 = __toESM(require_react());
 
   // src/components/Sidebar.tsx
   var import_jsx_runtime7 = __toESM(require_jsx_runtime());
@@ -37218,23 +37288,196 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   };
   var MessageThread_default = MessageThread;
 
-  // src/layouts/MainLayout.tsx
+  // src/components/ConnectionStatusBar.tsx
+  var import_react28 = __toESM(require_react());
   var import_jsx_runtime13 = __toESM(require_jsx_runtime());
+  var ConnectionStatusBar = () => {
+    const dispatch = useDispatch();
+    const { status, showNotification, notificationMessage } = useSelector(
+      (state) => state.connection
+    );
+    (0, import_react28.useEffect)(() => {
+      if (status === "reconnecting" && showNotification) {
+        const timeout = setTimeout(() => {
+          dispatch(hideNotification());
+        }, 5e3);
+        return () => clearTimeout(timeout);
+      }
+    }, [status, showNotification, dispatch]);
+    if (!showNotification) {
+      return null;
+    }
+    const getStatusIcon = () => {
+      switch (status) {
+        case "connected":
+          return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Wifi, { size: 16, className: "text-green-500" });
+        case "reconnecting":
+          return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(RefreshCw, { size: 16, className: "text-yellow-500 animate-spin" });
+        case "offline":
+          return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(WifiOff, { size: 16, className: "text-red-500" });
+        default:
+          return null;
+      }
+    };
+    const getStatusColor = () => {
+      switch (status) {
+        case "connected":
+          return "bg-green-50 border-green-200 text-green-800";
+        case "reconnecting":
+          return "bg-yellow-50 border-yellow-200 text-yellow-800";
+        case "offline":
+          return "bg-red-50 border-red-200 text-red-800";
+        default:
+          return "bg-gray-50 border-gray-200 text-gray-800";
+      }
+    };
+    return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "fixed top-4 right-4 z-50 max-w-sm", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: `flex items-center justify-between p-3 rounded-lg border shadow-sm ${getStatusColor()}`, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex items-center space-x-2", children: [
+        getStatusIcon(),
+        /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("span", { className: "text-sm font-medium", children: notificationMessage || "Connection status changed" })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+        "button",
+        {
+          onClick: () => dispatch(hideNotification()),
+          className: "ml-2 p-1 rounded hover:bg-black/10 transition-colors",
+          "aria-label": "Dismiss notification",
+          children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(X, { size: 14 })
+        }
+      )
+    ] }) });
+  };
+  var ConnectionStatusBar_default = ConnectionStatusBar;
+
+  // src/services/syncIpcClient.ts
+  var SyncIpcClient = class {
+    constructor() {
+      this.notificationTimeouts = /* @__PURE__ */ new Map();
+      if (!window.secureMessenger?.sync) {
+        throw new Error("Sync API not available. Ensure preload is properly loaded.");
+      }
+      this.api = window.secureMessenger.sync;
+      this.setupEventListeners();
+    }
+    /**
+     * Setup event listeners for real-time sync events
+     */
+    setupEventListeners() {
+      this.api.onConnectionStatus((status) => {
+        console.log("[Sync] Connection status changed:", status);
+        store.dispatch(setConnectionStatus({
+          status: status.status,
+          lastConnected: status.lastConnected,
+          reconnectAttempts: status.reconnectAttempts
+        }));
+        if (status.status === "connected") {
+          this.scheduleNotificationHide("connected", 3e3);
+        }
+      });
+      this.api.onConnectionConnected(() => {
+        console.log("[Sync] Connected to server");
+        store.dispatch(setConnectionStatus({ status: "connected" }));
+        this.scheduleNotificationHide("connected", 3e3);
+      });
+      this.api.onConnectionDisconnected(() => {
+        console.log("[Sync] Disconnected from server");
+        store.dispatch(setConnectionStatus({ status: "offline" }));
+      });
+      this.api.onMessageInserted((message) => {
+        console.log("[Sync] New message received:", message);
+      });
+      this.api.onChatUpdated((chatData) => {
+        console.log("[Sync] Chat updated:", chatData);
+        const chatItem = {
+          id: chatData.id,
+          name: chatData.name,
+          lastMessage: chatData.last_message,
+          updatedAt: chatData.updated_at,
+          unreadCount: chatData.unread_count || 0
+        };
+        store.dispatch(addOrUpdateChat(chatItem));
+      });
+      this.api.onChatListUpdated(() => {
+        console.log("[Sync] Chat list updated, refreshing...");
+      });
+    }
+    /**
+     * Schedule hiding of notification after delay
+     */
+    scheduleNotificationHide(key, delay2) {
+      const existing = this.notificationTimeouts.get(key);
+      if (existing) {
+        clearTimeout(existing);
+      }
+      const timeout = setTimeout(() => {
+        store.dispatch(hideNotification());
+        this.notificationTimeouts.delete(key);
+      }, delay2);
+      this.notificationTimeouts.set(key, timeout);
+    }
+    /**
+     * Get current connection status
+     */
+    async getConnectionStatus() {
+      try {
+        return await this.api.getConnectionStatus();
+      } catch (error) {
+        console.error("Failed to get connection status:", error);
+        return { status: "offline" };
+      }
+    }
+    /**
+     * Mark messages as read for a chat
+     */
+    async markMessagesRead(chatId) {
+      try {
+        const result = await this.api.markMessagesRead(chatId);
+        console.log("[Sync] Marked messages as read:", result);
+        return result;
+      } catch (error) {
+        console.error("Failed to mark messages as read:", error);
+        throw error;
+      }
+    }
+    /**
+     * Send a message
+     */
+    async sendMessage(chatId, content) {
+      try {
+        const result = await this.api.sendMessage(chatId, content);
+        console.log("[Sync] Message sent:", result);
+        return result;
+      } catch (error) {
+        console.error("Failed to send message:", error);
+        throw error;
+      }
+    }
+  };
+  var syncIpcClient = new SyncIpcClient();
+
+  // src/layouts/MainLayout.tsx
+  var import_jsx_runtime14 = __toESM(require_jsx_runtime());
   var MainLayout = () => {
     const dispatch = useDispatch();
     const selectedChatId = useSelector((s) => s.chats.selectedChatId);
     const chats = useSelector((s) => s.chats.items);
     const messagesByChat = useSelector((s) => s.messages.byChatId);
     const user = useSelector((s) => s.auth.user);
-    const handleSelectChat = import_react28.default.useCallback(
+    const handleSelectChat = import_react29.default.useCallback(
       (chatId) => {
         dispatch(selectChat(chatId));
+        const selectedChat2 = chats.find((c) => c.id === chatId);
+        if (selectedChat2 && selectedChat2.unreadCount > 0) {
+          syncIpcClient.markMessagesRead(chatId).catch((error) => {
+            console.error("Failed to mark messages as read:", error);
+          });
+        }
       },
-      [dispatch]
+      [dispatch, chats]
     );
     const selectedChat = chats.find((c) => c.id === selectedChatId);
     const selectedMessages = selectedChatId ? messagesByChat[selectedChatId] ?? [] : [];
-    const handleSendMessage = import_react28.default.useCallback(
+    const handleSendMessage = import_react29.default.useCallback(
       (chatId, content) => {
         if (!user?.username)
           return;
@@ -37242,43 +37485,46 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       },
       [dispatch, user?.username]
     );
-    return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "flex h-screen bg-gray-light", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex flex-1", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Sidebar_default, {}),
-      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("aside", { className: "w-80 bg-white border-r border-gray-200 flex flex-col", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
-        ChatList_default,
-        {
-          selectedChatId,
-          onSelectChat: handleSelectChat
-        }
-      ) }),
-      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("section", { className: "flex-1 flex flex-col bg-white", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
-        MessageThread_default,
-        {
-          chatId: selectedChatId,
-          chatName: selectedChat?.name,
-          messages: selectedMessages,
-          onSendMessage: handleSendMessage
-        }
-      ) })
-    ] }) });
+    return /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "flex h-screen bg-gray-light", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "flex flex-1", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(Sidebar_default, {}),
+        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("aside", { className: "w-80 bg-white border-r border-gray-200 flex flex-col", children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+          ChatList_default,
+          {
+            selectedChatId,
+            onSelectChat: handleSelectChat
+          }
+        ) }),
+        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("section", { className: "flex-1 flex flex-col bg-white", children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+          MessageThread_default,
+          {
+            chatId: selectedChatId,
+            chatName: selectedChat?.name,
+            messages: selectedMessages,
+            onSendMessage: handleSendMessage
+          }
+        ) })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(ConnectionStatusBar_default, {})
+    ] });
   };
   var MainLayout_default = MainLayout;
 
   // src/components/TopNavbar.tsx
-  var import_react29 = __toESM(require_react());
-  var import_jsx_runtime14 = __toESM(require_jsx_runtime());
+  var import_react30 = __toESM(require_react());
+  var import_jsx_runtime15 = __toESM(require_jsx_runtime());
   var TopNavbar = () => {
     const dispatch = useDispatch();
     const user = useSelector((s) => s.auth.user);
-    const [dropdownOpen, setDropdownOpen] = (0, import_react29.useState)(false);
+    const [dropdownOpen, setDropdownOpen] = (0, import_react30.useState)(false);
     const handleLogout = () => {
       setDropdownOpen(false);
       void dispatch(logout());
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("header", { className: "top-navbar", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("div", { className: "top-navbar-left", children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("h1", { className: "top-navbar-title", children: "Secure Messenger" }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "top-navbar-right", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("header", { className: "top-navbar", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("div", { className: "top-navbar-left", children: /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("h1", { className: "top-navbar-title", children: "Secure Messenger" }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "top-navbar-right", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)(
           "button",
           {
             type: "button",
@@ -37288,18 +37534,18 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
             "aria-expanded": dropdownOpen,
             "aria-haspopup": "menu",
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(User, { size: 20 }),
-              /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("span", { className: "top-navbar-username", children: user?.username }),
-              /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(ChevronDown, { size: 16, className: dropdownOpen ? "rotate" : "" })
+              /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(User, { size: 20 }),
+              /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("span", { className: "top-navbar-username", children: user?.username }),
+              /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(ChevronDown, { size: 16, className: dropdownOpen ? "rotate" : "" })
             ]
           }
         ),
-        dropdownOpen && /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "top-navbar-dropdown", role: "menu", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "top-navbar-dropdown-item", role: "menuitem", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(User, { size: 16 }),
-            /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("span", { children: user?.username })
+        dropdownOpen && /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "top-navbar-dropdown", role: "menu", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "top-navbar-dropdown-item", role: "menuitem", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(User, { size: 16 }),
+            /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("span", { children: user?.username })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)(
+          /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)(
             "button",
             {
               type: "button",
@@ -37307,8 +37553,8 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
               onClick: handleLogout,
               role: "menuitem",
               children: [
-                /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(LogOut, { size: 16 }),
-                /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("span", { children: "Logout" })
+                /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(LogOut, { size: 16 }),
+                /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("span", { children: "Logout" })
               ]
             }
           )
@@ -37319,10 +37565,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var TopNavbar_default = TopNavbar;
 
   // src/hooks/useKeyboardShortcuts.ts
-  var import_react30 = __toESM(require_react());
+  var import_react31 = __toESM(require_react());
   function useKeyboardShortcuts(shortcuts) {
     const dispatch = useDispatch();
-    (0, import_react30.useEffect)(() => {
+    (0, import_react31.useEffect)(() => {
       const handleKeyDown = (event) => {
         for (const shortcut of shortcuts) {
           const {
@@ -37368,7 +37614,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   ];
 
   // src/pages/Home.tsx
-  var import_jsx_runtime15 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime16 = __toESM(require_jsx_runtime());
   var Home = () => {
     const dispatch = useDispatch();
     const user = useSelector((s) => s.auth.user);
@@ -37376,48 +37622,48 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       void dispatch(logout());
     };
     useKeyboardShortcuts(createAppShortcuts(dispatch));
-    return /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "home-container", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(TopNavbar_default, {}),
-      /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(MainLayout_default, {})
+    return /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "home-container", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(TopNavbar_default, {}),
+      /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(MainLayout_default, {})
     ] });
   };
   var Home_default = Home;
 
   // src/App.tsx
-  var import_jsx_runtime16 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime17 = __toESM(require_jsx_runtime());
   var FIRST_LAUNCH_KEY = "smd.hasCompletedWelcome";
   var App = () => {
     const dispatch = useDispatch();
     const authStatus = useSelector((s) => s.auth.status);
     const authError = useSelector((s) => s.auth.error);
-    const initialFlag = (0, import_react31.useMemo)(
+    const initialFlag = (0, import_react32.useMemo)(
       () => typeof window !== "undefined" && window.localStorage.getItem(FIRST_LAUNCH_KEY) === "true",
       []
     );
-    const [hasCompletedWelcome, setHasCompletedWelcome] = (0, import_react31.useState)(initialFlag);
-    const [authView, setAuthView] = (0, import_react31.useState)("login");
-    (0, import_react31.useEffect)(() => {
+    const [hasCompletedWelcome, setHasCompletedWelcome] = (0, import_react32.useState)(initialFlag);
+    const [authView, setAuthView] = (0, import_react32.useState)("login");
+    (0, import_react32.useEffect)(() => {
       void dispatch(checkSession());
     }, [dispatch]);
-    const handleLogin = (0, import_react31.useCallback)(
+    const handleLogin = (0, import_react32.useCallback)(
       async (username, password) => {
         void dispatch(login({ username }));
       },
       [dispatch]
     );
-    const handleRegister = (0, import_react31.useCallback)(
+    const handleRegister = (0, import_react32.useCallback)(
       async (email, displayName, password) => {
         void dispatch(register({ email, displayName, password }));
       },
       [dispatch]
     );
-    const handleForgotPassword = (0, import_react31.useCallback)(
+    const handleForgotPassword = (0, import_react32.useCallback)(
       async (email) => {
         console.log("Password reset requested for:", email);
       },
       []
     );
-    const handleWelcomeContinue = (0, import_react31.useCallback)(() => {
+    const handleWelcomeContinue = (0, import_react32.useCallback)(() => {
       try {
         window.localStorage.setItem(FIRST_LAUNCH_KEY, "true");
         setHasCompletedWelcome(true);
@@ -37426,16 +37672,16 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     }, []);
     if (authStatus === "authenticated") {
       if (!hasCompletedWelcome) {
-        return /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Welcome_default, { isLoading: false, onContinue: handleWelcomeContinue });
+        return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(Welcome_default, { isLoading: false, onContinue: handleWelcomeContinue });
       }
-      return /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Home_default, {});
+      return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(Home_default, {});
     }
     if (authStatus === "idle") {
-      return /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("div", { style: { padding: 24 }, children: "Loading\u2026" });
+      return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)("div", { style: { padding: 24 }, children: "Loading\u2026" });
     }
     switch (authView) {
       case "register":
-        return /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(
+        return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(
           Register_default,
           {
             isLoading: false,
@@ -37445,7 +37691,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           }
         );
       case "forgot":
-        return /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(
+        return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(
           ForgotPassword_default,
           {
             isLoading: false,
@@ -37456,7 +37702,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         );
       case "login":
       default:
-        return /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(
+        return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(
           Login_default,
           {
             isLoading: false,
@@ -37471,14 +37717,14 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var App_default = App;
 
   // src/index.tsx
-  var import_jsx_runtime17 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime18 = __toESM(require_jsx_runtime());
   var container = document.getElementById("root");
   if (!container) {
     throw new Error("Root element #root not found");
   }
   var root = (0, import_client.createRoot)(container);
   root.render(
-    /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(import_react32.default.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(Provider_default, { store, children: /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(App_default, {}) }) })
+    /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(import_react33.default.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(Provider_default, { store, children: /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(App_default, {}) }) })
   );
 })();
 /*! Bundled license information:
@@ -37743,6 +37989,14 @@ lucide-react/dist/esm/icons/phone.js:
    * See the LICENSE file in the root directory of this source tree.
    *)
 
+lucide-react/dist/esm/icons/refresh-cw.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
 lucide-react/dist/esm/icons/search.js:
   (**
    * @license lucide-react v0.563.0 - ISC
@@ -37808,6 +38062,14 @@ lucide-react/dist/esm/icons/wifi-off.js:
    *)
 
 lucide-react/dist/esm/icons/wifi.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/x.js:
   (**
    * @license lucide-react v0.563.0 - ISC
    *
