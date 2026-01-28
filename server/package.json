@@ -1,0 +1,13 @@
+{
+  "name": "mock-sync-server",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Mock WebSocket sync server for testing",
+  "main": "ws-server.ts",
+  "scripts": {
+    "start": "node ws-server.ts"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

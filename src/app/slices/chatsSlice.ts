@@ -8,7 +8,7 @@ export interface ChatItem {
   name: string;
   lastMessage?: string;
   updatedAt: number;
-  unreadCount?: number;
+  unreadCount: number; // Make required, default to 0
 }
 
 interface ChatsState {
@@ -52,7 +52,7 @@ export const fetchChats = createAsyncThunk(
       name: chat.name,
       lastMessage: chat.last_message,
       updatedAt: chat.updated_at,
-      unreadCount: chat.unread_count,
+      unreadCount: chat.unread_count || 0, // Ensure default value
     }));
 
     return {

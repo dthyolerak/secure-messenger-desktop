@@ -27477,7 +27477,8 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         name: chat.name,
         lastMessage: chat.last_message,
         updatedAt: chat.updated_at,
-        unreadCount: chat.unread_count
+        unreadCount: chat.unread_count || 0
+        // Ensure default value
       }));
       return {
         chats: chatItems,

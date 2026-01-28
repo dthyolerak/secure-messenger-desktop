@@ -4,7 +4,7 @@ export interface Chat {
   name: string;
   last_message?: string;
   updated_at: number;
-  unread_count?: number;
+  unread_count: number; // Make required, default to 0
 }
 
 export interface GetChatsRequest {

@@ -20,7 +20,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // electron/preload.ts
 var preload_exports = {};
 module.exports = __toCommonJS(preload_exports);
-var import_electron = require("electron");
+var import_electron2 = require("electron");
 
 // src/domains/auth/auth.types.ts
 var AUTH_IPC_CHANNELS = {
@@ -4103,28 +4103,64 @@ var MESSAGES_IPC_CHANNELS = {
   LIST_MESSAGES: "smd:messages:list"
 };
 
-// src/domains/sync/sync.types.ts
-var SYNC_IPC_CHANNELS = {
-  TYPING_EVENT: "smd:sync:typing",
-  PRESENCE_EVENT: "smd:sync:presence",
-  SEARCH_CHATS: "smd:sync:searchChats"
-};
-
 // src/domains/chats/chats.types.ts
 var CHATS_IPC_CHANNELS = {
   GET_CHATS: "chats:getChats"
 };
 
+// electron/ipc/events.ts
+var import_electron = require("electron");
+var IPC_EVENTS = {
+  // Connection status events
+  CONNECTION_STATUS: "sync:connection-status",
+  CONNECTION_CONNECTED: "sync:connection-connected",
+  CONNECTION_DISCONNECTED: "sync:connection-disconnected",
+  // Message events
+  MESSAGE_INSERTED: "sync:message-inserted",
+  MESSAGE_UPDATED: "sync:message-updated",
+  MESSAGE_DELETED: "sync:message-deleted",
+  // Chat events
+  CHAT_UPDATED: "sync:chat-updated",
+  CHAT_LIST_UPDATED: "sync:chat-list-updated",
+  // Request/response channels (for renderer to main)
+  GET_CONNECTION_STATUS: "sync:get-connection-status",
+  GET_MESSAGES: "sync:get-messages",
+  GET_CHATS: "sync:get-chats",
+  MARK_MESSAGES_READ: "sync:mark-messages-read",
+  SEND_MESSAGE: "sync:send-message"
+};
+var MessageInsertedPayloadSchema = external_exports.object({
+  id: external_exports.string(),
+  chat_id: external_exports.string(),
+  sender: external_exports.string(),
+  content: external_exports.string(),
+  timestamp: external_exports.number(),
+  is_read: external_exports.boolean(),
+  is_edited: external_exports.boolean()
+});
+var ChatUpdatedPayloadSchema = external_exports.object({
+  id: external_exports.string(),
+  name: external_exports.string(),
+  last_message: external_exports.string().optional(),
+  updated_at: external_exports.number(),
+  unread_count: external_exports.number()
+});
+var ConnectionStatusPayloadSchema = external_exports.object({
+  status: external_exports.enum(["connected", "reconnecting", "offline"]),
+  lastConnected: external_exports.number().optional(),
+  reconnectAttempts: external_exports.number().optional()
+});
+
 // electron/preload.ts
 var authApi = {
   async getSession() {
-    const raw = await import_electron.ipcRenderer.invoke(AUTH_IPC_CHANNELS.getSession);
+    const raw = await import_electron2.ipcRenderer.invoke(AUTH_IPC_CHANNELS.getSession);
     const parsed = GetSessionResponseSchema.parse(raw);
     return parsed.session;
   },
   async startSession(payload) {
     const input = StartSessionInputSchema.parse(payload);
-    const raw = await import_electron.ipcRenderer.invoke(
+    const raw = await import_electron2.ipcRenderer.invoke(
       AUTH_IPC_CHANNELS.startSession,
       input
     );
@@ -4134,18 +4170,11 @@ var authApi = {
 };
 var messagesApi = {
   async insertMessage(payload) {
-    const raw = await import_electron.ipcRenderer.invoke(MESSAGES_IPC_CHANNELS.INSERT_MESSAGE, payload);
-    const MessageSchema = external_exports.object({
-      id: external_exports.string(),
-      chat_id: external_exports.string(),
-      sender: external_exports.string(),
-      content: external_exports.string(),
-      timestamp: external_exports.number()
-    });
-    return MessageSchema.parse(raw);
+    const raw = await import_electron2.ipcRenderer.invoke(MESSAGES_IPC_CHANNELS.INSERT_MESSAGE, payload);
+    return raw;
   },
   async listMessages(chatId) {
-    const raw = await import_electron.ipcRenderer.invoke(MESSAGES_IPC_CHANNELS.LIST_MESSAGES, { chat_id: chatId });
+    const raw = await import_electron2.ipcRenderer.invoke(MESSAGES_IPC_CHANNELS.LIST_MESSAGES, { chat_id: chatId });
     const MessageArraySchema = external_exports.array(external_exports.object({
       id: external_exports.string(),
       chat_id: external_exports.string(),
@@ -4157,22 +4186,64 @@ var messagesApi = {
   }
 };
 var syncApi = {
-  async sendTypingEvent(event) {
-    const raw = await import_electron.ipcRenderer.invoke(SYNC_IPC_CHANNELS.TYPING_EVENT, event);
-    return external_exports.object({ success: external_exports.boolean() }).parse(raw);
+  // Connection status
+  async getConnectionStatus() {
+    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.GET_CONNECTION_STATUS);
   },
-  async sendPresenceEvent(event) {
-    const raw = await import_electron.ipcRenderer.invoke(SYNC_IPC_CHANNELS.PRESENCE_EVENT, event);
-    return external_exports.object({ success: external_exports.boolean() }).parse(raw);
+  // Messages
+  async getMessages(chatId, limit, offset) {
+    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.GET_MESSAGES, { chatId, limit, offset });
   },
-  async searchChats(query) {
-    const raw = await import_electron.ipcRenderer.invoke(SYNC_IPC_CHANNELS.SEARCH_CHATS, { query });
-    return external_exports.object({ chats: external_exports.array(external_exports.any()), total: external_exports.number() }).parse(raw);
+  async sendMessage(chatId, content) {
+    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.SEND_MESSAGE, { chatId, content });
+  },
+  async markMessagesRead(chatId) {
+    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.MARK_MESSAGES_READ, { chatId });
+  },
+  // Chats
+  async getChats() {
+    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.GET_CHATS);
+  },
+  // Event listeners
+  onConnectionStatus(callback) {
+    import_electron2.ipcRenderer.on(IPC_EVENTS.CONNECTION_STATUS, (_, status) => callback(status));
+  },
+  onConnectionConnected(callback) {
+    import_electron2.ipcRenderer.on(IPC_EVENTS.CONNECTION_CONNECTED, callback);
+  },
+  onConnectionDisconnected(callback) {
+    import_electron2.ipcRenderer.on(IPC_EVENTS.CONNECTION_DISCONNECTED, callback);
+  },
+  onMessageInserted(callback) {
+    import_electron2.ipcRenderer.on(IPC_EVENTS.MESSAGE_INSERTED, (_, message) => callback(message));
+  },
+  onMessageUpdated(callback) {
+    import_electron2.ipcRenderer.on(IPC_EVENTS.MESSAGE_UPDATED, (_, data) => callback(data));
+  },
+  onMessageDeleted(callback) {
+    import_electron2.ipcRenderer.on(IPC_EVENTS.MESSAGE_DELETED, (_, data) => callback(data));
+  },
+  onChatUpdated(callback) {
+    import_electron2.ipcRenderer.on(IPC_EVENTS.CHAT_UPDATED, (_, chat) => callback(chat));
+  },
+  onChatListUpdated(callback) {
+    import_electron2.ipcRenderer.on(IPC_EVENTS.CHAT_LIST_UPDATED, callback);
+  },
+  // Cleanup listeners
+  removeAllListeners() {
+    import_electron2.ipcRenderer.removeAllListeners(IPC_EVENTS.CONNECTION_STATUS);
+    import_electron2.ipcRenderer.removeAllListeners(IPC_EVENTS.CONNECTION_CONNECTED);
+    import_electron2.ipcRenderer.removeAllListeners(IPC_EVENTS.CONNECTION_DISCONNECTED);
+    import_electron2.ipcRenderer.removeAllListeners(IPC_EVENTS.MESSAGE_INSERTED);
+    import_electron2.ipcRenderer.removeAllListeners(IPC_EVENTS.MESSAGE_UPDATED);
+    import_electron2.ipcRenderer.removeAllListeners(IPC_EVENTS.MESSAGE_DELETED);
+    import_electron2.ipcRenderer.removeAllListeners(IPC_EVENTS.CHAT_UPDATED);
+    import_electron2.ipcRenderer.removeAllListeners(IPC_EVENTS.CHAT_LIST_UPDATED);
   }
 };
 var chatsApi = {
   async getChats(request) {
-    const raw = await import_electron.ipcRenderer.invoke(CHATS_IPC_CHANNELS.GET_CHATS, request);
+    const raw = await import_electron2.ipcRenderer.invoke(CHATS_IPC_CHANNELS.GET_CHATS, request);
     const responseSchema = external_exports.object({
       success: external_exports.boolean(),
       data: external_exports.object({
@@ -4181,7 +4252,8 @@ var chatsApi = {
           name: external_exports.string(),
           last_message: external_exports.string().optional(),
           updated_at: external_exports.number(),
-          unread_count: external_exports.number().optional()
+          unread_count: external_exports.number()
+          // Make required
         })),
         total: external_exports.number(),
         hasMore: external_exports.boolean()
@@ -4195,7 +4267,7 @@ var chatsApi = {
     return parsed.data;
   }
 };
-import_electron.contextBridge.exposeInMainWorld("secureMessenger", {
+import_electron2.contextBridge.exposeInMainWorld("secureMessenger", {
   auth: authApi,
   messages: messagesApi,
   sync: syncApi,

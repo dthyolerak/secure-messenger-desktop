@@ -5,15 +5,32 @@ import { registerAuthIpcHandlers } from '../src/domains/auth/auth.ipc';
 import { registerMessageIpc } from '../src/domains/messages/messages.ipc';
 import { registerSyncIpc } from '../src/domains/sync/sync.ipc';
 import { registerChatsIpc } from '../src/domains/chats/chats.ipc';
+import { WebSocketClient } from './wsClient';
+import { SyncQueries } from './db/queries';
+import { SyncIPCEmitter, registerSyncIPCHandlers } from './ipc/events';
 
 // Initialize SQLite database
 let db: any = null;
+let wsClient: WebSocketClient | null = null;
+let syncQueries: SyncQueries | null = null;
 
 function initializeDatabase(): void {
   try {
     // Use dynamic import to avoid bundling issues
     const Database = eval('require')('better-sqlite3');
     db = new Database('chats.db');
+    
+    // Check if messages table exists and has the correct schema
+    const tableInfo = db.prepare(`
+      SELECT sql FROM sqlite_master 
+      WHERE type='table' AND name='messages'
+    `).get() as { sql: string } | undefined;
+    
+    if (tableInfo && !tableInfo.sql.includes('sender TEXT')) {
+      console.log('[DB] Messages table has old schema, dropping and recreating...');
+      db.exec('DROP TABLE IF EXISTS messages');
+      db.exec('DROP TABLE IF EXISTS chats'); // Also drop chats to recreate with correct schema
+    }
     
     // Create tables if they don't exist
     db.exec(`
@@ -60,10 +77,10 @@ function initializeDatabase(): void {
       
       const demoChats = [
         ['1', 'Alice Johnson', 'Hey, are you free later?', Date.now() - 1000 * 60, 2],
-        ['2', 'Bob Smith', 'Thanks for the help!', Date.now() - 1000 * 60 * 5, null],
+        ['2', 'Bob Smith', 'Thanks for the help!', Date.now() - 1000 * 60 * 5, 0],
         ['3', 'Team Chat', 'Meeting at 3pm', Date.now() - 1000 * 60 * 15, 5],
         ['4', 'Carol White', 'Can you review this?', Date.now() - 1000 * 60 * 30, 1],
-        ['5', 'David Brown', 'Great work on the project', Date.now() - 1000 * 60 * 60, null],
+        ['5', 'David Brown', 'Great work on the project', Date.now() - 1000 * 60 * 60, 0],
       ];
       
       demoChats.forEach(chat => insertChat.run(...chat));
@@ -98,6 +115,115 @@ function initializeDatabase(): void {
   }
 }
 
+/**
+ * Initialize WebSocket sync client
+ */
+async function initializeWebSocketSync(): Promise<void> {
+  if (!db) {
+    console.error('[SYNC] Database not initialized, cannot start sync');
+    return;
+  }
+
+  try {
+    // Initialize sync queries
+    syncQueries = new SyncQueries(db);
+    
+    // Create WebSocket client
+    wsClient = new WebSocketClient();
+    
+    // Setup event handlers
+    wsClient.on('connected', () => {
+      console.log('[SYNC] WebSocket connected');
+      SyncIPCEmitter.emitConnectionConnected();
+      SyncIPCEmitter.emitConnectionStatus(wsClient!.getStatus());
+    });
+
+    wsClient.on('disconnected', () => {
+      console.log('[SYNC] WebSocket disconnected');
+      SyncIPCEmitter.emitConnectionDisconnected();
+      SyncIPCEmitter.emitConnectionStatus(wsClient!.getStatus());
+    });
+
+    wsClient.on('statusChange', (status) => {
+      console.log('[SYNC] Status changed:', status);
+      SyncIPCEmitter.emitConnectionStatus(status);
+    });
+
+    wsClient.on('syncEvent', async (event) => {
+      console.log('[SYNC] Processing sync event:', event);
+      await handleSyncEvent(event);
+    });
+
+    wsClient.on('error', (error) => {
+      console.error('[SYNC] WebSocket error:', error);
+    });
+
+    wsClient.on('maxReconnectAttemptsReached', () => {
+      console.error('[SYNC] Max reconnect attempts reached - going offline');
+      SyncIPCEmitter.emitConnectionStatus(wsClient!.getStatus());
+    });
+
+    // Connect to WebSocket server
+    await wsClient.connect();
+    console.log('[SYNC] WebSocket sync initialized');
+    
+  } catch (error) {
+    console.error('[SYNC] Failed to initialize WebSocket sync:', error);
+    // Continue without WebSocket - app will work in offline mode
+  }
+}
+
+/**
+ * Handle incoming sync events from WebSocket
+ */
+async function handleSyncEvent(event: any): Promise<void> {
+  if (!syncQueries) {
+    console.error('[SYNC] Sync queries not initialized');
+    return;
+  }
+
+  try {
+    switch (event.type) {
+      case 'new_message':
+        const messageInserted = await syncQueries.insertMessage(event.payload);
+        if (messageInserted) {
+          // Get the full message data for IPC
+          const messages = await syncQueries.getMessagesForChat(event.payload.chat_id, 1, 0);
+          const fullMessage = messages.find(m => m.id === event.payload.id);
+          if (fullMessage) {
+            SyncIPCEmitter.emitMessageInserted(fullMessage);
+          }
+        }
+        break;
+
+      case 'chat_update':
+        const chatUpdated = await syncQueries.upsertChat(event.payload);
+        if (chatUpdated) {
+          // Get full chat data for IPC
+          const chats = await syncQueries.getAllChats();
+          const fullChat = chats.find(c => c.id === event.payload.chat_id);
+          if (fullChat) {
+            SyncIPCEmitter.emitChatUpdated(fullChat);
+          }
+          SyncIPCEmitter.emitChatListUpdated();
+        }
+        break;
+
+      default:
+        console.warn('[SYNC] Unknown sync event type:', event.type);
+    }
+  } catch (error) {
+    console.error('[SYNC] Failed to handle sync event:', error);
+  }
+}
+
+/**
+ * Get current WebSocket connection status
+ */
+function getConnectionStatus() {
+  return wsClient?.getStatus() || { status: 'offline' as const };
+}
+
 function createMainWindow(): void {
   const mainWindow = new BrowserWindow({
     width: 1200,
@@ -117,15 +243,28 @@ function createMainWindow(): void {
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Initialize database first
   initializeDatabase();
+  
+  // Initialize WebSocket sync
+  await initializeWebSocketSync();
   
   // Register IPC handlers
   registerAuthIpcHandlers(ipcMain);
   registerMessageIpc();
   registerSyncIpc();
   registerChatsIpc(db);
+  
+  // Register sync IPC handlers
+  if (syncQueries) {
+    registerSyncIPCHandlers(syncQueries);
+  }
+
+  // Override connection status handler to provide real-time status
+  ipcMain.handle('sync:get-connection-status', () => {
+    return getConnectionStatus();
+  });
 
   createMainWindow();
 
@@ -136,8 +275,21 @@ app.whenReady().then(() => {
   });
 });
 
-app.on('window-all-closed', () => {
+app.on('window-all-closed', async () => {
+  // Cleanup WebSocket connection
+  if (wsClient) {
+    await wsClient.disconnect();
+    wsClient = null;
+  }
+  
   if (process.platform !== 'darwin') {
     app.quit();
+  }
+});
+
+app.on('before-quit', async () => {
+  // Ensure graceful shutdown
+  if (wsClient) {
+    await wsClient.disconnect();
   }
 });

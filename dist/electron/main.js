@@ -27,7 +27,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 
 // electron/main.ts
-var import_electron5 = require("electron");
+var import_electron6 = require("electron");
 var import_node_path2 = __toESM(require("node:path"));
 
 // src/domains/auth/auth.types.ts
@@ -4171,12 +4171,12 @@ async function clearSession() {
 }
 
 // src/domains/auth/auth.ipc.ts
-function registerAuthIpcHandlers(ipcMain5) {
-  ipcMain5.handle(AUTH_IPC_CHANNELS.getSession, async () => {
+function registerAuthIpcHandlers(ipcMain6) {
+  ipcMain6.handle(AUTH_IPC_CHANNELS.getSession, async () => {
     const session = await loadSession();
     return GetSessionResponseSchema.parse({ session });
   });
-  ipcMain5.handle(
+  ipcMain6.handle(
     AUTH_IPC_CHANNELS.startSession,
     async (_event, rawPayload) => {
       const payload = StartSessionInputSchema.parse(rawPayload);
@@ -4324,7 +4324,7 @@ function getChats(db2, request) {
         name,
         last_message,
         updated_at,
-        unread_count
+        COALESCE(unread_count, 0) as unread_count
       FROM chats
       ORDER BY updated_at DESC
       LIMIT ? OFFSET ?
@@ -4509,12 +4509,658 @@ function registerChatsIpc(db2) {
   });
 }
 
+// electron/wsClient.ts
+var import_events = require("events");
+var WebSocket = eval("require")("ws");
+var WebSocketClient = class extends import_events.EventEmitter {
+  constructor() {
+    super();
+    this.ws = null;
+    this.heartbeatInterval = null;
+    this.reconnectTimeout = null;
+    this.pongTimeout = null;
+    this.config = {
+      url: process.env.WS_URL || "ws://localhost:8080",
+      heartbeatInterval: 3e4,
+      // 30 seconds
+      pongTimeout: 5e3,
+      // 5 seconds
+      reconnectBaseDelay: 1e3,
+      // 1 second
+      reconnectMaxDelay: 3e4,
+      // 30 seconds
+      maxReconnectAttempts: 10
+    };
+    this.status = {
+      status: "offline",
+      reconnectAttempts: 0
+    };
+    this.isShuttingDown = false;
+  }
+  /**
+   * Start WebSocket connection with automatic reconnect
+   */
+  async connect() {
+    if (this.isShuttingDown)
+      return;
+    console.log(`[WS] Connecting to ${this.config.url}`);
+    try {
+      this.ws = new WebSocket(this.config.url);
+      this.setupEventHandlers();
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error("Connection timeout"));
+        }, 1e4);
+        this.ws.on("open", () => {
+          clearTimeout(timeout);
+          resolve();
+        });
+        this.ws.on("error", (error) => {
+          clearTimeout(timeout);
+          reject(error);
+        });
+      });
+    } catch (error) {
+      console.error("[WS] Connection failed:", error);
+      this.handleConnectionLost();
+      throw error;
+    }
+  }
+  /**
+   * Setup WebSocket event handlers
+   */
+  setupEventHandlers() {
+    if (!this.ws)
+      return;
+    this.ws.on("open", () => {
+      console.log("[WS] Connected successfully");
+      this.updateStatus({ status: "connected", lastConnected: Date.now(), reconnectAttempts: 0 });
+      this.startHeartbeat();
+      this.emit("connected");
+    });
+    this.ws.on("message", (data) => {
+      try {
+        const event = JSON.parse(data.toString());
+        this.handleIncomingEvent(event);
+      } catch (error) {
+        console.error("[WS] Failed to parse message:", error);
+      }
+    });
+    this.ws.on("close", (code, reason) => {
+      console.log(`[WS] Connection closed: ${code} - ${reason.toString()}`);
+      this.cleanup();
+      if (!this.isShuttingDown) {
+        this.handleConnectionLost();
+      }
+    });
+    this.ws.on("error", (error) => {
+      console.error("[WS] WebSocket error:", error);
+      this.emit("error", error);
+    });
+    this.ws.on("pong", () => {
+      console.log("[WS] Received pong");
+      if (this.pongTimeout) {
+        clearTimeout(this.pongTimeout);
+        this.pongTimeout = null;
+      }
+    });
+  }
+  /**
+   * Handle incoming sync events and emit for processing
+   */
+  handleIncomingEvent(event) {
+    console.log(`[WS] Received ${event.type} event:`, event.payload);
+    this.emit("syncEvent", event);
+  }
+  /**
+   * Start heartbeat mechanism
+   */
+  startHeartbeat() {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+    }
+    this.heartbeatInterval = setInterval(() => {
+      if (this.ws && this.ws.readyState === this.ws.OPEN) {
+        console.log("[WS] Sending ping");
+        this.ws.ping();
+        this.pongTimeout = setTimeout(() => {
+          console.error("[WS] Pong timeout - connection unhealthy");
+          this.ws?.close();
+        }, this.config.pongTimeout);
+      }
+    }, this.config.heartbeatInterval);
+  }
+  /**
+   * Handle connection loss with exponential backoff
+   */
+  handleConnectionLost() {
+    this.updateStatus({ status: "reconnecting" });
+    this.emit("disconnected");
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+    }
+    const delay = Math.min(
+      this.config.reconnectBaseDelay * Math.pow(2, this.status.reconnectAttempts || 0),
+      this.config.reconnectMaxDelay
+    );
+    console.log(`[WS] Reconnecting in ${delay}ms (attempt ${(this.status.reconnectAttempts || 0) + 1})`);
+    this.reconnectTimeout = setTimeout(async () => {
+      if ((this.status.reconnectAttempts || 0) >= this.config.maxReconnectAttempts) {
+        console.error("[WS] Max reconnect attempts reached");
+        this.updateStatus({ status: "offline", reconnectAttempts: 0 });
+        this.emit("maxReconnectAttemptsReached");
+        return;
+      }
+      this.updateStatus({ reconnectAttempts: (this.status.reconnectAttempts || 0) + 1 });
+      try {
+        await this.connect();
+      } catch (error) {
+        console.error("[WS] Reconnect failed:", error);
+        this.handleConnectionLost();
+      }
+    }, delay);
+  }
+  /**
+   * Update connection status and emit change
+   */
+  updateStatus(updates) {
+    this.status = { ...this.status, ...updates };
+    console.log("[WS] Status updated:", this.status);
+    this.emit("statusChange", this.status);
+  }
+  /**
+   * Get current connection status
+   */
+  getStatus() {
+    return { ...this.status };
+  }
+  /**
+   * Cleanup resources
+   */
+  cleanup() {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
+    if (this.pongTimeout) {
+      clearTimeout(this.pongTimeout);
+      this.pongTimeout = null;
+    }
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+  }
+  /**
+   * Graceful shutdown
+   */
+  async disconnect() {
+    this.isShuttingDown = true;
+    this.cleanup();
+    if (this.ws) {
+      this.ws.close(1e3, "Client disconnecting");
+      this.ws = null;
+    }
+    this.updateStatus({ status: "offline", reconnectAttempts: 0 });
+    console.log("[WS] Disconnected gracefully");
+  }
+};
+
+// electron/db/queries.ts
+var MessageEventSchema = external_exports.object({
+  id: external_exports.string(),
+  chat_id: external_exports.string(),
+  sender: external_exports.string(),
+  content: external_exports.string(),
+  timestamp: external_exports.number()
+});
+var ChatUpdateEventSchema = external_exports.object({
+  chat_id: external_exports.string(),
+  name: external_exports.string().optional(),
+  unread_count: external_exports.number().optional(),
+  last_message: external_exports.string().optional(),
+  updated_at: external_exports.number()
+});
+var SyncQueries = class {
+  constructor(db2) {
+    this.db = db2;
+  }
+  /**
+   * Insert or update message with deduplication
+   * Returns true if message was inserted, false if duplicate
+   */
+  async insertMessage(message) {
+    try {
+      const validated = MessageEventSchema.parse(message);
+      const existing = this.db.prepare(
+        "SELECT id FROM messages WHERE id = ?"
+      ).get(validated.id);
+      if (existing) {
+        console.log(`[DB] Duplicate message ignored: ${validated.id}`);
+        return false;
+      }
+      const insertMessage2 = this.db.prepare(`
+        INSERT INTO messages (id, chat_id, sender, content, timestamp, is_read, is_edited)
+        VALUES (?, ?, ?, ?, ?, 0, 0)
+      `);
+      const updateChat = this.db.prepare(`
+        UPDATE chats 
+        SET last_message = ?, updated_at = ?,
+            unread_count = CASE 
+              WHEN sender != 'You' THEN unread_count + 1 
+              ELSE unread_count 
+            END
+        WHERE id = ?
+      `);
+      const transaction = this.db.transaction(() => {
+        insertMessage2.run(
+          validated.id,
+          validated.chat_id,
+          validated.sender,
+          validated.content,
+          validated.timestamp
+        );
+        updateChat.run(
+          validated.content,
+          validated.timestamp,
+          validated.chat_id
+        );
+      });
+      transaction();
+      console.log(`[DB] Message inserted: ${validated.id}`);
+      return true;
+    } catch (error) {
+      console.error("[DB] Failed to insert message:", error);
+      throw error;
+    }
+  }
+  /**
+   * Upsert chat with latest data
+   * Returns true if chat was updated/inserted
+   */
+  async upsertChat(chatUpdate) {
+    try {
+      const validated = ChatUpdateEventSchema.parse(chatUpdate);
+      const existing = this.db.prepare(
+        "SELECT id FROM chats WHERE id = ?"
+      ).get(validated.chat_id);
+      if (existing) {
+        const updateFields = [];
+        const values = [];
+        if (validated.name !== void 0) {
+          updateFields.push("name = ?");
+          values.push(validated.name);
+        }
+        if (validated.unread_count !== void 0) {
+          updateFields.push("unread_count = ?");
+          values.push(validated.unread_count);
+        }
+        if (validated.last_message !== void 0) {
+          updateFields.push("last_message = ?");
+          values.push(validated.last_message);
+        }
+        if (validated.updated_at !== void 0) {
+          updateFields.push("updated_at = ?");
+          values.push(validated.updated_at);
+        }
+        if (updateFields.length > 0) {
+          values.push(validated.chat_id);
+          const query = `UPDATE chats SET ${updateFields.join(", ")} WHERE id = ?`;
+          this.db.prepare(query).run(...values);
+          console.log(`[DB] Chat updated: ${validated.chat_id}`);
+          return true;
+        }
+      } else {
+        this.db.prepare(`
+          INSERT INTO chats (id, name, last_message, updated_at, unread_count)
+          VALUES (?, ?, ?, ?, ?)
+        `).run(
+          validated.chat_id,
+          validated.name || "Unknown Chat",
+          validated.last_message || "",
+          validated.updated_at,
+          validated.unread_count || 0
+        );
+        console.log(`[DB] Chat inserted: ${validated.chat_id}`);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("[DB] Failed to upsert chat:", error);
+      throw error;
+    }
+  }
+  /**
+   * Get messages for a chat with pagination
+   */
+  async getMessagesForChat(chatId, limit = 50, offset = 0) {
+    try {
+      const messages = this.db.prepare(`
+        SELECT * FROM messages 
+        WHERE chat_id = ? 
+        ORDER BY timestamp DESC 
+        LIMIT ? OFFSET ?
+      `).all(chatId, limit, offset);
+      return messages.reverse();
+    } catch (error) {
+      console.error("[DB] Failed to get messages:", error);
+      throw error;
+    }
+  }
+  /**
+   * Get all chats ordered by updated_at DESC
+   */
+  async getAllChats() {
+    try {
+      const chats = this.db.prepare(`
+        SELECT id, name, last_message, updated_at, COALESCE(unread_count, 0) as unread_count
+        FROM chats 
+        ORDER BY updated_at DESC
+      `).all();
+      return chats;
+    } catch (error) {
+      console.error("[DB] Failed to get chats:", error);
+      throw error;
+    }
+  }
+  /**
+   * Mark messages as read for a chat
+   */
+  async markMessagesAsRead(chatId) {
+    try {
+      const result = this.db.prepare(`
+        UPDATE messages 
+        SET is_read = 1 
+        WHERE chat_id = ? AND sender != 'You' AND is_read = 0
+      `).run(chatId);
+      this.db.prepare(`
+        UPDATE chats 
+        SET unread_count = 0 
+        WHERE id = ?
+      `).run(chatId);
+      console.log(`[DB] Marked ${result.changes} messages as read for chat ${chatId}`);
+      return result.changes;
+    } catch (error) {
+      console.error("[DB] Failed to mark messages as read:", error);
+      throw error;
+    }
+  }
+  /**
+   * Get unread message count for all chats
+   */
+  async getUnreadCounts() {
+    try {
+      const unreadCounts = this.db.prepare(`
+        SELECT chat_id, COUNT(*) as count
+        FROM messages 
+        WHERE is_read = 0 AND sender != 'You'
+        GROUP BY chat_id
+      `).all();
+      const result = {};
+      unreadCounts.forEach((row) => {
+        result[row.chat_id] = row.count;
+      });
+      return result;
+    } catch (error) {
+      console.error("[DB] Failed to get unread counts:", error);
+      throw error;
+    }
+  }
+  /**
+   * Delete message by ID
+   */
+  async deleteMessage(messageId) {
+    try {
+      const result = this.db.prepare(`
+        DELETE FROM messages WHERE id = ?
+      `).run(messageId);
+      return result.changes > 0;
+    } catch (error) {
+      console.error("[DB] Failed to delete message:", error);
+      throw error;
+    }
+  }
+  /**
+   * Update message content
+   */
+  async updateMessage(messageId, content) {
+    try {
+      const result = this.db.prepare(`
+        UPDATE messages 
+        SET content = ?, is_edited = 1 
+        WHERE id = ?
+      `).run(content, messageId);
+      if (result.changes > 0) {
+        this.db.prepare(`
+          UPDATE chats 
+          SET last_message = ?, updated_at = ?
+          WHERE id = (SELECT chat_id FROM messages WHERE id = ?)
+        `).run(content, Date.now(), messageId);
+      }
+      return result.changes > 0;
+    } catch (error) {
+      console.error("[DB] Failed to update message:", error);
+      throw error;
+    }
+  }
+};
+
+// electron/ipc/events.ts
+var import_electron5 = require("electron");
+var IPC_EVENTS = {
+  // Connection status events
+  CONNECTION_STATUS: "sync:connection-status",
+  CONNECTION_CONNECTED: "sync:connection-connected",
+  CONNECTION_DISCONNECTED: "sync:connection-disconnected",
+  // Message events
+  MESSAGE_INSERTED: "sync:message-inserted",
+  MESSAGE_UPDATED: "sync:message-updated",
+  MESSAGE_DELETED: "sync:message-deleted",
+  // Chat events
+  CHAT_UPDATED: "sync:chat-updated",
+  CHAT_LIST_UPDATED: "sync:chat-list-updated",
+  // Request/response channels (for renderer to main)
+  GET_CONNECTION_STATUS: "sync:get-connection-status",
+  GET_MESSAGES: "sync:get-messages",
+  GET_CHATS: "sync:get-chats",
+  MARK_MESSAGES_READ: "sync:mark-messages-read",
+  SEND_MESSAGE: "sync:send-message"
+};
+var MessageInsertedPayloadSchema = external_exports.object({
+  id: external_exports.string(),
+  chat_id: external_exports.string(),
+  sender: external_exports.string(),
+  content: external_exports.string(),
+  timestamp: external_exports.number(),
+  is_read: external_exports.boolean(),
+  is_edited: external_exports.boolean()
+});
+var ChatUpdatedPayloadSchema = external_exports.object({
+  id: external_exports.string(),
+  name: external_exports.string(),
+  last_message: external_exports.string().optional(),
+  updated_at: external_exports.number(),
+  unread_count: external_exports.number()
+});
+var ConnectionStatusPayloadSchema = external_exports.object({
+  status: external_exports.enum(["connected", "reconnecting", "offline"]),
+  lastConnected: external_exports.number().optional(),
+  reconnectAttempts: external_exports.number().optional()
+});
+var SyncIPCEmitter = class {
+  /**
+   * Emit message inserted event to all renderer windows
+   */
+  static emitMessageInserted(message) {
+    try {
+      const validated = MessageInsertedPayloadSchema.parse(message);
+      import_electron5.webContents.getAllWebContents().forEach((contents) => {
+        contents.send(IPC_EVENTS.MESSAGE_INSERTED, validated);
+      });
+      console.log(`[IPC] Message inserted event sent: ${validated.id}`);
+    } catch (error) {
+      console.error("[IPC] Failed to emit message inserted:", error);
+    }
+  }
+  /**
+   * Emit chat updated event to all renderer windows
+   */
+  static emitChatUpdated(chat) {
+    try {
+      const validated = ChatUpdatedPayloadSchema.parse(chat);
+      import_electron5.webContents.getAllWebContents().forEach((contents) => {
+        contents.send(IPC_EVENTS.CHAT_UPDATED, validated);
+      });
+      console.log(`[IPC] Chat updated event sent: ${validated.id}`);
+    } catch (error) {
+      console.error("[IPC] Failed to emit chat updated:", error);
+    }
+  }
+  /**
+   * Emit connection status change to all renderer windows
+   */
+  static emitConnectionStatus(status) {
+    try {
+      const validated = ConnectionStatusPayloadSchema.parse(status);
+      import_electron5.webContents.getAllWebContents().forEach((contents) => {
+        contents.send(IPC_EVENTS.CONNECTION_STATUS, validated);
+      });
+      console.log(`[IPC] Connection status event sent: ${validated.status}`);
+    } catch (error) {
+      console.error("[IPC] Failed to emit connection status:", error);
+    }
+  }
+  /**
+   * Emit connection established event
+   */
+  static emitConnectionConnected() {
+    import_electron5.webContents.getAllWebContents().forEach((contents) => {
+      contents.send(IPC_EVENTS.CONNECTION_CONNECTED);
+    });
+    console.log("[IPC] Connection connected event sent");
+  }
+  /**
+   * Emit connection lost event
+   */
+  static emitConnectionDisconnected() {
+    import_electron5.webContents.getAllWebContents().forEach((contents) => {
+      contents.send(IPC_EVENTS.CONNECTION_DISCONNECTED);
+    });
+    console.log("[IPC] Connection disconnected event sent");
+  }
+  /**
+   * Emit chat list updated event (when multiple chats change)
+   */
+  static emitChatListUpdated() {
+    import_electron5.webContents.getAllWebContents().forEach((contents) => {
+      contents.send(IPC_EVENTS.CHAT_LIST_UPDATED);
+    });
+    console.log("[IPC] Chat list updated event sent");
+  }
+  /**
+   * Emit message updated event
+   */
+  static emitMessageUpdated(messageId, content) {
+    const payload = { messageId, content };
+    import_electron5.webContents.getAllWebContents().forEach((contents) => {
+      contents.send(IPC_EVENTS.MESSAGE_UPDATED, payload);
+    });
+    console.log(`[IPC] Message updated event sent: ${messageId}`);
+  }
+  /**
+   * Emit message deleted event
+   */
+  static emitMessageDeleted(messageId) {
+    import_electron5.webContents.getAllWebContents().forEach((contents) => {
+      contents.send(IPC_EVENTS.MESSAGE_DELETED, { messageId });
+    });
+    console.log(`[IPC] Message deleted event sent: ${messageId}`);
+  }
+};
+function registerSyncIPCHandlers(syncQueries2) {
+  import_electron5.ipcMain.handle(IPC_EVENTS.GET_MESSAGES, async (event, { chatId, limit, offset }) => {
+    try {
+      if (!chatId) {
+        throw new Error("chatId is required");
+      }
+      const messages = await syncQueries2.getMessagesForChat(
+        chatId,
+        limit || 50,
+        offset || 0
+      );
+      return { success: true, data: messages };
+    } catch (error) {
+      console.error("[IPC] Get messages failed:", error);
+      return { success: false, error: "Failed to get messages" };
+    }
+  });
+  import_electron5.ipcMain.handle(IPC_EVENTS.GET_CHATS, async () => {
+    try {
+      const chats = await syncQueries2.getAllChats();
+      return { success: true, data: chats };
+    } catch (error) {
+      console.error("[IPC] Get chats failed:", error);
+      return { success: false, error: "Failed to get chats" };
+    }
+  });
+  import_electron5.ipcMain.handle(IPC_EVENTS.MARK_MESSAGES_READ, async (event, { chatId }) => {
+    try {
+      if (!chatId) {
+        throw new Error("chatId is required");
+      }
+      const count = await syncQueries2.markMessagesAsRead(chatId);
+      return { success: true, data: { markedCount: count } };
+    } catch (error) {
+      console.error("[IPC] Mark messages read failed:", error);
+      return { success: false, error: "Failed to mark messages as read" };
+    }
+  });
+  import_electron5.ipcMain.handle(IPC_EVENTS.SEND_MESSAGE, async (event, { chatId, content }) => {
+    try {
+      if (!chatId || !content) {
+        throw new Error("chatId and content are required");
+      }
+      const message = {
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        chat_id: chatId,
+        sender: "You",
+        content,
+        timestamp: Date.now(),
+        is_read: true,
+        is_edited: false
+      };
+      const inserted = await syncQueries2.insertMessage(message);
+      if (inserted) {
+        SyncIPCEmitter.emitMessageInserted(message);
+        return { success: true, data: message };
+      } else {
+        return { success: false, error: "Failed to send message" };
+      }
+    } catch (error) {
+      console.error("[IPC] Send message failed:", error);
+      return { success: false, error: "Failed to send message" };
+    }
+  });
+  console.log("[IPC] Sync IPC handlers registered");
+}
+
 // electron/main.ts
 var db = null;
+var wsClient = null;
+var syncQueries = null;
 function initializeDatabase() {
   try {
     const Database = eval("require")("better-sqlite3");
     db = new Database("chats.db");
+    const tableInfo = db.prepare(`
+      SELECT sql FROM sqlite_master 
+      WHERE type='table' AND name='messages'
+    `).get();
+    if (tableInfo && !tableInfo.sql.includes("sender TEXT")) {
+      console.log("[DB] Messages table has old schema, dropping and recreating...");
+      db.exec("DROP TABLE IF EXISTS messages");
+      db.exec("DROP TABLE IF EXISTS chats");
+    }
     db.exec(`
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
@@ -4556,10 +5202,10 @@ function initializeDatabase() {
       `);
       const demoChats = [
         ["1", "Alice Johnson", "Hey, are you free later?", Date.now() - 1e3 * 60, 2],
-        ["2", "Bob Smith", "Thanks for the help!", Date.now() - 1e3 * 60 * 5, null],
+        ["2", "Bob Smith", "Thanks for the help!", Date.now() - 1e3 * 60 * 5, 0],
         ["3", "Team Chat", "Meeting at 3pm", Date.now() - 1e3 * 60 * 15, 5],
         ["4", "Carol White", "Can you review this?", Date.now() - 1e3 * 60 * 30, 1],
-        ["5", "David Brown", "Great work on the project", Date.now() - 1e3 * 60 * 60, null]
+        ["5", "David Brown", "Great work on the project", Date.now() - 1e3 * 60 * 60, 0]
       ];
       demoChats.forEach((chat) => insertChat.run(...chat));
       const insertMessage2 = db.prepare(`
@@ -4586,8 +5232,85 @@ function initializeDatabase() {
     console.error("Failed to initialize database:", error);
   }
 }
+async function initializeWebSocketSync() {
+  if (!db) {
+    console.error("[SYNC] Database not initialized, cannot start sync");
+    return;
+  }
+  try {
+    syncQueries = new SyncQueries(db);
+    wsClient = new WebSocketClient();
+    wsClient.on("connected", () => {
+      console.log("[SYNC] WebSocket connected");
+      SyncIPCEmitter.emitConnectionConnected();
+      SyncIPCEmitter.emitConnectionStatus(wsClient.getStatus());
+    });
+    wsClient.on("disconnected", () => {
+      console.log("[SYNC] WebSocket disconnected");
+      SyncIPCEmitter.emitConnectionDisconnected();
+      SyncIPCEmitter.emitConnectionStatus(wsClient.getStatus());
+    });
+    wsClient.on("statusChange", (status) => {
+      console.log("[SYNC] Status changed:", status);
+      SyncIPCEmitter.emitConnectionStatus(status);
+    });
+    wsClient.on("syncEvent", async (event) => {
+      console.log("[SYNC] Processing sync event:", event);
+      await handleSyncEvent(event);
+    });
+    wsClient.on("error", (error) => {
+      console.error("[SYNC] WebSocket error:", error);
+    });
+    wsClient.on("maxReconnectAttemptsReached", () => {
+      console.error("[SYNC] Max reconnect attempts reached - going offline");
+      SyncIPCEmitter.emitConnectionStatus(wsClient.getStatus());
+    });
+    await wsClient.connect();
+    console.log("[SYNC] WebSocket sync initialized");
+  } catch (error) {
+    console.error("[SYNC] Failed to initialize WebSocket sync:", error);
+  }
+}
+async function handleSyncEvent(event) {
+  if (!syncQueries) {
+    console.error("[SYNC] Sync queries not initialized");
+    return;
+  }
+  try {
+    switch (event.type) {
+      case "new_message":
+        const messageInserted = await syncQueries.insertMessage(event.payload);
+        if (messageInserted) {
+          const messages = await syncQueries.getMessagesForChat(event.payload.chat_id, 1, 0);
+          const fullMessage = messages.find((m) => m.id === event.payload.id);
+          if (fullMessage) {
+            SyncIPCEmitter.emitMessageInserted(fullMessage);
+          }
+        }
+        break;
+      case "chat_update":
+        const chatUpdated = await syncQueries.upsertChat(event.payload);
+        if (chatUpdated) {
+          const chats = await syncQueries.getAllChats();
+          const fullChat = chats.find((c) => c.id === event.payload.chat_id);
+          if (fullChat) {
+            SyncIPCEmitter.emitChatUpdated(fullChat);
+          }
+          SyncIPCEmitter.emitChatListUpdated();
+        }
+        break;
+      default:
+        console.warn("[SYNC] Unknown sync event type:", event.type);
+    }
+  } catch (error) {
+    console.error("[SYNC] Failed to handle sync event:", error);
+  }
+}
+function getConnectionStatus() {
+  return wsClient?.getStatus() || { status: "offline" };
+}
 function createMainWindow() {
-  const mainWindow = new import_electron5.BrowserWindow({
+  const mainWindow = new import_electron6.BrowserWindow({
     width: 1200,
     height: 800,
     webPreferences: {
@@ -4597,25 +5320,41 @@ function createMainWindow() {
     }
   });
   mainWindow.loadFile(import_node_path2.default.join(__dirname, "..", "src", "index.html"));
-  if (!import_electron5.app.isPackaged) {
+  if (!import_electron6.app.isPackaged) {
     mainWindow.webContents.openDevTools();
   }
 }
-import_electron5.app.whenReady().then(() => {
+import_electron6.app.whenReady().then(async () => {
   initializeDatabase();
-  registerAuthIpcHandlers(import_electron5.ipcMain);
+  await initializeWebSocketSync();
+  registerAuthIpcHandlers(import_electron6.ipcMain);
   registerMessageIpc();
   registerSyncIpc();
   registerChatsIpc(db);
+  if (syncQueries) {
+    registerSyncIPCHandlers(syncQueries);
+  }
+  import_electron6.ipcMain.handle("sync:get-connection-status", () => {
+    return getConnectionStatus();
+  });
   createMainWindow();
-  import_electron5.app.on("activate", () => {
-    if (import_electron5.BrowserWindow.getAllWindows().length === 0) {
+  import_electron6.app.on("activate", () => {
+    if (import_electron6.BrowserWindow.getAllWindows().length === 0) {
       createMainWindow();
     }
   });
 });
-import_electron5.app.on("window-all-closed", () => {
+import_electron6.app.on("window-all-closed", async () => {
+  if (wsClient) {
+    await wsClient.disconnect();
+    wsClient = null;
+  }
   if (process.platform !== "darwin") {
-    import_electron5.app.quit();
+    import_electron6.app.quit();
+  }
+});
+import_electron6.app.on("before-quit", async () => {
+  if (wsClient) {
+    await wsClient.disconnect();
   }
 });

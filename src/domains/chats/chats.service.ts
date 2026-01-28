@@ -25,7 +25,7 @@ export function getChats(db: any, request: GetChatsRequest): GetChatsResponse {
         name,
         last_message,
         updated_at,
-        unread_count
+        COALESCE(unread_count, 0) as unread_count
       FROM chats
       ORDER BY updated_at DESC
       LIMIT ? OFFSET ?

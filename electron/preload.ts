@@ -25,6 +25,7 @@ import {
   type GetChatsRequest,
   type GetChatsResponse,
 } from '../src/domains/chats/chats.types';
+import { IPC_EVENTS } from './ipc/events';
 import { z } from 'zod';
 
 const authApi = {
@@ -48,14 +49,7 @@ const authApi = {
 const messagesApi = {
   async insertMessage(payload: InsertMessagePayload): Promise<Message> {
     const raw = await ipcRenderer.invoke(MESSAGES_IPC_CHANNELS.INSERT_MESSAGE, payload);
-    const MessageSchema = z.object({
-      id: z.string(),
-      chat_id: z.string(),
-      sender: z.string(),
-      content: z.string(),
-      timestamp: z.number(),
-    });
-    return MessageSchema.parse(raw);
+    return raw;
   },
 
   async listMessages(chatId: string): Promise<Message[]> {
@@ -72,19 +66,72 @@ const messagesApi = {
 };
 
 const syncApi = {
-  async sendTypingEvent(event: TypingEvent): Promise<{ success: boolean }> {
-    const raw = await ipcRenderer.invoke(SYNC_IPC_CHANNELS.TYPING_EVENT, event);
-    return z.object({ success: z.boolean() }).parse(raw);
+  // Connection status
+  async getConnectionStatus() {
+    return await ipcRenderer.invoke(IPC_EVENTS.GET_CONNECTION_STATUS);
   },
 
-  async sendPresenceEvent(event: PresenceEvent): Promise<{ success: boolean }> {
-    const raw = await ipcRenderer.invoke(SYNC_IPC_CHANNELS.PRESENCE_EVENT, event);
-    return z.object({ success: z.boolean() }).parse(raw);
+  // Messages
+  async getMessages(chatId: string, limit?: number, offset?: number) {
+    return await ipcRenderer.invoke(IPC_EVENTS.GET_MESSAGES, { chatId, limit, offset });
   },
 
-  async searchChats(query: string): Promise<{ chats: any[]; total: number }> {
-    const raw = await ipcRenderer.invoke(SYNC_IPC_CHANNELS.SEARCH_CHATS, { query });
-    return z.object({ chats: z.array(z.any()), total: z.number() }).parse(raw);
+  async sendMessage(chatId: string, content: string) {
+    return await ipcRenderer.invoke(IPC_EVENTS.SEND_MESSAGE, { chatId, content });
+  },
+
+  async markMessagesRead(chatId: string) {
+    return await ipcRenderer.invoke(IPC_EVENTS.MARK_MESSAGES_READ, { chatId });
+  },
+
+  // Chats
+  async getChats() {
+    return await ipcRenderer.invoke(IPC_EVENTS.GET_CHATS);
+  },
+
+  // Event listeners
+  onConnectionStatus(callback: (status: any) => void) {
+    ipcRenderer.on(IPC_EVENTS.CONNECTION_STATUS, (_, status) => callback(status));
+  },
+
+  onConnectionConnected(callback: () => void) {
+    ipcRenderer.on(IPC_EVENTS.CONNECTION_CONNECTED, callback);
+  },
+
+  onConnectionDisconnected(callback: () => void) {
+    ipcRenderer.on(IPC_EVENTS.CONNECTION_DISCONNECTED, callback);
+  },
+
+  onMessageInserted(callback: (message: any) => void) {
+    ipcRenderer.on(IPC_EVENTS.MESSAGE_INSERTED, (_, message) => callback(message));
+  },
+
+  onMessageUpdated(callback: (data: { messageId: string; content: string }) => void) {
+    ipcRenderer.on(IPC_EVENTS.MESSAGE_UPDATED, (_, data) => callback(data));
+  },
+
+  onMessageDeleted(callback: (data: { messageId: string }) => void) {
+    ipcRenderer.on(IPC_EVENTS.MESSAGE_DELETED, (_, data) => callback(data));
+  },
+
+  onChatUpdated(callback: (chat: any) => void) {
+    ipcRenderer.on(IPC_EVENTS.CHAT_UPDATED, (_, chat) => callback(chat));
+  },
+
+  onChatListUpdated(callback: () => void) {
+    ipcRenderer.on(IPC_EVENTS.CHAT_LIST_UPDATED, callback);
+  },
+
+  // Cleanup listeners
+  removeAllListeners() {
+    ipcRenderer.removeAllListeners(IPC_EVENTS.CONNECTION_STATUS);
+    ipcRenderer.removeAllListeners(IPC_EVENTS.CONNECTION_CONNECTED);
+    ipcRenderer.removeAllListeners(IPC_EVENTS.CONNECTION_DISCONNECTED);
+    ipcRenderer.removeAllListeners(IPC_EVENTS.MESSAGE_INSERTED);
+    ipcRenderer.removeAllListeners(IPC_EVENTS.MESSAGE_UPDATED);
+    ipcRenderer.removeAllListeners(IPC_EVENTS.MESSAGE_DELETED);
+    ipcRenderer.removeAllListeners(IPC_EVENTS.CHAT_UPDATED);
+    ipcRenderer.removeAllListeners(IPC_EVENTS.CHAT_LIST_UPDATED);
   },
 };
 
@@ -99,7 +146,7 @@ const chatsApi = {
           name: z.string(),
           last_message: z.string().optional(),
           updated_at: z.number(),
-          unread_count: z.number().optional(),
+          unread_count: z.number(), // Make required
         })),
         total: z.number(),
         hasMore: z.boolean(),
