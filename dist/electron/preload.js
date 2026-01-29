@@ -4111,28 +4111,36 @@ var CHATS_IPC_CHANNELS = {
 // electron/ipc/events.ts
 var import_electron = require("electron");
 var IPC_EVENTS = {
-  // Connection status events
+  // Connection status
+  GET_CONNECTION_STATUS: "sync:get-connection-status",
+  // Messages
+  GET_MESSAGES: "sync:get-messages",
+  SEND_MESSAGE: "sync:send-message",
+  MARK_MESSAGES_READ: "sync:mark-messages-read",
+  // Chats
+  GET_CHATS: "sync:get-chats",
+  GET_USER_CHATS: "sync:get-user-chats",
+  // Users
+  GET_OR_CREATE_USER: "sync:get-or-create-user",
+  GET_OR_CREATE_DIRECT_CHAT: "sync:get-or-create-direct-chat",
+  // File attachments
+  ADD_MESSAGE_ATTACHMENT: "sync:add-message-attachment",
+  GET_MESSAGE_ATTACHMENTS: "sync:get-message-attachments",
+  // Events (emitted from main to renderer)
   CONNECTION_STATUS: "sync:connection-status",
   CONNECTION_CONNECTED: "sync:connection-connected",
   CONNECTION_DISCONNECTED: "sync:connection-disconnected",
-  // Message events
   MESSAGE_INSERTED: "sync:message-inserted",
   MESSAGE_UPDATED: "sync:message-updated",
   MESSAGE_DELETED: "sync:message-deleted",
-  // Chat events
   CHAT_UPDATED: "sync:chat-updated",
-  CHAT_LIST_UPDATED: "sync:chat-list-updated",
-  // Request/response channels (for renderer to main)
-  GET_CONNECTION_STATUS: "sync:get-connection-status",
-  GET_MESSAGES: "sync:get-messages",
-  GET_CHATS: "sync:get-chats",
-  MARK_MESSAGES_READ: "sync:mark-messages-read",
-  SEND_MESSAGE: "sync:send-message"
+  CHAT_LIST_UPDATED: "sync:chat-list-updated"
 };
 var MessageInsertedPayloadSchema = external_exports.object({
   id: external_exports.string(),
   chat_id: external_exports.string(),
-  sender: external_exports.string(),
+  sender_id: external_exports.string(),
+  sender_name: external_exports.string(),
   content: external_exports.string(),
   timestamp: external_exports.number(),
   is_read: external_exports.boolean(),
@@ -4141,6 +4149,7 @@ var MessageInsertedPayloadSchema = external_exports.object({
 var ChatUpdatedPayloadSchema = external_exports.object({
   id: external_exports.string(),
   name: external_exports.string(),
+  type: external_exports.string(),
   last_message: external_exports.string().optional(),
   updated_at: external_exports.number(),
   unread_count: external_exports.number()
@@ -4190,19 +4199,38 @@ var syncApi = {
   async getConnectionStatus() {
     return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.GET_CONNECTION_STATUS);
   },
+  async getCurrentUserId() {
+    return await import_electron2.ipcRenderer.invoke("sync:get-current-user-id");
+  },
   // Messages
-  async getMessages(chatId, limit, offset) {
-    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.GET_MESSAGES, { chatId, limit, offset });
+  async getMessages(chatId, userId, limit, offset) {
+    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.GET_MESSAGES, { chatId, userId, limit, offset });
   },
-  async sendMessage(chatId, content) {
-    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.SEND_MESSAGE, { chatId, content });
+  async sendMessage(chatId, senderId, content) {
+    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.SEND_MESSAGE, { chatId, senderId, content });
   },
-  async markMessagesRead(chatId) {
-    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.MARK_MESSAGES_READ, { chatId });
+  async markMessagesRead(chatId, userId) {
+    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.MARK_MESSAGES_READ, { chatId, userId });
   },
   // Chats
   async getChats() {
     return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.GET_CHATS);
+  },
+  async getUserChats(userId) {
+    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.GET_USER_CHATS, { userId });
+  },
+  async getOrCreateUser(email, displayName) {
+    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.GET_OR_CREATE_USER, { email, displayName });
+  },
+  async getOrCreateDirectChat(userId1, userId2) {
+    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.GET_OR_CREATE_DIRECT_CHAT, { userId1, userId2 });
+  },
+  // File attachments
+  async addMessageAttachment(messageId, filename, fileUrl, fileType, fileSize) {
+    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.ADD_MESSAGE_ATTACHMENT, { messageId, filename, fileUrl, fileType, fileSize });
+  },
+  async getMessageAttachments(messageId) {
+    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.GET_MESSAGE_ATTACHMENTS, { messageId });
   },
   // Event listeners
   onConnectionStatus(callback) {
@@ -4228,6 +4256,9 @@ var syncApi = {
   },
   onChatListUpdated(callback) {
     import_electron2.ipcRenderer.on(IPC_EVENTS.CHAT_LIST_UPDATED, callback);
+  },
+  onOpenChat(callback) {
+    import_electron2.ipcRenderer.on("sync:open-chat", (_, data) => callback(data));
   },
   // Cleanup listeners
   removeAllListeners() {

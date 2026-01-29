@@ -1,6 +1,6 @@
 // src/app/slices/chatsSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { chatsIpcClient } from '../../services/chatsIpcClient';
+import { syncIpcClient } from '../../services/syncIpcClient';
 import type { Chat } from '../../domains/chats/chats.types';
 
 export interface ChatItem {
@@ -44,23 +44,32 @@ const initialState: ChatsState = {
 export const fetchChats = createAsyncThunk(
   'chats/fetchChats',
   async ({ offset = 0, limit = 50 }: { offset?: number; limit?: number } = {}) => {
-    const response = await chatsIpcClient.getChats({ offset, limit });
-    
-    // Transform Chat to ChatItem format
-    const chatItems: ChatItem[] = response.chats.map((chat: Chat) => ({
-      id: chat.id,
-      name: chat.name,
-      lastMessage: chat.last_message,
-      updatedAt: chat.updated_at,
-      unreadCount: chat.unread_count || 0, // Ensure default value
-    }));
+    try {
+      const response = await syncIpcClient.getChats();
+      
+      if (!response || !response.data || !response.data.chats) {
+        throw new Error('Invalid response format: missing data or chats');
+      }
+      
+      // Transform Chat to ChatItem format
+      const chatItems: ChatItem[] = response.data.chats.map((chat: Chat) => ({
+        id: chat.id,
+        name: chat.name,
+        lastMessage: chat.last_message,
+        updatedAt: chat.updated_at,
+        unreadCount: chat.unread_count || 0, // Ensure default value
+      }));
 
-    return {
-      chats: chatItems,
-      total: response.total,
-      hasMore: response.hasMore,
-      offset,
-    };
+      return {
+        chats: chatItems,
+        total: response.data.total || 0,
+        hasMore: response.data.hasMore || false,
+        offset,
+      };
+    } catch (error) {
+      console.error('Failed to fetch chats:', error);
+      throw error;
+    }
   }
 );
 

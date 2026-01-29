@@ -1,9 +1,10 @@
 // src/components/ChatList.tsx
-import React, { useMemo, useEffect, useCallback } from 'react';
+import React, { useMemo, useEffect, useCallback, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState, AppDispatch } from '../app/store';
 import { fetchChats } from '../app/slices/chatsSlice';
 import ChatItem from './ChatItem';
+import ChatSearch from './ChatSearch';
 import type { ChatItem as ChatListItem } from '../app/slices/chatsSlice';
 
 export interface ChatListProps {
@@ -20,6 +21,7 @@ const ChatList: React.FC<ChatListProps> = ({
   onSelectChat,
 }) => {
   const dispatch = useDispatch<AppDispatch>();
+  const [showSearch, setShowSearch] = useState(false);
   const {
     items,
     loading,
@@ -31,6 +33,12 @@ const ChatList: React.FC<ChatListProps> = ({
   useEffect(() => {
     dispatch(fetchChats({ offset: 0, limit: 50 }));
   }, [dispatch]);
+
+  // Handle search selection
+  const handleSearchSelect = useCallback((chatId: string) => {
+    onSelectChat?.(chatId);
+    setShowSearch(false);
+  }, [onSelectChat]);
 
   // Sort chats by most recent activity (already done in SQL, but ensure consistency)
   const sortedChats = useMemo(
@@ -74,10 +82,38 @@ const ChatList: React.FC<ChatListProps> = ({
     <div className="flex flex-col h-full">
       {/* Header */}
       <header className="px-4 py-3 border-b border-gray-200 bg-white">
-        <h2 className="text-lg font-semibold text-secondary">
-          Chats {pagination.total > 0 && `(${pagination.total})`}
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-secondary">
+            Chats {pagination.total > 0 && `(${pagination.total})`}
+          </h2>
+          <button
+            onClick={() => setShowSearch(!showSearch)}
+            className="p-1 rounded hover:bg-gray-100 transition-colors"
+            title="Search chats"
+          >
+            <svg
+              className="w-5 h-5 text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </button>
+        </div>
       </header>
+
+      {/* Search Bar */}
+      {showSearch && (
+        <div className="px-4 py-3 border-b border-gray-200 bg-white">
+          <ChatSearch onChatSelect={handleSearchSelect} />
+        </div>
+      )}
 
       {/* Chat List */}
       <div 

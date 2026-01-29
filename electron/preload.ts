@@ -71,22 +71,47 @@ const syncApi = {
     return await ipcRenderer.invoke(IPC_EVENTS.GET_CONNECTION_STATUS);
   },
 
+  async getCurrentUserId() {
+    return await ipcRenderer.invoke('sync:get-current-user-id');
+  },
+
   // Messages
-  async getMessages(chatId: string, limit?: number, offset?: number) {
-    return await ipcRenderer.invoke(IPC_EVENTS.GET_MESSAGES, { chatId, limit, offset });
+  async getMessages(chatId: string, userId: string, limit?: number, offset?: number) {
+    return await ipcRenderer.invoke(IPC_EVENTS.GET_MESSAGES, { chatId, userId, limit, offset });
   },
 
-  async sendMessage(chatId: string, content: string) {
-    return await ipcRenderer.invoke(IPC_EVENTS.SEND_MESSAGE, { chatId, content });
+  async sendMessage(chatId: string, senderId: string, content: string) {
+    return await ipcRenderer.invoke(IPC_EVENTS.SEND_MESSAGE, { chatId, senderId, content });
   },
 
-  async markMessagesRead(chatId: string) {
-    return await ipcRenderer.invoke(IPC_EVENTS.MARK_MESSAGES_READ, { chatId });
+  async markMessagesRead(chatId: string, userId: string) {
+    return await ipcRenderer.invoke(IPC_EVENTS.MARK_MESSAGES_READ, { chatId, userId });
   },
 
   // Chats
   async getChats() {
     return await ipcRenderer.invoke(IPC_EVENTS.GET_CHATS);
+  },
+
+  async getUserChats(userId: string) {
+    return await ipcRenderer.invoke(IPC_EVENTS.GET_USER_CHATS, { userId });
+  },
+
+  async getOrCreateUser(email: string, displayName: string) {
+    return await ipcRenderer.invoke(IPC_EVENTS.GET_OR_CREATE_USER, { email, displayName });
+  },
+
+  async getOrCreateDirectChat(userId1: string, userId2: string) {
+    return await ipcRenderer.invoke(IPC_EVENTS.GET_OR_CREATE_DIRECT_CHAT, { userId1, userId2 });
+  },
+
+  // File attachments
+  async addMessageAttachment(messageId: string, filename: string, fileUrl: string, fileType: string, fileSize: number) {
+    return await ipcRenderer.invoke(IPC_EVENTS.ADD_MESSAGE_ATTACHMENT, { messageId, filename, fileUrl, fileType, fileSize });
+  },
+
+  async getMessageAttachments(messageId: string) {
+    return await ipcRenderer.invoke(IPC_EVENTS.GET_MESSAGE_ATTACHMENTS, { messageId });
   },
 
   // Event listeners
@@ -120,6 +145,10 @@ const syncApi = {
 
   onChatListUpdated(callback: () => void) {
     ipcRenderer.on(IPC_EVENTS.CHAT_LIST_UPDATED, callback);
+  },
+
+  onOpenChat(callback: (data: { chatId: string }) => void) {
+    ipcRenderer.on('sync:open-chat', (_, data) => callback(data));
   },
 
   // Cleanup listeners
