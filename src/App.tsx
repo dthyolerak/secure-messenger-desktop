@@ -76,7 +76,7 @@ const App: React.FC = () => {
 
   // Show loading while checking session
   if (authStatus === 'idle') {
-    return <div style={{ padding: 24 }}>Loading…</div>;
+    return <div className="p-6 text-sm text-gray-500">Loading…</div>;
   }
 
   // Unauthenticated: show auth views

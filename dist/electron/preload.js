@@ -4121,6 +4121,8 @@ var IPC_EVENTS = {
   MESSAGE_INSERTED: "sync:message-inserted",
   MESSAGE_UPDATED: "sync:message-updated",
   MESSAGE_DELETED: "sync:message-deleted",
+  MESSAGE_REACTIONS_UPDATED: "sync:message-reactions-updated",
+  ATTACHMENT_UPLOAD_PROGRESS: "sync:attachment-upload-progress",
   // Chat events
   CHAT_UPDATED: "sync:chat-updated",
   CHAT_LIST_UPDATED: "sync:chat-list-updated",
@@ -4129,7 +4131,11 @@ var IPC_EVENTS = {
   GET_MESSAGES: "sync:get-messages",
   GET_CHATS: "sync:get-chats",
   MARK_MESSAGES_READ: "sync:mark-messages-read",
-  SEND_MESSAGE: "sync:send-message"
+  SEND_MESSAGE: "sync:send-message",
+  SEARCH_MESSAGES: "sync:search-messages",
+  SEARCH_CHATS: "sync:search-chats",
+  TOGGLE_REACTION: "sync:toggle-reaction",
+  SELECT_ATTACHMENT: "sync:select-attachment"
 };
 var MessageInsertedPayloadSchema = external_exports.object({
   id: external_exports.string(),
@@ -4140,7 +4146,58 @@ var MessageInsertedPayloadSchema = external_exports.object({
   timestamp: external_exports.number(),
   read_at: external_exports.number().nullable().optional(),
   is_read: external_exports.boolean().optional(),
-  is_edited: external_exports.boolean().optional()
+  is_edited: external_exports.boolean().optional(),
+  type: external_exports.enum(["text", "image", "file"]).optional(),
+  file_path: external_exports.string().nullable().optional(),
+  file_name: external_exports.string().nullable().optional(),
+  file_size: external_exports.number().nullable().optional(),
+  mime_type: external_exports.string().nullable().optional(),
+  reactions: external_exports.array(external_exports.object({
+    emoji: external_exports.string(),
+    count: external_exports.number(),
+    reactedByCurrentUser: external_exports.boolean()
+  })).optional()
+});
+var MessageReactionsUpdatedSchema = external_exports.object({
+  messageId: external_exports.string(),
+  reactions: external_exports.array(external_exports.object({
+    emoji: external_exports.string(),
+    count: external_exports.number(),
+    reactedByCurrentUser: external_exports.boolean()
+  }))
+});
+var AttachmentUploadProgressSchema = external_exports.object({
+  messageId: external_exports.string(),
+  progress: external_exports.number().min(0).max(100)
+});
+var SendMessageSchema = external_exports.object({
+  chatId: external_exports.string(),
+  content: external_exports.string().optional(),
+  sender: external_exports.string(),
+  recipient: external_exports.string(),
+  attachment: external_exports.object({
+    filePath: external_exports.string(),
+    fileName: external_exports.string(),
+    fileSize: external_exports.number(),
+    mimeType: external_exports.string(),
+    type: external_exports.enum(["image", "file"])
+  }).optional()
+});
+var SearchMessagesSchema = external_exports.object({
+  query: external_exports.string(),
+  currentUser: external_exports.string().optional(),
+  limit: external_exports.number().int().min(1).max(200).optional(),
+  offset: external_exports.number().int().min(0).optional()
+});
+var SearchChatsSchema = external_exports.object({
+  query: external_exports.string(),
+  limit: external_exports.number().int().min(1).max(200).optional(),
+  offset: external_exports.number().int().min(0).optional()
+});
+var ToggleReactionSchema = external_exports.object({
+  messageId: external_exports.string(),
+  userId: external_exports.string(),
+  emoji: external_exports.string().min(1)
 });
 var ChatUpdatedPayloadSchema = external_exports.object({
   id: external_exports.string(),
@@ -4193,6 +4250,30 @@ var messagesApi = {
     return MessageArraySchema.parse(raw);
   }
 };
+var ReactionSchema = external_exports.object({
+  emoji: external_exports.string(),
+  count: external_exports.number(),
+  reactedByCurrentUser: external_exports.boolean()
+});
+var MessageBaseSchema = external_exports.object({
+  id: external_exports.string(),
+  chat_id: external_exports.string(),
+  sender: external_exports.string(),
+  recipient: external_exports.string(),
+  content: external_exports.string(),
+  timestamp: external_exports.number(),
+  read_at: external_exports.number().nullable().optional(),
+  is_edited: external_exports.union([external_exports.boolean(), external_exports.number()]).optional(),
+  type: external_exports.enum(["text", "image", "file"]).optional(),
+  file_path: external_exports.string().nullable().optional(),
+  file_name: external_exports.string().nullable().optional(),
+  file_size: external_exports.number().nullable().optional(),
+  mime_type: external_exports.string().nullable().optional(),
+  reactions: external_exports.array(ReactionSchema).optional()
+});
+var MessageSearchResultSchema = MessageBaseSchema.extend({
+  chat_name: external_exports.string()
+});
 var syncApi = {
   // Connection status
   async getConnectionStatus() {
@@ -4202,8 +4283,68 @@ var syncApi = {
   async getMessages(chatId, limit, offset, currentUser) {
     return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.GET_MESSAGES, { chatId, limit, offset, currentUser });
   },
-  async sendMessage(chatId, content, sender, recipient) {
-    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.SEND_MESSAGE, { chatId, content, sender, recipient });
+  async sendMessage(chatId, content, sender, recipient, attachment) {
+    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.SEND_MESSAGE, {
+      chatId,
+      content,
+      sender,
+      recipient,
+      attachment
+    });
+  },
+  async selectAttachment() {
+    const raw = await import_electron2.ipcRenderer.invoke(IPC_EVENTS.SELECT_ATTACHMENT);
+    const responseSchema = external_exports.object({
+      success: external_exports.boolean(),
+      data: external_exports.object({
+        filePath: external_exports.string(),
+        fileName: external_exports.string(),
+        fileSize: external_exports.number(),
+        mimeType: external_exports.string(),
+        type: external_exports.enum(["image", "file"])
+      }).optional(),
+      error: external_exports.string().optional()
+    });
+    return responseSchema.parse(raw);
+  },
+  async searchMessages(query, currentUser, limit, offset) {
+    const raw = await import_electron2.ipcRenderer.invoke(IPC_EVENTS.SEARCH_MESSAGES, { query, currentUser, limit, offset });
+    const responseSchema = external_exports.object({
+      success: external_exports.boolean(),
+      data: external_exports.array(MessageSearchResultSchema).optional(),
+      error: external_exports.string().optional()
+    });
+    return responseSchema.parse(raw);
+  },
+  async searchChats(query, limit, offset) {
+    const raw = await import_electron2.ipcRenderer.invoke(IPC_EVENTS.SEARCH_CHATS, { query, limit, offset });
+    const responseSchema = external_exports.object({
+      success: external_exports.boolean(),
+      data: external_exports.object({
+        chats: external_exports.array(external_exports.object({
+          id: external_exports.string(),
+          name: external_exports.string(),
+          last_message: external_exports.string().nullable().optional(),
+          updated_at: external_exports.number(),
+          unread_count: external_exports.number()
+        })),
+        total: external_exports.number()
+      }).optional(),
+      error: external_exports.string().optional()
+    });
+    return responseSchema.parse(raw);
+  },
+  async toggleReaction(messageId, userId, emoji) {
+    const raw = await import_electron2.ipcRenderer.invoke(IPC_EVENTS.TOGGLE_REACTION, { messageId, userId, emoji });
+    const responseSchema = external_exports.object({
+      success: external_exports.boolean(),
+      data: external_exports.object({
+        messageId: external_exports.string(),
+        reactions: external_exports.array(ReactionSchema)
+      }).optional(),
+      error: external_exports.string().optional()
+    });
+    return responseSchema.parse(raw);
   },
   async markMessagesRead(chatId, currentUser) {
     return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.MARK_MESSAGES_READ, { chatId, currentUser });
@@ -4261,6 +4402,12 @@ var syncApi = {
   onChatListUpdated(callback) {
     import_electron2.ipcRenderer.on(IPC_EVENTS.CHAT_LIST_UPDATED, callback);
   },
+  onMessageReactionsUpdated(callback) {
+    import_electron2.ipcRenderer.on(IPC_EVENTS.MESSAGE_REACTIONS_UPDATED, (_, payload) => callback(payload));
+  },
+  onAttachmentUploadProgress(callback) {
+    import_electron2.ipcRenderer.on(IPC_EVENTS.ATTACHMENT_UPLOAD_PROGRESS, (_, payload) => callback(payload));
+  },
   // Cleanup listeners
   removeAllListeners() {
     import_electron2.ipcRenderer.removeAllListeners(IPC_EVENTS.CONNECTION_STATUS);
@@ -4271,6 +4418,8 @@ var syncApi = {
     import_electron2.ipcRenderer.removeAllListeners(IPC_EVENTS.MESSAGE_DELETED);
     import_electron2.ipcRenderer.removeAllListeners(IPC_EVENTS.CHAT_UPDATED);
     import_electron2.ipcRenderer.removeAllListeners(IPC_EVENTS.CHAT_LIST_UPDATED);
+    import_electron2.ipcRenderer.removeAllListeners(IPC_EVENTS.MESSAGE_REACTIONS_UPDATED);
+    import_electron2.ipcRenderer.removeAllListeners(IPC_EVENTS.ATTACHMENT_UPLOAD_PROGRESS);
   }
 };
 var chatsApi = {

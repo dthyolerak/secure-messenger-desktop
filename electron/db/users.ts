@@ -139,11 +139,11 @@ export class UsersDB {
    */
   searchUsers(query: string, currentUserId: string): { success: boolean; users?: any[]; error?: string } {
     try {
-      const searchPattern = `%${query}%`;
+      const searchPattern = `%${query.toLowerCase()}%`;
       const users = this.db.prepare(`
         SELECT id, email, display_name, username, created_at, updated_at
         FROM users 
-        WHERE (username LIKE ? OR display_name LIKE ?)
+        WHERE (LOWER(username) LIKE ? OR LOWER(display_name) LIKE ?)
         AND id != ?
         ORDER BY display_name ASC
         LIMIT 20

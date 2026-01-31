@@ -1,8 +1,14 @@
 // src/services/syncIpcClient.ts
 import { store } from '../app/store';
-import { addOrUpdateChat, selectChat } from '../app/slices/chatsSlice';
+import { addOrUpdateChat } from '../app/slices/chatsSlice';
 import { setConnectionStatus, hideNotification } from '../app/slices/connectionSlice';
 import type { ChatItem } from '../app/slices/chatsSlice';
+import type {
+  AttachmentUploadProgress,
+  MessageAttachmentPayload,
+  MessageReaction,
+  MessageSearchResult,
+} from '../domains/messages/messages.types';
 
 /**
  * Sync IPC client for handling real-time updates from WebSocket sync.
@@ -108,7 +114,7 @@ class SyncIpcClient {
    */
   async getMessages(chatId: string, limit?: number, offset?: number, currentUser?: string) {
     try {
-      return await window.secureMessenger.sync.getMessages(chatId, limit, offset, currentUser);
+      return await this.api.getMessages(chatId, limit, offset, currentUser);
     } catch (error) {
       console.error('Failed to get messages:', error);
       throw error;
@@ -155,7 +161,7 @@ class SyncIpcClient {
    */
   async markMessagesRead(chatId: string, currentUser?: string) {
     try {
-      return await window.secureMessenger.sync.markMessagesRead(chatId, currentUser);
+      return await this.api.markMessagesRead(chatId, currentUser);
     } catch (error) {
       console.error('Failed to mark messages as read:', error);
       throw error;
@@ -165,13 +171,107 @@ class SyncIpcClient {
   /**
    * Send a message
    */
-  async sendMessage(chatId: string, content: string, sender: string, recipient: string) {
+  async sendMessage(
+    chatId: string,
+    content: string,
+    sender: string,
+    recipient: string,
+    attachment?: MessageAttachmentPayload,
+  ) {
     try {
-      return await window.secureMessenger.sync.sendMessage(chatId, content, sender, recipient);
+      return await this.api.sendMessage(chatId, content, sender, recipient, attachment);
     } catch (error) {
       console.error('Failed to send message:', error);
       throw error;
     }
+  }
+
+  /**
+   * Select a local file attachment
+   */
+  async selectAttachment(): Promise<{ success: boolean; data?: MessageAttachmentPayload; error?: string }> {
+    try {
+      return await this.api.selectAttachment();
+    } catch (error) {
+      console.error('Failed to select attachment:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Search messages across chats
+   */
+  async searchMessages(
+    query: string,
+    currentUser?: string,
+    limit?: number,
+    offset?: number,
+  ): Promise<MessageSearchResult[]> {
+    try {
+      const response = await this.api.searchMessages(query, currentUser, limit, offset);
+      if (!response.success || !response.data) {
+        throw new Error(response.error || 'Failed to search messages');
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Failed to search messages:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Search chats by name or last message
+   */
+  async searchChats(query: string, limit?: number, offset?: number): Promise<{ chats: ChatItem[]; total: number }> {
+    try {
+      const response = await this.api.searchChats(query, limit, offset);
+      if (!response.success || !response.data) {
+        throw new Error(response.error || 'Failed to search chats');
+      }
+
+      const chats: ChatItem[] = response.data.chats.map((chat: any) => ({
+        id: chat.id,
+        name: chat.name,
+        lastMessage: chat.last_message ?? undefined,
+        updatedAt: chat.updated_at,
+        unreadCount: chat.unread_count ?? 0,
+      }));
+
+      return { chats, total: response.data.total };
+    } catch (error) {
+      console.error('Failed to search chats:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Toggle emoji reaction
+   */
+  async toggleReaction(messageId: string, userId: string, emoji: string): Promise<MessageReaction[]> {
+    try {
+      const response = await this.api.toggleReaction(messageId, userId, emoji);
+      if (!response.success || !response.data) {
+        throw new Error(response.error || 'Failed to toggle reaction');
+      }
+      return response.data.reactions;
+    } catch (error) {
+      console.error('Failed to toggle reaction:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Subscribe to reaction updates
+   */
+  onMessageReactionsUpdated(callback: (payload: { messageId: string; reactions: MessageReaction[] }) => void): void {
+    this.api.onMessageReactionsUpdated(callback);
+  }
+
+  /**
+   * Subscribe to attachment upload progress
+   */
+  onAttachmentUploadProgress(callback: (payload: AttachmentUploadProgress) => void): void {
+    this.api.onAttachmentUploadProgress(callback);
   }
 }
 

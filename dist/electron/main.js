@@ -28,7 +28,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 
 // electron/main.ts
 var import_electron6 = require("electron");
-var import_node_path2 = __toESM(require("node:path"));
+var import_node_path3 = __toESM(require("node:path"));
 
 // src/domains/auth/auth.types.ts
 var AUTH_IPC_CHANNELS = {
@@ -517,8 +517,8 @@ function getErrorMap() {
 
 // node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path3, errorMaps, issueData } = params;
-  const fullPath = [...path3, ...issueData.path || []];
+  const { data, path: path4, errorMaps, issueData } = params;
+  const fullPath = [...path4, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -634,11 +634,11 @@ var errorUtil;
 
 // node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path3, key) {
+  constructor(parent, value, path4, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path3;
+    this._path = path4;
     this._key = key;
   }
   get path() {
@@ -4794,7 +4794,12 @@ var MessageEventSchema = external_exports.object({
   timestamp: external_exports.number(),
   read_at: external_exports.number().nullable().optional(),
   is_read: external_exports.boolean().optional(),
-  is_edited: external_exports.boolean().optional()
+  is_edited: external_exports.boolean().optional(),
+  type: external_exports.enum(["text", "image", "file"]).optional(),
+  file_path: external_exports.string().nullable().optional(),
+  file_name: external_exports.string().nullable().optional(),
+  file_size: external_exports.number().nullable().optional(),
+  mime_type: external_exports.string().nullable().optional()
 });
 var ChatUpdateEventSchema = external_exports.object({
   chat_id: external_exports.string(),
@@ -4807,6 +4812,29 @@ var SyncQueries = class {
   constructor(db2) {
     this.db = db2;
   }
+  getMessageReactions(messageIds, currentUser) {
+    if (messageIds.length === 0) {
+      return {};
+    }
+    const placeholders = messageIds.map(() => "?").join(", ");
+    const rows = this.db.prepare(`
+      SELECT message_id, emoji, COUNT(*) as count,
+             SUM(CASE WHEN user_id = ? THEN 1 ELSE 0 END) as reacted_by_current_user
+      FROM message_reactions
+      WHERE message_id IN (${placeholders})
+      GROUP BY message_id, emoji
+    `).all(currentUser, ...messageIds);
+    return rows.reduce((acc, row) => {
+      const existing = acc[row.message_id] ?? [];
+      existing.push({
+        emoji: row.emoji,
+        count: row.count,
+        reactedByCurrentUser: row.reacted_by_current_user > 0
+      });
+      acc[row.message_id] = existing;
+      return acc;
+    }, {});
+  }
   /**
    * Insert or update message with deduplication
    * Returns true if message was inserted, false if duplicate
@@ -4818,6 +4846,11 @@ var SyncQueries = class {
       console.log("[DB] Message validated successfully:", validated);
       const readAt = validated.read_at !== void 0 ? validated.read_at : validated.is_read ? validated.timestamp : validated.sender === currentUser ? validated.timestamp : null;
       const isEdited = validated.is_edited ? 1 : 0;
+      const messageType = validated.type ?? "text";
+      const filePath = validated.file_path ?? null;
+      const fileName = validated.file_name ?? null;
+      const fileSize = validated.file_size ?? null;
+      const mimeType = validated.mime_type ?? null;
       const existing = this.db.prepare(
         "SELECT id FROM messages WHERE id = ?"
       ).get(validated.id);
@@ -4827,8 +4860,22 @@ var SyncQueries = class {
       }
       console.log("[DB] Inserting new message into database...");
       const insertMessage2 = this.db.prepare(`
-        INSERT INTO messages (id, chat_id, sender, recipient, content, timestamp, read_at, is_edited)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO messages (
+          id,
+          chat_id,
+          sender,
+          recipient,
+          content,
+          timestamp,
+          read_at,
+          is_edited,
+          type,
+          file_path,
+          file_name,
+          file_size,
+          mime_type
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
       const selectUnreadCount = this.db.prepare(`
         SELECT COUNT(*) as count FROM messages
@@ -4839,6 +4886,7 @@ var SyncQueries = class {
         SET last_message = ?, updated_at = ?, unread_count = ?
         WHERE id = ?
       `);
+      const chatPreview = validated.content?.trim() || (messageType === "image" ? `\u{1F4F7} ${fileName ?? "Image"}` : messageType === "file" ? `\u{1F4CE} ${fileName ?? "Attachment"}` : "");
       const transaction = this.db.transaction(() => {
         console.log("[DB] Executing message insert...");
         insertMessage2.run(
@@ -4849,12 +4897,17 @@ var SyncQueries = class {
           validated.content,
           validated.timestamp,
           readAt,
-          isEdited
+          isEdited,
+          messageType,
+          filePath,
+          fileName,
+          fileSize,
+          mimeType
         );
         console.log("[DB] Executing chat update...");
         const unreadCount = selectUnreadCount.get(validated.chat_id, currentUser);
         updateChat.run(
-          validated.content,
+          chatPreview,
           validated.timestamp,
           unreadCount.count,
           validated.chat_id
@@ -4936,9 +4989,115 @@ var SyncQueries = class {
         ORDER BY timestamp ASC 
         LIMIT ? OFFSET ?
       `).all(chatId, currentUser, currentUser, limit, offset);
-      return messages;
+      const messageIds = messages.map((msg) => msg.id);
+      const reactions = this.getMessageReactions(messageIds, currentUser);
+      return messages.map((message) => ({
+        ...message,
+        reactions: reactions[message.id] ?? []
+      }));
     } catch (error) {
       console.error("[DB] Failed to get messages:", error);
+      throw error;
+    }
+  }
+  /**
+   * Search messages by content or file name (case-insensitive)
+   */
+  async searchMessages(query, currentUser = "You", limit = 50, offset = 0) {
+    try {
+      const searchPattern = `%${query.toLowerCase()}%`;
+      const messages = this.db.prepare(`
+        SELECT m.*, c.name as chat_name
+        FROM messages m
+        INNER JOIN chats c ON m.chat_id = c.id
+        WHERE (m.sender = ? OR m.recipient = ?)
+          AND (
+            LOWER(m.content) LIKE ?
+            OR LOWER(COALESCE(m.file_name, '')) LIKE ?
+          )
+        ORDER BY m.timestamp DESC
+        LIMIT ? OFFSET ?
+      `).all(currentUser, currentUser, searchPattern, searchPattern, limit, offset);
+      const messageIds = messages.map((msg) => msg.id);
+      const reactions = this.getMessageReactions(messageIds, currentUser);
+      return messages.map((message) => ({
+        ...message,
+        reactions: reactions[message.id] ?? []
+      }));
+    } catch (error) {
+      console.error("[DB] Failed to search messages:", error);
+      throw error;
+    }
+  }
+  /**
+   * Search chats by name or last message (case-insensitive)
+   */
+  async searchChats(query, limit = 50, offset = 0) {
+    try {
+      const trimmed = query.trim();
+      if (!trimmed) {
+        const chats2 = this.db.prepare(`
+          SELECT id, name, last_message, updated_at, COALESCE(unread_count, 0) as unread_count
+          FROM chats
+          ORDER BY updated_at DESC
+          LIMIT ? OFFSET ?
+        `).all(limit, offset);
+        const total = this.db.prepare("SELECT COUNT(*) as count FROM chats").get();
+        return { chats: chats2, total: total.count };
+      }
+      const searchPattern = `%${trimmed.toLowerCase()}%`;
+      const totalResult = this.db.prepare(`
+        SELECT COUNT(*) as count
+        FROM chats
+        WHERE LOWER(name) LIKE ? OR LOWER(COALESCE(last_message, '')) LIKE ?
+      `).get(searchPattern, searchPattern);
+      const chats = this.db.prepare(`
+        SELECT id, name, last_message, updated_at, COALESCE(unread_count, 0) as unread_count
+        FROM chats
+        WHERE LOWER(name) LIKE ? OR LOWER(COALESCE(last_message, '')) LIKE ?
+        ORDER BY updated_at DESC
+        LIMIT ? OFFSET ?
+      `).all(searchPattern, searchPattern, limit, offset);
+      return { chats, total: totalResult.count };
+    } catch (error) {
+      console.error("[DB] Failed to search chats:", error);
+      throw error;
+    }
+  }
+  /**
+   * Toggle emoji reaction for a message and return updated reactions
+   */
+  async toggleReaction(messageId, userId, emoji) {
+    try {
+      const existing = this.db.prepare(`
+        SELECT id FROM message_reactions
+        WHERE message_id = ? AND user_id = ? AND emoji = ?
+      `).get(messageId, userId, emoji);
+      if (existing) {
+        this.db.prepare(`
+          DELETE FROM message_reactions
+          WHERE id = ?
+        `).run(existing.id);
+      } else {
+        this.db.prepare(`
+          INSERT INTO message_reactions (id, message_id, user_id, emoji, created_at)
+          VALUES (?, ?, ?, ?, ?)
+        `).run(`mr_${messageId}_${userId}_${Date.now()}`, messageId, userId, emoji, Date.now());
+      }
+      const reactions = this.db.prepare(`
+        SELECT emoji, COUNT(*) as count,
+               SUM(CASE WHEN user_id = ? THEN 1 ELSE 0 END) as reacted_by_current_user
+        FROM message_reactions
+        WHERE message_id = ?
+        GROUP BY emoji
+      `).all(userId, messageId);
+      return reactions.map((reaction) => ({
+        emoji: reaction.emoji,
+        count: reaction.count,
+        reactedByCurrentUser: reaction.reacted_by_current_user > 0
+      }));
+    } catch (error) {
+      console.error("[DB] Failed to toggle reaction:", error);
       throw error;
     }
   }
@@ -5075,11 +5234,32 @@ function ensureMessagesTable(db2) {
       timestamp INTEGER NOT NULL,
       read_at INTEGER,
       is_edited INTEGER DEFAULT 0,
+      type TEXT NOT NULL DEFAULT 'text',
+      file_path TEXT,
+      file_name TEXT,
+      file_size INTEGER,
+      mime_type TEXT,
       FOREIGN KEY (chat_id) REFERENCES chats (id) ON DELETE CASCADE
     );
 
     CREATE INDEX IF NOT EXISTS idx_messages_chat_timestamp
       ON messages(chat_id, timestamp DESC);
+  `);
+}
+function ensureMessageReactionsTable(db2) {
+  db2.exec(`
+    CREATE TABLE IF NOT EXISTS message_reactions (
+      id TEXT PRIMARY KEY,
+      message_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      emoji TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      FOREIGN KEY (message_id) REFERENCES messages (id) ON DELETE CASCADE,
+      UNIQUE(message_id, user_id, emoji)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_message_reactions_message
+      ON message_reactions(message_id, emoji);
   `);
 }
 function getMessagesColumns(db2) {
@@ -5093,11 +5273,13 @@ function migrateMessagesSchema(db2, currentUser = DEFAULT_CURRENT_USER) {
   const columns = getMessagesColumns(db2);
   if (columns.length === 0) {
     ensureMessagesTable(db2);
+    ensureMessageReactionsTable(db2);
     return;
   }
   const columnNames = new Set(columns.map((column) => column.name));
-  const needsMigration = !columnNames.has("recipient") || !columnNames.has("read_at");
+  const needsMigration = !columnNames.has("recipient") || !columnNames.has("read_at") || !columnNames.has("type") || !columnNames.has("file_path") || !columnNames.has("file_name") || !columnNames.has("file_size") || !columnNames.has("mime_type");
   if (!needsMigration) {
+    ensureMessageReactionsTable(db2);
     return;
   }
   const chatNamesById = getChatNamesById(db2);
@@ -5112,6 +5294,11 @@ function migrateMessagesSchema(db2, currentUser = DEFAULT_CURRENT_USER) {
         timestamp INTEGER NOT NULL,
         read_at INTEGER,
         is_edited INTEGER DEFAULT 0,
+        type TEXT NOT NULL DEFAULT 'text',
+        file_path TEXT,
+        file_name TEXT,
+        file_size INTEGER,
+        mime_type TEXT,
         FOREIGN KEY (chat_id) REFERENCES chats (id) ON DELETE CASCADE
       );
     `);
@@ -5125,8 +5312,13 @@ function migrateMessagesSchema(db2, currentUser = DEFAULT_CURRENT_USER) {
         content,
         timestamp,
         read_at,
-        is_edited
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        is_edited,
+        type,
+        file_path,
+        file_name,
+        file_size,
+        mime_type
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     rows.forEach((row) => {
       const sender = row.sender ?? row.sender_id ?? "Unknown";
@@ -5134,6 +5326,7 @@ function migrateMessagesSchema(db2, currentUser = DEFAULT_CURRENT_USER) {
       const recipient = row.recipient ?? inferredRecipient;
       const readAt = row.read_at ?? (row.is_read ? row.timestamp : null);
       const isEdited = typeof row.is_edited === "number" ? row.is_edited : 0;
+      const type = row.type ?? "text";
       insert.run(
         row.id,
         row.chat_id,
@@ -5142,7 +5335,12 @@ function migrateMessagesSchema(db2, currentUser = DEFAULT_CURRENT_USER) {
         row.content,
         row.timestamp,
         readAt,
-        isEdited
+        isEdited,
+        type,
+        row.file_path ?? null,
+        row.file_name ?? null,
+        row.file_size ?? null,
+        row.mime_type ?? null
       );
     });
     db2.exec("DROP TABLE messages");
@@ -5153,14 +5351,18 @@ function migrateMessagesSchema(db2, currentUser = DEFAULT_CURRENT_USER) {
     `);
   });
   migrate();
+  ensureMessageReactionsTable(db2);
 }
 function ensureMessageSchema(db2, currentUser = DEFAULT_CURRENT_USER) {
   ensureMessagesTable(db2);
   migrateMessagesSchema(db2, currentUser);
+  ensureMessageReactionsTable(db2);
 }
 
 // electron/ipc/events.ts
 var import_electron5 = require("electron");
+var import_node_path2 = __toESM(require("node:path"));
+var import_node_fs = __toESM(require("node:fs"));
 var IPC_EVENTS = {
   // Connection status events
   CONNECTION_STATUS: "sync:connection-status",
@@ -5170,6 +5372,8 @@ var IPC_EVENTS = {
   MESSAGE_INSERTED: "sync:message-inserted",
   MESSAGE_UPDATED: "sync:message-updated",
   MESSAGE_DELETED: "sync:message-deleted",
+  MESSAGE_REACTIONS_UPDATED: "sync:message-reactions-updated",
+  ATTACHMENT_UPLOAD_PROGRESS: "sync:attachment-upload-progress",
   // Chat events
   CHAT_UPDATED: "sync:chat-updated",
   CHAT_LIST_UPDATED: "sync:chat-list-updated",
@@ -5178,7 +5382,11 @@ var IPC_EVENTS = {
   GET_MESSAGES: "sync:get-messages",
   GET_CHATS: "sync:get-chats",
   MARK_MESSAGES_READ: "sync:mark-messages-read",
-  SEND_MESSAGE: "sync:send-message"
+  SEND_MESSAGE: "sync:send-message",
+  SEARCH_MESSAGES: "sync:search-messages",
+  SEARCH_CHATS: "sync:search-chats",
+  TOGGLE_REACTION: "sync:toggle-reaction",
+  SELECT_ATTACHMENT: "sync:select-attachment"
 };
 var MessageInsertedPayloadSchema = external_exports.object({
   id: external_exports.string(),
@@ -5189,8 +5397,75 @@ var MessageInsertedPayloadSchema = external_exports.object({
   timestamp: external_exports.number(),
   read_at: external_exports.number().nullable().optional(),
   is_read: external_exports.boolean().optional(),
-  is_edited: external_exports.boolean().optional()
+  is_edited: external_exports.boolean().optional(),
+  type: external_exports.enum(["text", "image", "file"]).optional(),
+  file_path: external_exports.string().nullable().optional(),
+  file_name: external_exports.string().nullable().optional(),
+  file_size: external_exports.number().nullable().optional(),
+  mime_type: external_exports.string().nullable().optional(),
+  reactions: external_exports.array(external_exports.object({
+    emoji: external_exports.string(),
+    count: external_exports.number(),
+    reactedByCurrentUser: external_exports.boolean()
+  })).optional()
 });
+var MessageReactionsUpdatedSchema = external_exports.object({
+  messageId: external_exports.string(),
+  reactions: external_exports.array(external_exports.object({
+    emoji: external_exports.string(),
+    count: external_exports.number(),
+    reactedByCurrentUser: external_exports.boolean()
+  }))
+});
+var AttachmentUploadProgressSchema = external_exports.object({
+  messageId: external_exports.string(),
+  progress: external_exports.number().min(0).max(100)
+});
+var SendMessageSchema = external_exports.object({
+  chatId: external_exports.string(),
+  content: external_exports.string().optional(),
+  sender: external_exports.string(),
+  recipient: external_exports.string(),
+  attachment: external_exports.object({
+    filePath: external_exports.string(),
+    fileName: external_exports.string(),
+    fileSize: external_exports.number(),
+    mimeType: external_exports.string(),
+    type: external_exports.enum(["image", "file"])
+  }).optional()
+});
+var SearchMessagesSchema = external_exports.object({
+  query: external_exports.string(),
+  currentUser: external_exports.string().optional(),
+  limit: external_exports.number().int().min(1).max(200).optional(),
+  offset: external_exports.number().int().min(0).optional()
+});
+var SearchChatsSchema2 = external_exports.object({
+  query: external_exports.string(),
+  limit: external_exports.number().int().min(1).max(200).optional(),
+  offset: external_exports.number().int().min(0).optional()
+});
+var ToggleReactionSchema = external_exports.object({
+  messageId: external_exports.string(),
+  userId: external_exports.string(),
+  emoji: external_exports.string().min(1)
+});
+var MIME_TYPE_OVERRIDES = {
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".gif": "image/gif",
+  ".webp": "image/webp",
+  ".svg": "image/svg+xml",
+  ".pdf": "application/pdf"
+};
+function inferMimeType(filePath) {
+  const extension = import_node_path2.default.extname(filePath).toLowerCase();
+  return MIME_TYPE_OVERRIDES[extension] ?? "application/octet-stream";
+}
+function inferAttachmentType(mimeType) {
+  return mimeType.startsWith("image/") ? "image" : "file";
+}
 var ChatUpdatedPayloadSchema = external_exports.object({
   id: external_exports.string(),
   name: external_exports.string(),
@@ -5216,6 +5491,33 @@ var SyncIPCEmitter = class {
       console.log(`[IPC] Message inserted event sent: ${validated.id}`);
     } catch (error) {
       console.error("[IPC] Failed to emit message inserted:", error);
+    }
+  }
+  /**
+   * Emit message reactions updated event
+   */
+  static emitMessageReactionsUpdated(payload) {
+    try {
+      const validated = MessageReactionsUpdatedSchema.parse(payload);
+      import_electron5.webContents.getAllWebContents().forEach((contents) => {
+        contents.send(IPC_EVENTS.MESSAGE_REACTIONS_UPDATED, validated);
+      });
+      console.log(`[IPC] Message reactions updated event sent: ${validated.messageId}`);
+    } catch (error) {
+      console.error("[IPC] Failed to emit message reactions updated:", error);
+    }
+  }
+  /**
+   * Emit attachment upload progress
+   */
+  static emitAttachmentUploadProgress(payload) {
+    try {
+      const validated = AttachmentUploadProgressSchema.parse(payload);
+      import_electron5.webContents.getAllWebContents().forEach((contents) => {
+        contents.send(IPC_EVENTS.ATTACHMENT_UPLOAD_PROGRESS, validated);
+      });
+    } catch (error) {
+      console.error("[IPC] Failed to emit attachment upload progress:", error);
     }
   }
   /**
@@ -5299,10 +5601,11 @@ var SyncIPCEmitter = class {
   static showDesktopNotification(message, chatName) {
     try {
       const validated = MessageInsertedPayloadSchema.parse(message);
+      const previewText = validated.content?.trim() || (validated.type === "image" ? `\u{1F4F7} ${validated.file_name ?? "Image"}` : validated.type === "file" ? `\u{1F4CE} ${validated.file_name ?? "Attachment"}` : "");
       if (validated.recipient === "You" && validated.sender !== "You") {
         const notification = new import_electron5.Notification({
           title: validated.sender,
-          body: validated.content,
+          body: previewText,
           subtitle: chatName,
           silent: false
         });
@@ -5382,27 +5685,44 @@ function registerSyncIPCHandlers(syncQueries2) {
       return { success: false, error: "Failed to mark messages as read" };
     }
   });
-  import_electron5.ipcMain.handle(IPC_EVENTS.SEND_MESSAGE, async (event, { chatId, content, sender, recipient }) => {
+  import_electron5.ipcMain.handle(IPC_EVENTS.SEND_MESSAGE, async (event, rawPayload) => {
     try {
-      if (!chatId || !content || !sender || !recipient) {
-        throw new Error("chatId, content, sender, and recipient are required");
+      const parsed = SendMessageSchema.safeParse(rawPayload);
+      if (!parsed.success) {
+        throw new Error("Invalid send message payload");
+      }
+      const { chatId, content, sender, recipient, attachment } = parsed.data;
+      if (!content?.trim() && !attachment) {
+        throw new Error("Message content or attachment is required");
       }
       const timestamp = Date.now();
+      const messageType = attachment?.type ?? "text";
       const message = {
         id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         chat_id: chatId,
         sender,
         recipient,
-        content,
+        content: content ?? "",
         timestamp,
         read_at: timestamp,
-        is_edited: false
+        is_edited: false,
+        type: messageType,
+        file_path: attachment?.filePath ?? null,
+        file_name: attachment?.fileName ?? null,
+        file_size: attachment?.fileSize ?? null,
+        mime_type: attachment?.mimeType ?? null
       };
       console.log("[IPC] Attempting to insert message:", message);
+      if (attachment) {
+        SyncIPCEmitter.emitAttachmentUploadProgress({ messageId: message.id, progress: 0 });
+      }
       const inserted = await syncQueries2.insertMessage(message, sender);
       console.log("[IPC] Message insert result:", inserted);
       if (inserted) {
         SyncIPCEmitter.emitMessageInserted(message);
+        if (attachment) {
+          SyncIPCEmitter.emitAttachmentUploadProgress({ messageId: message.id, progress: 100 });
+        }
         const chats = await syncQueries2.getAllChats();
         const updatedChat = chats.find((c) => c.id === chatId);
         if (updatedChat) {
@@ -5418,6 +5738,90 @@ function registerSyncIPCHandlers(syncQueries2) {
     } catch (error) {
       console.error("[IPC] Send message failed:", error);
       return { success: false, error: "Failed to send message" };
+    }
+  });
+  import_electron5.ipcMain.handle(IPC_EVENTS.SEARCH_MESSAGES, async (_event, rawPayload) => {
+    try {
+      const parsed = SearchMessagesSchema.safeParse(rawPayload);
+      if (!parsed.success) {
+        throw new Error("Invalid search messages payload");
+      }
+      const { query, currentUser, limit, offset } = parsed.data;
+      const results = await syncQueries2.searchMessages(
+        query,
+        currentUser || "You",
+        limit ?? 50,
+        offset ?? 0
+      );
+      return { success: true, data: results };
+    } catch (error) {
+      console.error("[IPC] Search messages failed:", error);
+      return { success: false, error: "Failed to search messages" };
+    }
+  });
+  import_electron5.ipcMain.handle(IPC_EVENTS.SEARCH_CHATS, async (_event, rawPayload) => {
+    try {
+      const parsed = SearchChatsSchema2.safeParse(rawPayload);
+      if (!parsed.success) {
+        throw new Error("Invalid search chats payload");
+      }
+      const { query, limit, offset } = parsed.data;
+      const results = await syncQueries2.searchChats(query, limit ?? 50, offset ?? 0);
+      return { success: true, data: results };
+    } catch (error) {
+      console.error("[IPC] Search chats failed:", error);
+      return { success: false, error: "Failed to search chats" };
+    }
+  });
+  import_electron5.ipcMain.handle(IPC_EVENTS.TOGGLE_REACTION, async (_event, rawPayload) => {
+    try {
+      const parsed = ToggleReactionSchema.safeParse(rawPayload);
+      if (!parsed.success) {
+        throw new Error("Invalid toggle reaction payload");
+      }
+      const { messageId, userId, emoji } = parsed.data;
+      const reactions = await syncQueries2.toggleReaction(messageId, userId, emoji);
+      SyncIPCEmitter.emitMessageReactionsUpdated({ messageId, reactions });
+      return { success: true, data: { messageId, reactions } };
+    } catch (error) {
+      console.error("[IPC] Toggle reaction failed:", error);
+      return { success: false, error: "Failed to toggle reaction" };
+    }
+  });
+  import_electron5.ipcMain.handle(IPC_EVENTS.SELECT_ATTACHMENT, async () => {
+    try {
+      const result = await import_electron5.dialog.showOpenDialog({
+        properties: ["openFile"],
+        filters: [
+          { name: "Images", extensions: ["png", "jpg", "jpeg", "gif", "webp", "svg"] },
+          { name: "Documents", extensions: ["pdf", "txt", "doc", "docx", "xls", "xlsx"] },
+          { name: "All Files", extensions: ["*"] }
+        ]
+      });
+      if (result.canceled || result.filePaths.length === 0) {
+        return { success: false, error: "No file selected" };
+      }
+      const [filePath] = result.filePaths;
+      if (!filePath) {
+        return { success: false, error: "No file selected" };
+      }
+      const fileName = import_node_path2.default.basename(filePath);
+      const stats = import_node_fs.default.statSync(filePath);
+      const mimeType = inferMimeType(filePath);
+      const type = inferAttachmentType(mimeType);
+      return {
+        success: true,
+        data: {
+          filePath,
+          fileName,
+          fileSize: stats.size,
+          mimeType,
+          type
+        }
+      };
+    } catch (error) {
+      console.error("[IPC] Select attachment failed:", error);
+      return { success: false, error: "Failed to select attachment" };
     }
   });
   console.log("[IPC] Sync IPC handlers registered");
@@ -5591,12 +5995,12 @@ function createMainWindow() {
     width: 1200,
     height: 800,
     webPreferences: {
-      preload: import_node_path2.default.join(__dirname, "preload.js"),
+      preload: import_node_path3.default.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false
     }
   });
-  mainWindow.loadFile(import_node_path2.default.join(__dirname, "..", "src", "index.html"));
+  mainWindow.loadFile(import_node_path3.default.join(__dirname, "..", "src", "index.html"));
   if (!import_electron6.app.isPackaged) {
     mainWindow.webContents.openDevTools();
   }

@@ -8,6 +8,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import type { RootState, AppDispatch } from '../app/store';
 import { selectChat } from '../app/slices/chatsSlice';
 import { sendMessage } from '../app/slices/messagesSlice';
+import type { MessageAttachmentPayload } from '../domains/messages/messages.types';
 import { selectUser } from '../app/slices/authSlice';
 import { syncIpcClient } from '../services/syncIpcClient';
 
@@ -43,11 +44,11 @@ const MainLayout: React.FC = () => {
   const selectedMessages = selectedChatId ? messagesByChat[selectedChatId] ?? [] : [];
 
   const handleSendMessage = React.useCallback(
-    async (chatId: string, content: string) => {
+    async (chatId: string, content: string, attachment?: MessageAttachmentPayload) => {
       if (!user?.username) return;
       const sender = user.username;
       const recipient = selectedChat?.userId || selectedChat?.name || 'Unknown';
-      dispatch(sendMessage({ chatId, content, sender, recipient }));
+      await dispatch(sendMessage({ chatId, content, sender, recipient, attachment }));
     },
     [dispatch, user?.username, selectedChat?.userId, selectedChat?.name],
   );

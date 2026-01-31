@@ -30,17 +30,15 @@ import {
 
   type Message,
 
+  type MessageAttachmentPayload,
+
+  type MessageReaction,
+
+  type AttachmentUploadProgress,
+
+  type MessageSearchResult,
+
 } from '../src/domains/messages/messages.types';
-
-import {
-
-  SYNC_IPC_CHANNELS,
-
-  type TypingEvent,
-
-  type PresenceEvent,
-
-} from '../src/domains/sync/sync.types';
 
 import {
 
@@ -142,6 +140,35 @@ const messagesApi = {
 
 
 
+const ReactionSchema = z.object({
+  emoji: z.string(),
+  count: z.number(),
+  reactedByCurrentUser: z.boolean(),
+});
+
+const MessageBaseSchema = z.object({
+  id: z.string(),
+  chat_id: z.string(),
+  sender: z.string(),
+  recipient: z.string(),
+  content: z.string(),
+  timestamp: z.number(),
+  read_at: z.number().nullable().optional(),
+  is_edited: z.union([z.boolean(), z.number()]).optional(),
+  type: z.enum(['text', 'image', 'file']).optional(),
+  file_path: z.string().nullable().optional(),
+  file_name: z.string().nullable().optional(),
+  file_size: z.number().nullable().optional(),
+  mime_type: z.string().nullable().optional(),
+  reactions: z.array(ReactionSchema).optional(),
+});
+
+const MessageSearchResultSchema = MessageBaseSchema.extend({
+  chat_name: z.string(),
+});
+
+
+
 const syncApi = {
 
   // Connection status
@@ -164,9 +191,109 @@ const syncApi = {
 
 
 
-  async sendMessage(chatId: string, content: string, sender: string, recipient: string) {
+  async sendMessage(
+    chatId: string,
+    content: string,
+    sender: string,
+    recipient: string,
+    attachment?: MessageAttachmentPayload,
+  ) {
 
-    return await ipcRenderer.invoke(IPC_EVENTS.SEND_MESSAGE, { chatId, content, sender, recipient });
+    return await ipcRenderer.invoke(IPC_EVENTS.SEND_MESSAGE, {
+      chatId,
+      content,
+      sender,
+      recipient,
+      attachment,
+    });
+
+  },
+
+
+
+  async selectAttachment() {
+
+    const raw = await ipcRenderer.invoke(IPC_EVENTS.SELECT_ATTACHMENT);
+    const responseSchema = z.object({
+      success: z.boolean(),
+      data: z
+        .object({
+          filePath: z.string(),
+          fileName: z.string(),
+          fileSize: z.number(),
+          mimeType: z.string(),
+          type: z.enum(['image', 'file']),
+        })
+        .optional(),
+      error: z.string().optional(),
+    });
+
+    return responseSchema.parse(raw);
+
+  },
+
+
+
+  async searchMessages(query: string, currentUser?: string, limit?: number, offset?: number) {
+
+    const raw = await ipcRenderer.invoke(IPC_EVENTS.SEARCH_MESSAGES, { query, currentUser, limit, offset });
+    const responseSchema = z.object({
+      success: z.boolean(),
+      data: z.array(MessageSearchResultSchema).optional(),
+      error: z.string().optional(),
+    });
+
+    return responseSchema.parse(raw) as { success: boolean; data?: MessageSearchResult[]; error?: string };
+
+  },
+
+
+
+  async searchChats(query: string, limit?: number, offset?: number) {
+
+    const raw = await ipcRenderer.invoke(IPC_EVENTS.SEARCH_CHATS, { query, limit, offset });
+    const responseSchema = z.object({
+      success: z.boolean(),
+      data: z
+        .object({
+          chats: z.array(z.object({
+            id: z.string(),
+            name: z.string(),
+            last_message: z.string().nullable().optional(),
+            updated_at: z.number(),
+            unread_count: z.number(),
+          })),
+          total: z.number(),
+        })
+        .optional(),
+      error: z.string().optional(),
+    });
+
+    return responseSchema.parse(raw);
+
+  },
+
+
+
+  async toggleReaction(messageId: string, userId: string, emoji: string) {
+
+    const raw = await ipcRenderer.invoke(IPC_EVENTS.TOGGLE_REACTION, { messageId, userId, emoji });
+    const responseSchema = z.object({
+      success: z.boolean(),
+      data: z
+        .object({
+          messageId: z.string(),
+          reactions: z.array(ReactionSchema),
+        })
+        .optional(),
+      error: z.string().optional(),
+    });
+
+    return responseSchema.parse(raw) as {
+      success: boolean;
+      data?: { messageId: string; reactions: MessageReaction[] };
+      error?: string;
+    };
 
   },
 
@@ -312,6 +439,22 @@ const syncApi = {
 
 
 
+  onMessageReactionsUpdated(callback: (payload: { messageId: string; reactions: MessageReaction[] }) => void) {
+
+    ipcRenderer.on(IPC_EVENTS.MESSAGE_REACTIONS_UPDATED, (_, payload) => callback(payload));
+
+  },
+
+
+
+  onAttachmentUploadProgress(callback: (payload: AttachmentUploadProgress) => void) {
+
+    ipcRenderer.on(IPC_EVENTS.ATTACHMENT_UPLOAD_PROGRESS, (_, payload) => callback(payload));
+
+  },
+
+
+
   // Cleanup listeners
 
   removeAllListeners() {
@@ -331,6 +474,10 @@ const syncApi = {
     ipcRenderer.removeAllListeners(IPC_EVENTS.CHAT_UPDATED);
 
     ipcRenderer.removeAllListeners(IPC_EVENTS.CHAT_LIST_UPDATED);
+
+    ipcRenderer.removeAllListeners(IPC_EVENTS.MESSAGE_REACTIONS_UPDATED);
+
+    ipcRenderer.removeAllListeners(IPC_EVENTS.ATTACHMENT_UPLOAD_PROGRESS);
 
   },
 

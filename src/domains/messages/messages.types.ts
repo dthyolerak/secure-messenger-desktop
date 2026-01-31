@@ -1,4 +1,23 @@
 // src/domains/messages/messages.types.ts
+export interface MessageReaction {
+  emoji: string;
+  count: number;
+  reactedByCurrentUser: boolean;
+}
+
+export interface MessageAttachmentPayload {
+  filePath: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  type: 'image' | 'file';
+}
+
+export interface AttachmentUploadProgress {
+  messageId: string;
+  progress: number;
+}
+
 export interface Message {
   id: string;
   chat_id: string;
@@ -8,6 +27,12 @@ export interface Message {
   timestamp: number;
   read_at?: number | null;
   is_edited?: boolean;
+  type?: 'text' | 'image' | 'file';
+  file_path?: string | null;
+  file_name?: string | null;
+  file_size?: number | null;
+  mime_type?: string | null;
+  reactions?: MessageReaction[];
 }
 
 export interface InsertMessagePayload {
@@ -29,9 +54,15 @@ export interface MessageItem {
   is_edited?: boolean;
   isOwn?: boolean;
   type?: 'text' | 'image' | 'file';
-  file_path?: string;
-  file_name?: string;
-  file_size?: number;
+  file_path?: string | null;
+  file_name?: string | null;
+  file_size?: number | null;
+  mime_type?: string | null;
+  reactions?: MessageReaction[];
+}
+
+export interface MessageSearchResult extends Message {
+  chat_name: string;
 }
 
 export const MESSAGES_IPC_CHANNELS = {

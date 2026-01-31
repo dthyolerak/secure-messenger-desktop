@@ -13,6 +13,11 @@ const MessageEventSchema = z.object({
   read_at: z.number().nullable().optional(),
   is_read: z.boolean().optional(),
   is_edited: z.boolean().optional(),
+  type: z.enum(['text', 'image', 'file']).optional(),
+  file_path: z.string().nullable().optional(),
+  file_name: z.string().nullable().optional(),
+  file_size: z.number().nullable().optional(),
+  mime_type: z.string().nullable().optional(),
 });
 
 const ChatUpdateEventSchema = z.object({
@@ -25,6 +30,37 @@ const ChatUpdateEventSchema = z.object({
 
 export class SyncQueries {
   constructor(private db: Database) {}
+
+  private getMessageReactions(messageIds: string[], currentUser: string): Record<string, any[]> {
+    if (messageIds.length === 0) {
+      return {};
+    }
+
+    const placeholders = messageIds.map(() => '?').join(', ');
+    const rows = this.db.prepare(`
+      SELECT message_id, emoji, COUNT(*) as count,
+             SUM(CASE WHEN user_id = ? THEN 1 ELSE 0 END) as reacted_by_current_user
+      FROM message_reactions
+      WHERE message_id IN (${placeholders})
+      GROUP BY message_id, emoji
+    `).all(currentUser, ...messageIds) as Array<{
+      message_id: string;
+      emoji: string;
+      count: number;
+      reacted_by_current_user: number;
+    }>;
+
+    return rows.reduce<Record<string, any[]>>((acc, row) => {
+      const existing = acc[row.message_id] ?? [];
+      existing.push({
+        emoji: row.emoji,
+        count: row.count,
+        reactedByCurrentUser: row.reacted_by_current_user > 0,
+      });
+      acc[row.message_id] = existing;
+      return acc;
+    }, {});
+  }
 
   /**
    * Insert or update message with deduplication
@@ -46,6 +82,11 @@ export class SyncQueries {
               ? validated.timestamp
               : null;
       const isEdited = validated.is_edited ? 1 : 0;
+      const messageType = validated.type ?? 'text';
+      const filePath = validated.file_path ?? null;
+      const fileName = validated.file_name ?? null;
+      const fileSize = validated.file_size ?? null;
+      const mimeType = validated.mime_type ?? null;
       
       // Check for duplicate by message ID
       const existing = this.db.prepare(
@@ -61,8 +102,22 @@ export class SyncQueries {
 
       // Insert message within transaction
       const insertMessage = this.db.prepare(`
-        INSERT INTO messages (id, chat_id, sender, recipient, content, timestamp, read_at, is_edited)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO messages (
+          id,
+          chat_id,
+          sender,
+          recipient,
+          content,
+          timestamp,
+          read_at,
+          is_edited,
+          type,
+          file_path,
+          file_name,
+          file_size,
+          mime_type
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       const selectUnreadCount = this.db.prepare(`
@@ -76,6 +131,14 @@ export class SyncQueries {
         WHERE id = ?
       `);
 
+      const chatPreview =
+        validated.content?.trim() ||
+        (messageType === 'image'
+          ? `📷 ${fileName ?? 'Image'}`
+          : messageType === 'file'
+            ? `📎 ${fileName ?? 'Attachment'}`
+            : '');
+
       const transaction = this.db.transaction(() => {
         console.log('[DB] Executing message insert...');
         insertMessage.run(
@@ -86,13 +149,18 @@ export class SyncQueries {
           validated.content,
           validated.timestamp,
           readAt,
-          isEdited
+          isEdited,
+          messageType,
+          filePath,
+          fileName,
+          fileSize,
+          mimeType
         );
         
         console.log('[DB] Executing chat update...');
         const unreadCount = selectUnreadCount.get(validated.chat_id, currentUser) as { count: number };
         updateChat.run(
-          validated.content,
+          chatPreview,
           validated.timestamp,
           unreadCount.count,
           validated.chat_id
@@ -198,9 +266,137 @@ export class SyncQueries {
         LIMIT ? OFFSET ?
       `).all(chatId, currentUser, currentUser, limit, offset);
 
-      return messages;
+      const messageIds = messages.map((msg: any) => msg.id);
+      const reactions = this.getMessageReactions(messageIds, currentUser);
+
+      return messages.map((message: any) => ({
+        ...message,
+        reactions: reactions[message.id] ?? [],
+      }));
     } catch (error) {
       console.error('[DB] Failed to get messages:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Search messages by content or file name (case-insensitive)
+   */
+  async searchMessages(
+    query: string,
+    currentUser: string = 'You',
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<any[]> {
+    try {
+      const searchPattern = `%${query.toLowerCase()}%`;
+      const messages = this.db.prepare(`
+        SELECT m.*, c.name as chat_name
+        FROM messages m
+        INNER JOIN chats c ON m.chat_id = c.id
+        WHERE (m.sender = ? OR m.recipient = ?)
+          AND (
+            LOWER(m.content) LIKE ?
+            OR LOWER(COALESCE(m.file_name, '')) LIKE ?
+          )
+        ORDER BY m.timestamp DESC
+        LIMIT ? OFFSET ?
+      `).all(currentUser, currentUser, searchPattern, searchPattern, limit, offset);
+
+      const messageIds = messages.map((msg: any) => msg.id);
+      const reactions = this.getMessageReactions(messageIds, currentUser);
+
+      return messages.map((message: any) => ({
+        ...message,
+        reactions: reactions[message.id] ?? [],
+      }));
+    } catch (error) {
+      console.error('[DB] Failed to search messages:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Search chats by name or last message (case-insensitive)
+   */
+  async searchChats(query: string, limit: number = 50, offset: number = 0): Promise<{ chats: any[]; total: number }> {
+    try {
+      const trimmed = query.trim();
+      if (!trimmed) {
+        const chats = this.db.prepare(`
+          SELECT id, name, last_message, updated_at, COALESCE(unread_count, 0) as unread_count
+          FROM chats
+          ORDER BY updated_at DESC
+          LIMIT ? OFFSET ?
+        `).all(limit, offset);
+
+        const total = this.db.prepare('SELECT COUNT(*) as count FROM chats').get() as { count: number };
+        return { chats, total: total.count };
+      }
+
+      const searchPattern = `%${trimmed.toLowerCase()}%`;
+      const totalResult = this.db.prepare(`
+        SELECT COUNT(*) as count
+        FROM chats
+        WHERE LOWER(name) LIKE ? OR LOWER(COALESCE(last_message, '')) LIKE ?
+      `).get(searchPattern, searchPattern) as { count: number };
+
+      const chats = this.db.prepare(`
+        SELECT id, name, last_message, updated_at, COALESCE(unread_count, 0) as unread_count
+        FROM chats
+        WHERE LOWER(name) LIKE ? OR LOWER(COALESCE(last_message, '')) LIKE ?
+        ORDER BY updated_at DESC
+        LIMIT ? OFFSET ?
+      `).all(searchPattern, searchPattern, limit, offset);
+
+      return { chats, total: totalResult.count };
+    } catch (error) {
+      console.error('[DB] Failed to search chats:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Toggle emoji reaction for a message and return updated reactions
+   */
+  async toggleReaction(messageId: string, userId: string, emoji: string): Promise<any[]> {
+    try {
+      const existing = this.db.prepare(`
+        SELECT id FROM message_reactions
+        WHERE message_id = ? AND user_id = ? AND emoji = ?
+      `).get(messageId, userId, emoji) as { id: string } | undefined;
+
+      if (existing) {
+        this.db.prepare(`
+          DELETE FROM message_reactions
+          WHERE id = ?
+        `).run(existing.id);
+      } else {
+        this.db.prepare(`
+          INSERT INTO message_reactions (id, message_id, user_id, emoji, created_at)
+          VALUES (?, ?, ?, ?, ?)
+        `).run(`mr_${messageId}_${userId}_${Date.now()}`, messageId, userId, emoji, Date.now());
+      }
+
+      const reactions = this.db.prepare(`
+        SELECT emoji, COUNT(*) as count,
+               SUM(CASE WHEN user_id = ? THEN 1 ELSE 0 END) as reacted_by_current_user
+        FROM message_reactions
+        WHERE message_id = ?
+        GROUP BY emoji
+      `).all(userId, messageId) as Array<{
+        emoji: string;
+        count: number;
+        reacted_by_current_user: number;
+      }>;
+
+      return reactions.map((reaction) => ({
+        emoji: reaction.emoji,
+        count: reaction.count,
+        reactedByCurrentUser: reaction.reacted_by_current_user > 0,
+      }));
+    } catch (error) {
+      console.error('[DB] Failed to toggle reaction:', error);
       throw error;
     }
   }

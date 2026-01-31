@@ -1092,7 +1092,7 @@
             }
             return dispatcher.useContext(Context);
           }
-          function useState8(initialState7) {
+          function useState9(initialState7) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useState(initialState7);
           }
@@ -1100,7 +1100,7 @@
             var dispatcher = resolveDispatcher();
             return dispatcher.useReducer(reducer, initialArg, init);
           }
-          function useRef6(initialValue) {
+          function useRef5(initialValue) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useRef(initialValue);
           }
@@ -1894,8 +1894,8 @@
           exports.useLayoutEffect = useLayoutEffect3;
           exports.useMemo = useMemo8;
           exports.useReducer = useReducer;
-          exports.useRef = useRef6;
-          exports.useState = useState8;
+          exports.useRef = useRef5;
+          exports.useState = useState9;
           exports.useSyncExternalStore = useSyncExternalStore2;
           exports.useTransition = useTransition;
           exports.version = ReactVersion;
@@ -23569,9 +23569,9 @@
           return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React13 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React13.useSyncExternalStore, useRef6 = React13.useRef, useEffect11 = React13.useEffect, useMemo8 = React13.useMemo, useDebugValue2 = React13.useDebugValue;
+        var React13 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React13.useSyncExternalStore, useRef5 = React13.useRef, useEffect11 = React13.useEffect, useMemo8 = React13.useMemo, useDebugValue2 = React13.useDebugValue;
         exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
-          var instRef = useRef6(null);
+          var instRef = useRef5(null);
           if (null === instRef.current) {
             var inst = { hasValue: false, value: null };
             instRef.current = inst;
@@ -27552,26 +27552,278 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var { selectChat, setChats, addOrUpdateChat, resetPagination } = chatsSlice.actions;
   var chatsSlice_default = chatsSlice.reducer;
 
-  // src/services/messagesIpcClient.ts
-  async function insertMessage(payload) {
-    if (!window.secureMessenger?.messages) {
-      throw new Error("Messages API not available");
+  // src/app/slices/connectionSlice.ts
+  var initialState3 = {
+    status: "offline",
+    reconnectAttempts: 0,
+    showNotification: false
+  };
+  var connectionSlice = createSlice({
+    name: "connection",
+    initialState: initialState3,
+    reducers: {
+      setConnectionStatus(state, action) {
+        const { status, lastConnected, reconnectAttempts } = action.payload;
+        const previousStatus = state.status;
+        state.status = status;
+        if (lastConnected !== void 0) {
+          state.lastConnected = lastConnected;
+        }
+        if (reconnectAttempts !== void 0) {
+          state.reconnectAttempts = reconnectAttempts;
+        }
+        if (previousStatus !== status) {
+          state.showNotification = true;
+          switch (status) {
+            case "connected":
+              state.notificationMessage = "Connected to server";
+              break;
+            case "reconnecting":
+              state.notificationMessage = `Connection lost... Reconnecting (${reconnectAttempts || 0})`;
+              break;
+            case "offline":
+              state.notificationMessage = "Offline - Working in offline mode";
+              break;
+          }
+        }
+      },
+      hideNotification(state) {
+        state.showNotification = false;
+        state.notificationMessage = void 0;
+      },
+      resetConnection(state) {
+        return { ...initialState3 };
+      }
     }
-    return window.secureMessenger.messages.insertMessage(payload);
-  }
+  });
+  var { setConnectionStatus, hideNotification, resetConnection } = connectionSlice.actions;
+  var connectionSlice_default = connectionSlice.reducer;
+
+  // src/services/syncIpcClient.ts
+  var SyncIpcClient = class {
+    constructor() {
+      this.notificationTimeouts = /* @__PURE__ */ new Map();
+      if (!window.secureMessenger?.sync) {
+        throw new Error("Sync API not available. Ensure preload is properly loaded.");
+      }
+      this.api = window.secureMessenger.sync;
+      this.setupEventListeners();
+    }
+    /**
+     * Setup event listeners for real-time sync events
+     */
+    setupEventListeners() {
+      this.api.onConnectionStatus((status) => {
+        console.log("[Sync] Connection status changed:", status);
+        store.dispatch(setConnectionStatus({
+          status: status.status,
+          lastConnected: status.lastConnected,
+          reconnectAttempts: status.reconnectAttempts
+        }));
+        if (status.status === "connected") {
+          this.scheduleNotificationHide("connected", 3e3);
+        }
+      });
+      this.api.onConnectionConnected(() => {
+        console.log("[Sync] Connected to server");
+        store.dispatch(setConnectionStatus({ status: "connected" }));
+        this.scheduleNotificationHide("connected", 3e3);
+      });
+      this.api.onConnectionDisconnected(() => {
+        console.log("[Sync] Disconnected from server");
+        store.dispatch(setConnectionStatus({ status: "offline" }));
+      });
+      this.api.onMessageInserted((message) => {
+        console.log("[Sync] New message received:", message);
+      });
+      this.api.onChatUpdated((chatData) => {
+        console.log("[Sync] Chat updated:", chatData);
+        const chatItem = {
+          id: chatData.id,
+          name: chatData.name,
+          userId: chatData.user_id || chatData.userId,
+          lastMessage: chatData.last_message,
+          updatedAt: chatData.updated_at,
+          unreadCount: chatData.unread_count || 0
+        };
+        store.dispatch(addOrUpdateChat(chatItem));
+      });
+      this.api.onChatListUpdated(() => {
+        console.log("[Sync] Chat list updated, refreshing...");
+      });
+    }
+    /**
+     * Schedule hiding of notification after delay
+     */
+    scheduleNotificationHide(key, delay2) {
+      const existing = this.notificationTimeouts.get(key);
+      if (existing) {
+        clearTimeout(existing);
+      }
+      const timeout = setTimeout(() => {
+        store.dispatch(hideNotification());
+        this.notificationTimeouts.delete(key);
+      }, delay2);
+      this.notificationTimeouts.set(key, timeout);
+    }
+    /**
+     * Get messages for a chat
+     */
+    async getMessages(chatId, limit, offset, currentUser) {
+      try {
+        return await this.api.getMessages(chatId, limit, offset, currentUser);
+      } catch (error) {
+        console.error("Failed to get messages:", error);
+        throw error;
+      }
+    }
+    /**
+     * Get or create direct chat with user
+     */
+    async getOrCreateDirectChat(currentUserId, targetUserId) {
+      try {
+        const chatId = [currentUserId, targetUserId].sort().join("_");
+        return {
+          success: true,
+          data: {
+            id: chatId,
+            name: targetUserId,
+            last_message: "",
+            updated_at: Date.now(),
+            unread_count: 0
+          }
+        };
+      } catch (error) {
+        console.error("Failed to get or create direct chat:", error);
+        throw error;
+      }
+    }
+    /**
+     * Get current connection status
+     */
+    async getConnectionStatus() {
+      try {
+        return await this.api.getConnectionStatus();
+      } catch (error) {
+        console.error("Failed to get connection status:", error);
+        return { status: "offline" };
+      }
+    }
+    /**
+     * Mark messages as read for a chat
+     */
+    async markMessagesRead(chatId, currentUser) {
+      try {
+        return await this.api.markMessagesRead(chatId, currentUser);
+      } catch (error) {
+        console.error("Failed to mark messages as read:", error);
+        throw error;
+      }
+    }
+    /**
+     * Send a message
+     */
+    async sendMessage(chatId, content, sender, recipient, attachment) {
+      try {
+        return await this.api.sendMessage(chatId, content, sender, recipient, attachment);
+      } catch (error) {
+        console.error("Failed to send message:", error);
+        throw error;
+      }
+    }
+    /**
+     * Select a local file attachment
+     */
+    async selectAttachment() {
+      try {
+        return await this.api.selectAttachment();
+      } catch (error) {
+        console.error("Failed to select attachment:", error);
+        throw error;
+      }
+    }
+    /**
+     * Search messages across chats
+     */
+    async searchMessages(query, currentUser, limit, offset) {
+      try {
+        const response = await this.api.searchMessages(query, currentUser, limit, offset);
+        if (!response.success || !response.data) {
+          throw new Error(response.error || "Failed to search messages");
+        }
+        return response.data;
+      } catch (error) {
+        console.error("Failed to search messages:", error);
+        throw error;
+      }
+    }
+    /**
+     * Search chats by name or last message
+     */
+    async searchChats(query, limit, offset) {
+      try {
+        const response = await this.api.searchChats(query, limit, offset);
+        if (!response.success || !response.data) {
+          throw new Error(response.error || "Failed to search chats");
+        }
+        const chats = response.data.chats.map((chat) => ({
+          id: chat.id,
+          name: chat.name,
+          lastMessage: chat.last_message ?? void 0,
+          updatedAt: chat.updated_at,
+          unreadCount: chat.unread_count ?? 0
+        }));
+        return { chats, total: response.data.total };
+      } catch (error) {
+        console.error("Failed to search chats:", error);
+        throw error;
+      }
+    }
+    /**
+     * Toggle emoji reaction
+     */
+    async toggleReaction(messageId, userId, emoji) {
+      try {
+        const response = await this.api.toggleReaction(messageId, userId, emoji);
+        if (!response.success || !response.data) {
+          throw new Error(response.error || "Failed to toggle reaction");
+        }
+        return response.data.reactions;
+      } catch (error) {
+        console.error("Failed to toggle reaction:", error);
+        throw error;
+      }
+    }
+    /**
+     * Subscribe to reaction updates
+     */
+    onMessageReactionsUpdated(callback) {
+      this.api.onMessageReactionsUpdated(callback);
+    }
+    /**
+     * Subscribe to attachment upload progress
+     */
+    onAttachmentUploadProgress(callback) {
+      this.api.onAttachmentUploadProgress(callback);
+    }
+  };
+  var syncIpcClient = new SyncIpcClient();
 
   // src/app/slices/messagesSlice.ts
-  var initialState3 = {
+  var initialState4 = {
     byChatId: {},
     loading: false,
     error: null
   };
   var sendMessage = createAsyncThunk(
     "messages/sendMessage",
-    async ({ chatId, content, sender, recipient }, { rejectWithValue }) => {
+    async ({ chatId, content, sender, recipient, attachment }, { rejectWithValue }) => {
       try {
-        const payload = { chat_id: chatId, sender, recipient, content };
-        const message = await insertMessage(payload);
+        const response = await syncIpcClient.sendMessage(chatId, content, sender, recipient, attachment);
+        if (!response.success || !response.data) {
+          throw new Error(response.error || "Failed to send message");
+        }
+        const message = response.data;
         const readAt = message.read_at ?? (sender === message.sender ? message.timestamp : null);
         return {
           id: message.id,
@@ -27582,8 +27834,14 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           timestamp: message.timestamp,
           read_at: readAt,
           is_read: readAt !== null && readAt !== void 0,
-          is_edited: message.is_edited,
-          isOwn: sender === message.sender
+          is_edited: Boolean(message.is_edited),
+          isOwn: sender === message.sender,
+          type: message.type,
+          file_path: message.file_path ?? null,
+          file_name: message.file_name ?? null,
+          file_size: message.file_size ?? null,
+          mime_type: message.mime_type ?? null,
+          reactions: message.reactions ?? []
         };
       } catch (e) {
         return rejectWithValue(e instanceof Error ? e.message : "Failed to send message");
@@ -27592,7 +27850,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   );
   var messagesSlice = createSlice({
     name: "messages",
-    initialState: initialState3,
+    initialState: initialState4,
     reducers: {
       setMessagesForChat(state, action) {
         const { chatId, messages } = action.payload;
@@ -27625,53 +27883,6 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   });
   var { setMessagesForChat, addMessage } = messagesSlice.actions;
   var messagesSlice_default = messagesSlice.reducer;
-
-  // src/app/slices/connectionSlice.ts
-  var initialState4 = {
-    status: "offline",
-    reconnectAttempts: 0,
-    showNotification: false
-  };
-  var connectionSlice = createSlice({
-    name: "connection",
-    initialState: initialState4,
-    reducers: {
-      setConnectionStatus(state, action) {
-        const { status, lastConnected, reconnectAttempts } = action.payload;
-        const previousStatus = state.status;
-        state.status = status;
-        if (lastConnected !== void 0) {
-          state.lastConnected = lastConnected;
-        }
-        if (reconnectAttempts !== void 0) {
-          state.reconnectAttempts = reconnectAttempts;
-        }
-        if (previousStatus !== status) {
-          state.showNotification = true;
-          switch (status) {
-            case "connected":
-              state.notificationMessage = "Connected to server";
-              break;
-            case "reconnecting":
-              state.notificationMessage = `Connection lost... Reconnecting (${reconnectAttempts || 0})`;
-              break;
-            case "offline":
-              state.notificationMessage = "Offline - Working in offline mode";
-              break;
-          }
-        }
-      },
-      hideNotification(state) {
-        state.showNotification = false;
-        state.notificationMessage = void 0;
-      },
-      resetConnection(state) {
-        return { ...initialState4 };
-      }
-    }
-  });
-  var { setConnectionStatus, hideNotification, resetConnection } = connectionSlice.actions;
-  var connectionSlice_default = connectionSlice.reducer;
 
   // src/app/slices/usersSlice.ts
   var initialState5 = {
@@ -35965,34 +36176,50 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   ];
   var Eye = createLucideIcon("eye", __iconNode7);
 
+  // node_modules/lucide-react/dist/esm/icons/file-text.js
+  var __iconNode8 = [
+    [
+      "path",
+      {
+        d: "M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z",
+        key: "1oefj6"
+      }
+    ],
+    ["path", { d: "M14 2v5a1 1 0 0 0 1 1h5", key: "wfsgrz" }],
+    ["path", { d: "M10 9H8", key: "b1mrlr" }],
+    ["path", { d: "M16 13H8", key: "t4e002" }],
+    ["path", { d: "M16 17H8", key: "z1uh3a" }]
+  ];
+  var FileText = createLucideIcon("file-text", __iconNode8);
+
   // node_modules/lucide-react/dist/esm/icons/loader-circle.js
-  var __iconNode8 = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
-  var LoaderCircle = createLucideIcon("loader-circle", __iconNode8);
+  var __iconNode9 = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
+  var LoaderCircle = createLucideIcon("loader-circle", __iconNode9);
 
   // node_modules/lucide-react/dist/esm/icons/lock.js
-  var __iconNode9 = [
+  var __iconNode10 = [
     ["rect", { width: "18", height: "11", x: "3", y: "11", rx: "2", ry: "2", key: "1w4ew1" }],
     ["path", { d: "M7 11V7a5 5 0 0 1 10 0v4", key: "fwvmzm" }]
   ];
-  var Lock = createLucideIcon("lock", __iconNode9);
+  var Lock = createLucideIcon("lock", __iconNode10);
 
   // node_modules/lucide-react/dist/esm/icons/log-out.js
-  var __iconNode10 = [
+  var __iconNode11 = [
     ["path", { d: "m16 17 5-5-5-5", key: "1bji2h" }],
     ["path", { d: "M21 12H9", key: "dn1m92" }],
     ["path", { d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4", key: "1uf3rs" }]
   ];
-  var LogOut = createLucideIcon("log-out", __iconNode10);
+  var LogOut = createLucideIcon("log-out", __iconNode11);
 
   // node_modules/lucide-react/dist/esm/icons/mail.js
-  var __iconNode11 = [
+  var __iconNode12 = [
     ["path", { d: "m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7", key: "132q7q" }],
     ["rect", { x: "2", y: "4", width: "20", height: "16", rx: "2", key: "izxlao" }]
   ];
-  var Mail = createLucideIcon("mail", __iconNode11);
+  var Mail = createLucideIcon("mail", __iconNode12);
 
   // node_modules/lucide-react/dist/esm/icons/message-circle.js
-  var __iconNode12 = [
+  var __iconNode13 = [
     [
       "path",
       {
@@ -36001,10 +36228,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var MessageCircle = createLucideIcon("message-circle", __iconNode12);
+  var MessageCircle = createLucideIcon("message-circle", __iconNode13);
 
   // node_modules/lucide-react/dist/esm/icons/message-square.js
-  var __iconNode13 = [
+  var __iconNode14 = [
     [
       "path",
       {
@@ -36013,10 +36240,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var MessageSquare = createLucideIcon("message-square", __iconNode13);
+  var MessageSquare = createLucideIcon("message-square", __iconNode14);
 
   // node_modules/lucide-react/dist/esm/icons/paperclip.js
-  var __iconNode14 = [
+  var __iconNode15 = [
     [
       "path",
       {
@@ -36025,10 +36252,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var Paperclip = createLucideIcon("paperclip", __iconNode14);
+  var Paperclip = createLucideIcon("paperclip", __iconNode15);
 
   // node_modules/lucide-react/dist/esm/icons/pen.js
-  var __iconNode15 = [
+  var __iconNode16 = [
     [
       "path",
       {
@@ -36037,10 +36264,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var Pen = createLucideIcon("pen", __iconNode15);
+  var Pen = createLucideIcon("pen", __iconNode16);
 
   // node_modules/lucide-react/dist/esm/icons/phone.js
-  var __iconNode16 = [
+  var __iconNode17 = [
     [
       "path",
       {
@@ -36049,26 +36276,26 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var Phone = createLucideIcon("phone", __iconNode16);
+  var Phone = createLucideIcon("phone", __iconNode17);
 
   // node_modules/lucide-react/dist/esm/icons/refresh-cw.js
-  var __iconNode17 = [
+  var __iconNode18 = [
     ["path", { d: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8", key: "v9h5vc" }],
     ["path", { d: "M21 3v5h-5", key: "1q7to0" }],
     ["path", { d: "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16", key: "3uifl3" }],
     ["path", { d: "M8 16H3v5", key: "1cv678" }]
   ];
-  var RefreshCw = createLucideIcon("refresh-cw", __iconNode17);
+  var RefreshCw = createLucideIcon("refresh-cw", __iconNode18);
 
   // node_modules/lucide-react/dist/esm/icons/search.js
-  var __iconNode18 = [
+  var __iconNode19 = [
     ["path", { d: "m21 21-4.34-4.34", key: "14j7rj" }],
     ["circle", { cx: "11", cy: "11", r: "8", key: "4ej97u" }]
   ];
-  var Search = createLucideIcon("search", __iconNode18);
+  var Search = createLucideIcon("search", __iconNode19);
 
   // node_modules/lucide-react/dist/esm/icons/send.js
-  var __iconNode19 = [
+  var __iconNode20 = [
     [
       "path",
       {
@@ -36078,10 +36305,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["path", { d: "m21.854 2.147-10.94 10.939", key: "12cjpa" }]
   ];
-  var Send = createLucideIcon("send", __iconNode19);
+  var Send = createLucideIcon("send", __iconNode20);
 
   // node_modules/lucide-react/dist/esm/icons/settings.js
-  var __iconNode20 = [
+  var __iconNode21 = [
     [
       "path",
       {
@@ -36091,36 +36318,36 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
   ];
-  var Settings = createLucideIcon("settings", __iconNode20);
+  var Settings = createLucideIcon("settings", __iconNode21);
 
   // node_modules/lucide-react/dist/esm/icons/smile.js
-  var __iconNode21 = [
+  var __iconNode22 = [
     ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
     ["path", { d: "M8 14s1.5 2 4 2 4-2 4-2", key: "1y1vjs" }],
     ["line", { x1: "9", x2: "9.01", y1: "9", y2: "9", key: "yxxnd0" }],
     ["line", { x1: "15", x2: "15.01", y1: "9", y2: "9", key: "1p4y9e" }]
   ];
-  var Smile = createLucideIcon("smile", __iconNode21);
+  var Smile = createLucideIcon("smile", __iconNode22);
 
   // node_modules/lucide-react/dist/esm/icons/trash-2.js
-  var __iconNode22 = [
+  var __iconNode23 = [
     ["path", { d: "M10 11v6", key: "nco0om" }],
     ["path", { d: "M14 11v6", key: "outv1u" }],
     ["path", { d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", key: "miytrc" }],
     ["path", { d: "M3 6h18", key: "d0wm0j" }],
     ["path", { d: "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", key: "e791ji" }]
   ];
-  var Trash2 = createLucideIcon("trash-2", __iconNode22);
+  var Trash2 = createLucideIcon("trash-2", __iconNode23);
 
   // node_modules/lucide-react/dist/esm/icons/user.js
-  var __iconNode23 = [
+  var __iconNode24 = [
     ["path", { d: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2", key: "975kel" }],
     ["circle", { cx: "12", cy: "7", r: "4", key: "17ys0d" }]
   ];
-  var User = createLucideIcon("user", __iconNode23);
+  var User = createLucideIcon("user", __iconNode24);
 
   // node_modules/lucide-react/dist/esm/icons/video.js
-  var __iconNode24 = [
+  var __iconNode25 = [
     [
       "path",
       {
@@ -36130,10 +36357,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["rect", { x: "2", y: "6", width: "14", height: "12", rx: "2", key: "158x01" }]
   ];
-  var Video = createLucideIcon("video", __iconNode24);
+  var Video = createLucideIcon("video", __iconNode25);
 
   // node_modules/lucide-react/dist/esm/icons/wifi-off.js
-  var __iconNode25 = [
+  var __iconNode26 = [
     ["path", { d: "M12 20h.01", key: "zekei9" }],
     ["path", { d: "M8.5 16.429a5 5 0 0 1 7 0", key: "1bycff" }],
     ["path", { d: "M5 12.859a10 10 0 0 1 5.17-2.69", key: "1dl1wf" }],
@@ -36142,23 +36369,23 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ["path", { d: "M22 8.82a15 15 0 0 0-11.288-3.764", key: "z3jwby" }],
     ["path", { d: "m2 2 20 20", key: "1ooewy" }]
   ];
-  var WifiOff = createLucideIcon("wifi-off", __iconNode25);
+  var WifiOff = createLucideIcon("wifi-off", __iconNode26);
 
   // node_modules/lucide-react/dist/esm/icons/wifi.js
-  var __iconNode26 = [
+  var __iconNode27 = [
     ["path", { d: "M12 20h.01", key: "zekei9" }],
     ["path", { d: "M2 8.82a15 15 0 0 1 20 0", key: "dnpr2z" }],
     ["path", { d: "M5 12.859a10 10 0 0 1 14 0", key: "1x1e6c" }],
     ["path", { d: "M8.5 16.429a5 5 0 0 1 7 0", key: "1bycff" }]
   ];
-  var Wifi = createLucideIcon("wifi", __iconNode26);
+  var Wifi = createLucideIcon("wifi", __iconNode27);
 
   // node_modules/lucide-react/dist/esm/icons/x.js
-  var __iconNode27 = [
+  var __iconNode28 = [
     ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
     ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
   ];
-  var X = createLucideIcon("x", __iconNode27);
+  var X = createLucideIcon("x", __iconNode28);
 
   // src/pages/Login.tsx
   var import_jsx_runtime3 = __toESM(require_jsx_runtime());
@@ -36883,6 +37110,16 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   };
   var ChatItem_default = ChatItem;
 
+  // src/services/chatSearchService.ts
+  async function searchChats(query) {
+    try {
+      const { chats, total } = await syncIpcClient.searchChats(query);
+      return { chats, total };
+    } catch {
+    }
+    return { chats: [], total: 0 };
+  }
+
   // src/components/ChatList.tsx
   var import_jsx_runtime9 = __toESM(require_jsx_runtime());
   var ChatList = ({
@@ -36898,14 +37135,55 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       error,
       pagination
     } = useSelector((s) => s.chats);
+    const [searchQuery, setSearchQuery] = (0, import_react25.useState)("");
+    const [searchResults, setSearchResults] = (0, import_react25.useState)([]);
+    const [searchTotal, setSearchTotal] = (0, import_react25.useState)(0);
+    const [searchLoading, setSearchLoading] = (0, import_react25.useState)(false);
     (0, import_react25.useEffect)(() => {
       dispatch(fetchChats({ offset: 0, limit: 50 }));
     }, [dispatch]);
+    (0, import_react25.useEffect)(() => {
+      const trimmed = searchQuery.trim();
+      if (!trimmed) {
+        setSearchResults([]);
+        setSearchTotal(0);
+        setSearchLoading(false);
+        return;
+      }
+      let isActive = true;
+      setSearchLoading(true);
+      const timer = window.setTimeout(() => {
+        searchChats(trimmed).then(({ chats, total }) => {
+          if (!isActive)
+            return;
+          setSearchResults(chats);
+          setSearchTotal(total);
+        }).catch((err) => {
+          console.error("Chat search failed:", err);
+          if (!isActive)
+            return;
+          setSearchResults([]);
+          setSearchTotal(0);
+        }).finally(() => {
+          if (!isActive)
+            return;
+          setSearchLoading(false);
+        });
+      }, 250);
+      return () => {
+        isActive = false;
+        window.clearTimeout(timer);
+      };
+    }, [searchQuery]);
     const sortedChats = (0, import_react25.useMemo)(
       () => [...items].sort((a, b) => b.updatedAt - a.updatedAt),
       [items]
     );
+    const displayedChats = searchQuery.trim() ? searchResults : sortedChats;
+    const displayTotal = searchQuery.trim() ? searchTotal : pagination.total;
     const handleScroll = (0, import_react25.useCallback)((event) => {
+      if (searchQuery.trim())
+        return;
       if (loading || !pagination.hasMore)
         return;
       const element = event.currentTarget;
@@ -36917,7 +37195,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           limit: 50
         }));
       }
-    }, [dispatch, loading, pagination.hasMore, pagination.offset]);
+    }, [dispatch, loading, pagination.hasMore, pagination.offset, searchQuery]);
     if (error) {
       return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex flex-col h-full", children: [
         /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("header", { className: "px-4 py-3 border-b border-gray-200 bg-white", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("h2", { className: "text-lg font-semibold text-secondary", children: "Chats" }) }),
@@ -36928,19 +37206,30 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       ] });
     }
     return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex flex-col h-full", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("header", { className: "px-4 py-3 border-b border-gray-200 bg-white", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("h2", { className: "text-lg font-semibold text-secondary", children: [
-        "Chats ",
-        pagination.total > 0 && `(${pagination.total})`
-      ] }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("header", { className: "px-4 py-3 border-b border-gray-200 bg-white space-y-2", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("h2", { className: "text-lg font-semibold text-secondary", children: [
+          "Chats ",
+          displayTotal > 0 && `(${displayTotal})`
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+          "input",
+          {
+            value: searchQuery,
+            onChange: (event) => setSearchQuery(event.target.value),
+            placeholder: "Search chats",
+            className: "w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          }
+        )
+      ] }),
       /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
         "div",
         {
           className: "flex-1 overflow-y-auto",
           onScroll: handleScroll,
-          children: sortedChats.length === 0 && !loading ? /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "flex items-center justify-center h-full text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "text-center", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "text-sm", children: "No chats yet" }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "text-xs mt-1", children: "Start a conversation to see it here" })
-          ] }) }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("ul", { className: "divide-y divide-gray-100", children: sortedChats.map((chat) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("li", { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+          children: displayedChats.length === 0 && !loading && !searchLoading ? /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "flex items-center justify-center h-full text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "text-center", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "text-sm", children: searchQuery.trim() ? "No chats match your search" : "No chats yet" }),
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "text-xs mt-1", children: searchQuery.trim() ? "Try a different name or keyword" : "Start a conversation to see it here" })
+          ] }) }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("ul", { className: "divide-y divide-gray-100", children: displayedChats.map((chat) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("li", { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
             ChatItem_default,
             {
               chat,
@@ -36950,7 +37239,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           ) }, chat.id)) })
         }
       ),
-      loading && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "px-4 py-2 text-center text-sm text-gray-500 bg-gray-50", children: "Loading more chats..." })
+      (loading || searchLoading) && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "px-4 py-2 text-center text-sm text-gray-500 bg-gray-50", children: searchQuery.trim() ? "Searching chats..." : "Loading more chats..." })
     ] });
   };
   var ChatList_default = ChatList;
@@ -36967,19 +37256,30 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     disabled = false
   }) => {
     const [message, setMessage] = (0, import_react26.useState)("");
-    const textareaRef = (0, import_react26.useRef)(null);
+    const [attachment, setAttachment] = (0, import_react26.useState)(null);
+    const [showEmojiPicker, setShowEmojiPicker] = (0, import_react26.useState)(false);
+    const [rows, setRows] = (0, import_react26.useState)(1);
+    const emojiOptions = ["\u{1F600}", "\u{1F602}", "\u{1F60D}", "\u{1F44D}", "\u{1F389}", "\u{1F525}", "\u{1F622}", "\u{1F62E}", "\u{1F914}", "\u{1F64F}"];
     (0, import_react26.useEffect)(() => {
-      const textarea = textareaRef.current;
-      if (textarea) {
-        textarea.style.height = "auto";
-        textarea.style.height = `${Math.min(textarea.scrollHeight, 100)}px`;
-      }
+      const maxRows = 4;
+      const lineBreaks = message.split("\n");
+      const estimatedRows = lineBreaks.reduce((count, line) => {
+        const lineRows = Math.max(1, Math.ceil(line.length / 48));
+        return count + lineRows;
+      }, 0);
+      setRows(Math.min(maxRows, Math.max(1, estimatedRows)));
     }, [message]);
     const handleSend = () => {
-      if (message.trim() && !disabled) {
-        onSendMessage(message.trim());
-        setMessage("");
-      }
+      if (disabled)
+        return;
+      const trimmed = message.trim();
+      if (!trimmed && !attachment)
+        return;
+      onSendMessage(trimmed, attachment ?? void 0);
+      setMessage("");
+      setAttachment(null);
+      setShowEmojiPicker(false);
+      setRows(1);
     };
     const handleKeyDown = (e) => {
       if (e.key === "Enter") {
@@ -36991,64 +37291,118 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         }
       }
     };
-    const handleFileSelect = () => {
-      console.log("File selection not implemented yet");
+    const handleFileSelect = async () => {
+      if (disabled)
+        return;
+      try {
+        const result = await syncIpcClient.selectAttachment();
+        if (result.success && result.data) {
+          setAttachment(result.data);
+        }
+      } catch (error) {
+        console.error("Failed to select attachment:", error);
+      }
     };
     const handleEmojiPicker = () => {
-      console.log("Emoji picker not implemented yet");
+      if (disabled)
+        return;
+      setShowEmojiPicker((prev) => !prev);
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "border-t border-gray-200 bg-white p-4", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "flex items-end gap-2", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "flex items-center gap-1", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
-          "button",
+    const handleEmojiSelect = (emoji) => {
+      setMessage((prev) => `${prev}${emoji}`);
+      setShowEmojiPicker(false);
+    };
+    const formatFileSize = (bytes) => {
+      if (bytes === 0)
+        return "0 Bytes";
+      const k = 1024;
+      const sizes = ["Bytes", "KB", "MB", "GB"];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+    };
+    return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "border-t border-gray-200 bg-white p-4", children: [
+      attachment && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "mb-2 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2", children: [
+        attachment.type === "image" ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+          "img",
           {
-            onClick: handleFileSelect,
-            className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
-            title: "Attach file",
-            disabled,
-            children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Paperclip, { size: 20 })
+            src: `file://${attachment.filePath}`,
+            alt: attachment.fileName,
+            className: "h-12 w-12 rounded object-cover"
           }
-        ),
+        ) : /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "flex h-12 w-12 items-center justify-center rounded bg-white text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(FileText, { size: 20 }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "flex-1 min-w-0", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-sm font-medium truncate text-gray-800", children: attachment.fileName }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-xs text-gray-500", children: formatFileSize(attachment.fileSize) })
+        ] }),
         /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           "button",
           {
-            onClick: handleEmojiPicker,
-            className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
-            title: "Add emoji",
-            disabled,
-            children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Smile, { size: 20 })
+            type: "button",
+            onClick: () => setAttachment(null),
+            className: "rounded p-1 text-gray-500 hover:bg-white hover:text-gray-700",
+            "aria-label": "Remove attachment",
+            children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(X, { size: 14 })
           }
         )
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "flex-1 relative", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
-        "textarea",
-        {
-          ref: textareaRef,
-          value: message,
-          onChange: (e) => setMessage(e.target.value),
-          onKeyDown: handleKeyDown,
-          placeholder,
-          disabled,
-          rows: 1,
-          className: "w-full px-4 py-2 bg-gray-light border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all",
-          style: {
-            minHeight: "40px",
-            maxHeight: "100px"
-          }
-        }
-      ) }),
-      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+      showEmojiPicker && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "mb-2 flex flex-wrap gap-1 rounded-lg border border-gray-200 bg-white p-2 shadow-sm", children: emojiOptions.map((emoji) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
         "button",
         {
-          onClick: handleSend,
-          disabled: !message.trim() || disabled,
-          className: "p-2 bg-primary text-white rounded-lg hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all",
-          "aria-label": "Send message",
-          title: "Send message (Enter)",
-          children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Send, { size: 20 })
-        }
-      )
-    ] }) });
+          type: "button",
+          onClick: () => handleEmojiSelect(emoji),
+          className: "h-8 w-8 rounded hover:bg-gray-100",
+          children: emoji
+        },
+        emoji
+      )) }),
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "flex items-end gap-2", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "flex items-center gap-1", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+            "button",
+            {
+              onClick: handleFileSelect,
+              className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
+              title: "Attach file",
+              disabled,
+              children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Paperclip, { size: 20 })
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+            "button",
+            {
+              onClick: handleEmojiPicker,
+              className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
+              title: "Add emoji",
+              disabled,
+              children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Smile, { size: 20 })
+            }
+          )
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "flex-1 relative", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+          "textarea",
+          {
+            value: message,
+            onChange: (e) => setMessage(e.target.value),
+            onKeyDown: handleKeyDown,
+            placeholder,
+            disabled,
+            rows,
+            className: "w-full min-h-[40px] max-h-[100px] px-4 py-2 bg-gray-light border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          }
+        ) }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+          "button",
+          {
+            onClick: handleSend,
+            disabled: disabled || !message.trim() && !attachment,
+            className: "p-2 bg-primary text-white rounded-lg hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all",
+            "aria-label": "Send message",
+            title: "Send message (Enter)",
+            children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Send, { size: 20 })
+          }
+        )
+      ] })
+    ] });
   };
   var MessageComposer_default = MessageComposer;
 
@@ -37063,141 +37417,6 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   };
   var EmptyState_default = EmptyState;
 
-  // src/services/syncIpcClient.ts
-  var SyncIpcClient = class {
-    constructor() {
-      this.notificationTimeouts = /* @__PURE__ */ new Map();
-      if (!window.secureMessenger?.sync) {
-        throw new Error("Sync API not available. Ensure preload is properly loaded.");
-      }
-      this.api = window.secureMessenger.sync;
-      this.setupEventListeners();
-    }
-    /**
-     * Setup event listeners for real-time sync events
-     */
-    setupEventListeners() {
-      this.api.onConnectionStatus((status) => {
-        console.log("[Sync] Connection status changed:", status);
-        store.dispatch(setConnectionStatus({
-          status: status.status,
-          lastConnected: status.lastConnected,
-          reconnectAttempts: status.reconnectAttempts
-        }));
-        if (status.status === "connected") {
-          this.scheduleNotificationHide("connected", 3e3);
-        }
-      });
-      this.api.onConnectionConnected(() => {
-        console.log("[Sync] Connected to server");
-        store.dispatch(setConnectionStatus({ status: "connected" }));
-        this.scheduleNotificationHide("connected", 3e3);
-      });
-      this.api.onConnectionDisconnected(() => {
-        console.log("[Sync] Disconnected from server");
-        store.dispatch(setConnectionStatus({ status: "offline" }));
-      });
-      this.api.onMessageInserted((message) => {
-        console.log("[Sync] New message received:", message);
-      });
-      this.api.onChatUpdated((chatData) => {
-        console.log("[Sync] Chat updated:", chatData);
-        const chatItem = {
-          id: chatData.id,
-          name: chatData.name,
-          userId: chatData.user_id || chatData.userId,
-          lastMessage: chatData.last_message,
-          updatedAt: chatData.updated_at,
-          unreadCount: chatData.unread_count || 0
-        };
-        store.dispatch(addOrUpdateChat(chatItem));
-      });
-      this.api.onChatListUpdated(() => {
-        console.log("[Sync] Chat list updated, refreshing...");
-      });
-    }
-    /**
-     * Schedule hiding of notification after delay
-     */
-    scheduleNotificationHide(key, delay2) {
-      const existing = this.notificationTimeouts.get(key);
-      if (existing) {
-        clearTimeout(existing);
-      }
-      const timeout = setTimeout(() => {
-        store.dispatch(hideNotification());
-        this.notificationTimeouts.delete(key);
-      }, delay2);
-      this.notificationTimeouts.set(key, timeout);
-    }
-    /**
-     * Get messages for a chat
-     */
-    async getMessages(chatId, limit, offset, currentUser) {
-      try {
-        return await window.secureMessenger.sync.getMessages(chatId, limit, offset, currentUser);
-      } catch (error) {
-        console.error("Failed to get messages:", error);
-        throw error;
-      }
-    }
-    /**
-     * Get or create direct chat with user
-     */
-    async getOrCreateDirectChat(currentUserId, targetUserId) {
-      try {
-        const chatId = [currentUserId, targetUserId].sort().join("_");
-        return {
-          success: true,
-          data: {
-            id: chatId,
-            name: targetUserId,
-            last_message: "",
-            updated_at: Date.now(),
-            unread_count: 0
-          }
-        };
-      } catch (error) {
-        console.error("Failed to get or create direct chat:", error);
-        throw error;
-      }
-    }
-    /**
-     * Get current connection status
-     */
-    async getConnectionStatus() {
-      try {
-        return await this.api.getConnectionStatus();
-      } catch (error) {
-        console.error("Failed to get connection status:", error);
-        return { status: "offline" };
-      }
-    }
-    /**
-     * Mark messages as read for a chat
-     */
-    async markMessagesRead(chatId, currentUser) {
-      try {
-        return await window.secureMessenger.sync.markMessagesRead(chatId, currentUser);
-      } catch (error) {
-        console.error("Failed to mark messages as read:", error);
-        throw error;
-      }
-    }
-    /**
-     * Send a message
-     */
-    async sendMessage(chatId, content, sender, recipient) {
-      try {
-        return await window.secureMessenger.sync.sendMessage(chatId, content, sender, recipient);
-      } catch (error) {
-        console.error("Failed to send message:", error);
-        throw error;
-      }
-    }
-  };
-  var syncIpcClient = new SyncIpcClient();
-
   // src/components/MessageThread.tsx
   var import_jsx_runtime12 = __toESM(require_jsx_runtime());
   var MessageThread = ({
@@ -37210,7 +37429,14 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const [localMessages, setLocalMessages] = (0, import_react27.useState)([]);
     const [editingMessage, setEditingMessage] = (0, import_react27.useState)(null);
     const [editContent, setEditContent] = (0, import_react27.useState)("");
+    const [activeReactionMessageId, setActiveReactionMessageId] = (0, import_react27.useState)(null);
+    const [uploadProgressById, setUploadProgressById] = (0, import_react27.useState)({});
+    const [showSearch, setShowSearch] = (0, import_react27.useState)(false);
+    const [searchQuery, setSearchQuery] = (0, import_react27.useState)("");
+    const [searchResults, setSearchResults] = (0, import_react27.useState)([]);
+    const [searchLoading, setSearchLoading] = (0, import_react27.useState)(false);
     const currentUser = useSelector((s) => s.auth.user?.username || "You");
+    const reactionOptions = ["\u{1F44D}", "\u2764\uFE0F", "\u{1F602}", "\u{1F62E}", "\u{1F389}", "\u{1F622}"];
     (0, import_react27.useEffect)(() => {
       if (chatId) {
         const loadMessages = async () => {
@@ -37229,7 +37455,13 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
                   timestamp: msg.timestamp,
                   read_at: readAt,
                   is_read: isRead,
-                  is_edited: Boolean(msg.is_edited)
+                  is_edited: Boolean(msg.is_edited),
+                  type: msg.type,
+                  file_path: msg.file_path ?? null,
+                  file_name: msg.file_name ?? null,
+                  file_size: msg.file_size ?? null,
+                  mime_type: msg.mime_type ?? null,
+                  reactions: msg.reactions ?? []
                 };
               });
               const allMessages = [...transformedMessages, ...messages];
@@ -37268,7 +37500,13 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
             timestamp: message.timestamp,
             read_at: readAt,
             is_read: readAt !== null && readAt !== void 0,
-            is_edited: Boolean(message.is_edited)
+            is_edited: Boolean(message.is_edited),
+            type: message.type,
+            file_path: message.file_path ?? null,
+            file_name: message.file_name ?? null,
+            file_size: message.file_size ?? null,
+            mime_type: message.mime_type ?? null,
+            reactions: message.reactions ?? []
           };
           setLocalMessages((prev) => {
             const exists = prev.some((msg) => msg.id === newMessage.id);
@@ -37285,31 +37523,84 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       return () => {
       };
     }, [chatId, currentUser]);
-    const handleSendMessage = async (content) => {
+    (0, import_react27.useEffect)(() => {
+      const handleReactionsUpdated = (payload) => {
+        setLocalMessages(
+          (prev) => prev.map(
+            (msg) => msg.id === payload.messageId ? { ...msg, reactions: payload.reactions ?? [] } : msg
+          )
+        );
+      };
+      syncIpcClient.onMessageReactionsUpdated(handleReactionsUpdated);
+    }, []);
+    (0, import_react27.useEffect)(() => {
+      const handleProgress = (payload) => {
+        setUploadProgressById((prev) => ({ ...prev, [payload.messageId]: payload.progress }));
+      };
+      syncIpcClient.onAttachmentUploadProgress(handleProgress);
+    }, []);
+    (0, import_react27.useEffect)(() => {
       if (!chatId)
         return;
-      const now2 = Date.now();
-      const immediateMessage = {
-        id: `msg_${now2}_${Math.random().toString(36).substr(2, 9)}`,
-        chatId,
-        sender: currentUser,
-        recipient: chatName || "Unknown",
-        content,
-        timestamp: now2,
-        read_at: now2,
-        is_read: true,
-        is_edited: false
+      const trimmed = searchQuery.trim();
+      if (!trimmed) {
+        setSearchResults([]);
+        setSearchLoading(false);
+        return;
+      }
+      let isActive = true;
+      setSearchLoading(true);
+      const timer = window.setTimeout(() => {
+        syncIpcClient.searchMessages(trimmed, currentUser, 50, 0).then((results) => {
+          if (!isActive)
+            return;
+          const filtered = results.filter((message) => message.chat_id === chatId);
+          const mapped = filtered.map((message) => {
+            const readAt = message.read_at ?? null;
+            return {
+              id: message.id,
+              chatId: message.chat_id,
+              sender: message.sender,
+              recipient: message.recipient,
+              content: message.content,
+              timestamp: message.timestamp,
+              read_at: readAt,
+              is_read: readAt !== null && readAt !== void 0,
+              is_edited: Boolean(message.is_edited),
+              type: message.type,
+              file_path: message.file_path ?? null,
+              file_name: message.file_name ?? null,
+              file_size: message.file_size ?? null,
+              mime_type: message.mime_type ?? null,
+              reactions: message.reactions ?? []
+            };
+          });
+          setSearchResults(mapped.sort((a, b) => a.timestamp - b.timestamp));
+        }).catch((error) => {
+          console.error("Message search failed:", error);
+          if (!isActive)
+            return;
+          setSearchResults([]);
+        }).finally(() => {
+          if (!isActive)
+            return;
+          setSearchLoading(false);
+        });
+      }, 250);
+      return () => {
+        isActive = false;
+        window.clearTimeout(timer);
       };
-      setLocalMessages((prev) => [...prev, immediateMessage]);
+    }, [chatId, currentUser, searchQuery]);
+    const handleSendMessage = async (content, attachment) => {
+      if (!chatId)
+        return;
       try {
-        const recipient = chatName || "Unknown";
-        await syncIpcClient.sendMessage(chatId, content, currentUser, recipient);
         if (onSendMessage) {
-          onSendMessage(chatId, content);
+          await onSendMessage(chatId, content, attachment);
         }
       } catch (error) {
         console.error("Failed to send message:", error);
-        setLocalMessages((prev) => prev.filter((msg) => msg.id !== immediateMessage.id));
       }
     };
     const handleEditMessage = (messageId) => {
@@ -37341,6 +37632,18 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       const i = Math.floor(Math.log(bytes) / Math.log(k));
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     };
+    const handleToggleReaction = async (messageId, emoji) => {
+      try {
+        const reactions = await syncIpcClient.toggleReaction(messageId, currentUser, emoji);
+        setLocalMessages(
+          (prev) => prev.map((msg) => msg.id === messageId ? { ...msg, reactions } : msg)
+        );
+      } catch (error) {
+        console.error("Failed to toggle reaction:", error);
+      } finally {
+        setActiveReactionMessageId(null);
+      }
+    };
     const formatTimestamp = (timestamp) => {
       return new Date(timestamp).toLocaleTimeString([], {
         hour: "2-digit",
@@ -37350,96 +37653,182 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const renderAttachment = (message) => {
       if (!message.type || message.type === "text")
         return null;
-      return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "mt-2 p-2 bg-white/10 rounded-lg", children: message.type === "image" ? /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "space-y-2", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-          "img",
-          {
-            src: `file://${message.file_path}`,
-            alt: message.file_name,
-            className: "max-w-full h-auto rounded cursor-pointer hover:opacity-90 transition-opacity",
-            onClick: () => {
-              window.open(`file://${message.file_path}`, "_blank");
+      const progress2 = uploadProgressById[message.id];
+      const filePath = message.file_path ?? "";
+      if (!filePath) {
+        return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "mt-2 p-2 bg-white/10 rounded-lg", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs text-gray-500", children: "Attachment unavailable" }),
+          message.file_name && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs opacity-75", children: message.file_name })
+        ] });
+      }
+      return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "mt-2 p-2 bg-white/10 rounded-lg", children: [
+        message.type === "image" ? /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+            "img",
+            {
+              src: `file://${filePath}`,
+              alt: message.file_name ?? "Image",
+              className: "max-w-full h-auto rounded cursor-pointer hover:opacity-90 transition-opacity",
+              onClick: () => {
+                window.open(`file://${filePath}`, "_blank");
+              }
             }
-          }
-        ),
-        message.file_name && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs opacity-75", children: message.file_name })
-      ] }) : /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center gap-2", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "w-8 h-8 bg-white/20 rounded flex items-center justify-center", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("svg", { className: "w-4 h-4", fill: "currentColor", viewBox: "0 0 20 20", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("path", { fillRule: "evenodd", d: "M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z", clipRule: "evenodd" }) }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex-1 min-w-0", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-sm font-medium truncate", children: message.file_name }),
-          message.file_size && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs opacity-75", children: formatFileSize(message.file_size) })
+          ),
+          message.file_name && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs opacity-75", children: message.file_name })
+        ] }) : /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center gap-2", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "w-8 h-8 bg-white/20 rounded flex items-center justify-center", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("svg", { className: "w-4 h-4", fill: "currentColor", viewBox: "0 0 20 20", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("path", { fillRule: "evenodd", d: "M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z", clipRule: "evenodd" }) }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex-1 min-w-0", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-sm font-medium truncate", children: message.file_name ?? "Attachment" }),
+            message.file_size && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs opacity-75", children: formatFileSize(message.file_size) })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+            "button",
+            {
+              onClick: () => {
+                const link = document.createElement("a");
+                link.href = `file://${filePath}`;
+                link.download = message.file_name || "download";
+                link.click();
+              },
+              className: "p-1 hover:bg-white/20 rounded transition-colors",
+              title: "Download file",
+              children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("svg", { className: "w-4 h-4", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" }) })
+            }
+          )
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-          "button",
+        progress2 !== void 0 && progress2 < 100 && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+          "progress",
           {
-            onClick: () => {
-              const link = document.createElement("a");
-              link.href = `file://${message.file_path}`;
-              link.download = message.file_name || "download";
-              link.click();
-            },
-            className: "p-1 hover:bg-white/20 rounded transition-colors",
-            title: "Download file",
-            children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("svg", { className: "w-4 h-4", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" }) })
+            className: "mt-2 h-1 w-full overflow-hidden rounded bg-white/20 accent-white",
+            max: 100,
+            value: progress2
           }
         )
-      ] }) });
+      ] });
     };
+    const renderReactions = (message) => {
+      const reactions = message.reactions ?? [];
+      return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "mt-2 flex flex-wrap items-center gap-1", children: [
+        reactions.map((reaction) => /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)(
+          "button",
+          {
+            type: "button",
+            onClick: () => handleToggleReaction(message.id, reaction.emoji),
+            className: `flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors ${reaction.reactedByCurrentUser ? "border-primary/60 bg-primary/10 text-primary" : "border-gray-200 bg-white/60 text-gray-600"}`,
+            children: [
+              /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("span", { children: reaction.emoji }),
+              /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("span", { children: reaction.count })
+            ]
+          },
+          reaction.emoji
+        )),
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "relative", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+            "button",
+            {
+              type: "button",
+              onClick: () => setActiveReactionMessageId((prev) => prev === message.id ? null : message.id),
+              className: "flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white/70 text-gray-500 hover:text-gray-700",
+              title: "Add reaction",
+              children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Smile, { size: 12 })
+            }
+          ),
+          activeReactionMessageId === message.id && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "absolute right-0 top-7 z-10 flex gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm", children: reactionOptions.map((emoji) => /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+            "button",
+            {
+              type: "button",
+              onClick: () => handleToggleReaction(message.id, emoji),
+              className: "h-7 w-7 rounded hover:bg-gray-100",
+              children: emoji
+            },
+            emoji
+          )) })
+        ] })
+      ] });
+    };
+    const displayedMessages = searchQuery.trim() ? searchResults : localMessages;
     if (!chatId) {
       return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(EmptyState_default, {});
     }
     return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("main", { className: "flex flex-col h-full bg-white", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("header", { className: "px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-white", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center space-x-3", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-white font-semibold", children: chatName?.charAt(0).toUpperCase() }),
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("h2", { className: "text-lg font-semibold text-secondary", children: chatName || "Chat" }),
-            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs text-gray-500", children: "Active now" })
+      /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("header", { className: "px-6 py-4 border-b border-gray-200 bg-white", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center justify-between", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center space-x-3", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-white font-semibold", children: chatName?.charAt(0).toUpperCase() }),
+            /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("h2", { className: "text-lg font-semibold text-secondary", children: chatName || "Chat" }),
+              /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs text-gray-500", children: "Active now" })
+            ] })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center space-x-2", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+              "button",
+              {
+                className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
+                "aria-label": "Voice call",
+                title: "Voice call",
+                children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Phone, { size: 18 })
+              }
+            ),
+            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+              "button",
+              {
+                className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
+                "aria-label": "Video call",
+                title: "Video call",
+                children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Video, { size: 18 })
+              }
+            ),
+            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+              "button",
+              {
+                className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
+                "aria-label": "Search",
+                title: "Search",
+                onClick: () => setShowSearch((prev) => !prev),
+                children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Search, { size: 18 })
+              }
+            ),
+            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+              "button",
+              {
+                className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
+                "aria-label": "More options",
+                title: "More options",
+                children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(EllipsisVertical, { size: 18 })
+              }
+            )
           ] })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center space-x-2", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-            "button",
-            {
-              className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
-              "aria-label": "Voice call",
-              title: "Voice call",
-              children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Phone, { size: 18 })
-            }
-          ),
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-            "button",
-            {
-              className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
-              "aria-label": "Video call",
-              title: "Video call",
-              children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Video, { size: 18 })
-            }
-          ),
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-            "button",
-            {
-              className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
-              "aria-label": "Search",
-              title: "Search",
-              children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Search, { size: 18 })
-            }
-          ),
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-            "button",
-            {
-              className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
-              "aria-label": "More options",
-              title: "More options",
-              children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(EllipsisVertical, { size: 18 })
-            }
-          )
+        (showSearch || searchQuery.trim()) && /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "mt-3 flex items-center gap-2", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "relative flex-1", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+              "input",
+              {
+                value: searchQuery,
+                onChange: (event) => setSearchQuery(event.target.value),
+                placeholder: "Search messages in this chat",
+                className: "w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              }
+            ),
+            searchQuery && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+              "button",
+              {
+                type: "button",
+                onClick: () => setSearchQuery(""),
+                className: "absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600",
+                "aria-label": "Clear search",
+                children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(X, { size: 14 })
+              }
+            )
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("span", { className: "text-xs text-gray-500", children: searchLoading ? "Searching\u2026" : `${displayedMessages.length} results` })
         ] })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "flex-1 overflow-y-auto px-6 py-4 space-y-4", children: localMessages.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "flex items-center justify-center h-full text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "text-center", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-sm", children: "No messages yet" }),
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs mt-1", children: "Start the conversation" })
-      ] }) }) : localMessages.map((message) => /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "flex-1 overflow-y-auto px-6 py-4 space-y-4", children: displayedMessages.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "flex items-center justify-center h-full text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "text-center", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-sm", children: searchQuery.trim() ? "No messages match your search" : "No messages yet" }),
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs mt-1", children: searchQuery.trim() ? "Try another keyword" : "Start the conversation" })
+      ] }) }) : displayedMessages.map((message) => /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
         "div",
         {
           className: `flex ${message.sender === currentUser ? "justify-end" : "justify-start"} group`,
@@ -37479,6 +37868,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
               ] }) : /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)(import_jsx_runtime12.Fragment, { children: [
                 /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-sm", children: message.content }),
                 renderAttachment(message),
+                renderReactions(message),
                 /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center justify-between mt-1", children: [
                   /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)(
                     "p",
@@ -37684,12 +38074,12 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const selectedChat = chats.find((c) => c.id === selectedChatId);
     const selectedMessages = selectedChatId ? messagesByChat[selectedChatId] ?? [] : [];
     const handleSendMessage = import_react29.default.useCallback(
-      async (chatId, content) => {
+      async (chatId, content, attachment) => {
         if (!user?.username)
           return;
         const sender = user.username;
         const recipient = selectedChat?.userId || selectedChat?.name || "Unknown";
-        dispatch(sendMessage({ chatId, content, sender, recipient }));
+        await dispatch(sendMessage({ chatId, content, sender, recipient, attachment }));
       },
       [dispatch, user?.username, selectedChat?.userId, selectedChat?.name]
     );
@@ -37901,7 +38291,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(Home_default, {});
     }
     if (authStatus === "idle") {
-      return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)("div", { style: { padding: 24 }, children: "Loading\u2026" });
+      return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)("div", { className: "p-6 text-sm text-gray-500", children: "Loading\u2026" });
     }
     switch (authView) {
       case "register":
@@ -38134,6 +38524,14 @@ lucide-react/dist/esm/icons/eye-off.js:
    *)
 
 lucide-react/dist/esm/icons/eye.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/file-text.js:
   (**
    * @license lucide-react v0.563.0 - ISC
    *

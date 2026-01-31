@@ -2,8 +2,8 @@
 
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 
-import { insertMessage } from '../../services/messagesIpcClient';
-import type { InsertMessagePayload, MessageItem } from '../../domains/messages/messages.types';
+import { syncIpcClient } from '../../services/syncIpcClient';
+import type { MessageAttachmentPayload, MessageItem } from '../../domains/messages/messages.types';
 
 
 
@@ -33,14 +33,18 @@ const initialState: MessagesState = {
 
 export const sendMessage = createAsyncThunk<
   MessageItem,
-  { chatId: string; content: string; sender: string; recipient: string },
+  { chatId: string; content: string; sender: string; recipient: string; attachment?: MessageAttachmentPayload },
   { rejectValue: string }
 >(
   'messages/sendMessage',
-  async ({ chatId, content, sender, recipient }, { rejectWithValue }) => {
+  async ({ chatId, content, sender, recipient, attachment }, { rejectWithValue }) => {
     try {
-      const payload: InsertMessagePayload = { chat_id: chatId, sender, recipient, content };
-      const message = await insertMessage(payload);
+      const response = await syncIpcClient.sendMessage(chatId, content, sender, recipient, attachment);
+      if (!response.success || !response.data) {
+        throw new Error(response.error || 'Failed to send message');
+      }
+
+      const message = response.data as any;
       const readAt = message.read_at ?? (sender === message.sender ? message.timestamp : null);
 
       // Map to MessageItem format
@@ -53,8 +57,14 @@ export const sendMessage = createAsyncThunk<
         timestamp: message.timestamp,
         read_at: readAt,
         is_read: readAt !== null && readAt !== undefined,
-        is_edited: message.is_edited,
+        is_edited: Boolean(message.is_edited),
         isOwn: sender === message.sender,
+        type: message.type,
+        file_path: message.file_path ?? null,
+        file_name: message.file_name ?? null,
+        file_size: message.file_size ?? null,
+        mime_type: message.mime_type ?? null,
+        reactions: message.reactions ?? [],
       };
     } catch (e) {
       return rejectWithValue(e instanceof Error ? e.message : 'Failed to send message');
