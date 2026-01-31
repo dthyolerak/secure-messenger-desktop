@@ -77,7 +77,7 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, isSelected = false, onClick }
         )}
       </div>
 
-      {/* Unread Badge */}
+      {/* Unread Badge - Only show when count > 0 */}
       {chat.unreadCount && chat.unreadCount > 0 && (
         <div className="flex-shrink-0">
           <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-primary rounded-full">

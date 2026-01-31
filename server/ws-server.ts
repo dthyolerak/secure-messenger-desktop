@@ -41,7 +41,7 @@ export class MockSyncServer {
       });
 
       // Handle client messages
-      ws.on('message', (data: WebSocket.Data) => {
+      ws.on('message', (data: Buffer) => {
         try {
           const message = JSON.parse(data.toString());
           console.log(`[MOCK-SERVER] Received from client:`, message);
@@ -79,6 +79,7 @@ export class MockSyncServer {
         type: 'new_message',
         payload: {
           ...message.payload,
+          recipient: message.payload?.recipient ?? 'You',
           timestamp: Date.now(),
         }
       });
@@ -98,8 +99,8 @@ export class MockSyncServer {
    * Broadcast event to all connected clients
    */
   private broadcastEvent(event: any): void {
-    this.wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
+    this.wss.clients?.forEach((client) => {
+      if (client && client.readyState === WebSocket.OPEN) {
         client.send(JSON.stringify(event));
       }
     });
@@ -123,6 +124,7 @@ export class MockSyncServer {
             id: `mock_msg_${Date.now()}_${messageCounter++}`,
             chat_id: '1',
             sender: 'Alice Johnson',
+            recipient: 'You',
             content: [
               'How are you doing?',
               'Did you see the latest updates?',
@@ -139,6 +141,7 @@ export class MockSyncServer {
             id: `mock_msg_${Date.now()}_${messageCounter++}`,
             chat_id: '3',
             sender: 'Carol',
+            recipient: 'You',
             content: [
               'Team meeting reminder',
               'Don\'t forget the deadline',
@@ -182,19 +185,19 @@ export class MockSyncServer {
    * Send a specific message immediately
    */
   sendMessage(chatId: string, sender: string, content: string): void {
-    const event = {
+    const messageEvent = {
       type: 'new_message',
       payload: {
-        id: `manual_msg_${Date.now()}`,
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         chat_id: chatId,
-        sender,
-        content,
+        sender: sender,
+        recipient: 'You',
+        content: content,
         timestamp: Date.now(),
-      }
+      },
     };
-    
-    this.broadcastEvent(event);
-    console.log(`[MOCK-SERVER] Sent manual message:`, event);
+    this.broadcastEvent(messageEvent);
+    console.log(`[MOCK-SERVER] Sent manual message:`, messageEvent);
   }
 
   /**
@@ -219,7 +222,7 @@ export class MockSyncServer {
    */
   getStats(): { connectedClients: number; port: number } {
     return {
-      connectedClients: this.wss.clients.size,
+      connectedClients: this.wss.clients?.size || 0,
       port: this.port,
     };
   }
@@ -230,8 +233,8 @@ export class MockSyncServer {
   shutdown(): void {
     this.stopMockMessages();
     
-    this.wss.clients.forEach((client) => {
-      client.close(1000, 'Server shutting down');
+    this.wss.clients?.forEach((client) => {
+      client?.close(1000, 'Server shutting down');
     });
     
     this.wss.close(() => {

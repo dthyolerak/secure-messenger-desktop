@@ -1,14 +1,6 @@
 // src/components/MessageList.tsx
 import React from 'react';
-
-export interface MessageItem {
-  id: string;
-  chatId: string;
-  sender: string;
-  content: string;
-  timestamp: number;
-  isOwn?: boolean;
-}
+import type { MessageItem } from '../domains/messages/messages.types';
 
 export interface MessageListProps {
   chatId: string;

@@ -7,8 +7,12 @@ const MessageEventSchema = z.object({
   id: z.string(),
   chat_id: z.string(),
   sender: z.string(),
+  recipient: z.string(),
   content: z.string(),
   timestamp: z.number(),
+  read_at: z.number().nullable().optional(),
+  is_read: z.boolean().optional(),
+  is_edited: z.boolean().optional(),
 });
 
 const ChatUpdateEventSchema = z.object({
@@ -26,9 +30,22 @@ export class SyncQueries {
    * Insert or update message with deduplication
    * Returns true if message was inserted, false if duplicate
    */
-  async insertMessage(message: unknown): Promise<boolean> {
+  async insertMessage(message: unknown, currentUser: string = 'You'): Promise<boolean> {
     try {
+      console.log('[DB] Raw message received:', message);
+      
       const validated = MessageEventSchema.parse(message);
+      console.log('[DB] Message validated successfully:', validated);
+
+      const readAt =
+        validated.read_at !== undefined
+          ? validated.read_at
+          : validated.is_read
+            ? validated.timestamp
+            : validated.sender === currentUser
+              ? validated.timestamp
+              : null;
+      const isEdited = validated.is_edited ? 1 : 0;
       
       // Check for duplicate by message ID
       const existing = this.db.prepare(
@@ -40,40 +57,51 @@ export class SyncQueries {
         return false;
       }
 
+      console.log('[DB] Inserting new message into database...');
+
       // Insert message within transaction
       const insertMessage = this.db.prepare(`
-        INSERT INTO messages (id, chat_id, sender, content, timestamp, is_read, is_edited)
-        VALUES (?, ?, ?, ?, ?, 0, 0)
+        INSERT INTO messages (id, chat_id, sender, recipient, content, timestamp, read_at, is_edited)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      const selectUnreadCount = this.db.prepare(`
+        SELECT COUNT(*) as count FROM messages
+        WHERE chat_id = ? AND recipient = ? AND read_at IS NULL
       `);
 
       const updateChat = this.db.prepare(`
         UPDATE chats 
-        SET last_message = ?, updated_at = ?,
-            unread_count = CASE 
-              WHEN sender != 'You' THEN unread_count + 1 
-              ELSE unread_count 
-            END
+        SET last_message = ?, updated_at = ?, unread_count = ?
         WHERE id = ?
       `);
 
       const transaction = this.db.transaction(() => {
+        console.log('[DB] Executing message insert...');
         insertMessage.run(
           validated.id,
           validated.chat_id,
           validated.sender,
+          validated.recipient,
           validated.content,
-          validated.timestamp
+          validated.timestamp,
+          readAt,
+          isEdited
         );
         
+        console.log('[DB] Executing chat update...');
+        const unreadCount = selectUnreadCount.get(validated.chat_id, currentUser) as { count: number };
         updateChat.run(
           validated.content,
           validated.timestamp,
+          unreadCount.count,
           validated.chat_id
         );
+        console.log('[DB] Transaction completed successfully');
       });
 
       transaction();
-      console.log(`[DB] Message inserted: ${validated.id}`);
+      console.log(`[DB] Message inserted successfully: ${validated.id}`);
       return true;
 
     } catch (error) {
@@ -154,9 +182,33 @@ export class SyncQueries {
   }
 
   /**
-   * Get messages for a chat with pagination
+   * Get messages for a chat with pagination (for current user)
    */
   async getMessagesForChat(
+    chatId: string, 
+    limit: number = 50, 
+    offset: number = 0,
+    currentUser: string = 'You'
+  ): Promise<any[]> {
+    try {
+      const messages = this.db.prepare(`
+        SELECT * FROM messages 
+        WHERE chat_id = ? AND (sender = ? OR recipient = ?)
+        ORDER BY timestamp ASC 
+        LIMIT ? OFFSET ?
+      `).all(chatId, currentUser, currentUser, limit, offset);
+
+      return messages;
+    } catch (error) {
+      console.error('[DB] Failed to get messages:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all messages for a chat (for sync purposes)
+   */
+  async getAllMessagesForChat(
     chatId: string, 
     limit: number = 50, 
     offset: number = 0
@@ -165,11 +217,11 @@ export class SyncQueries {
       const messages = this.db.prepare(`
         SELECT * FROM messages 
         WHERE chat_id = ? 
-        ORDER BY timestamp DESC 
+        ORDER BY timestamp ASC 
         LIMIT ? OFFSET ?
       `).all(chatId, limit, offset);
 
-      return messages.reverse(); // Return in chronological order
+      return messages;
     } catch (error) {
       console.error('[DB] Failed to get messages:', error);
       throw error;
@@ -197,20 +249,26 @@ export class SyncQueries {
   /**
    * Mark messages as read for a chat
    */
-  async markMessagesAsRead(chatId: string): Promise<number> {
+  async markMessagesAsRead(chatId: string, currentUser: string = 'You'): Promise<number> {
     try {
+      const readAt = Date.now();
       const result = this.db.prepare(`
         UPDATE messages 
-        SET is_read = 1 
-        WHERE chat_id = ? AND sender != 'You' AND is_read = 0
-      `).run(chatId);
+        SET read_at = ? 
+        WHERE chat_id = ? AND recipient = ? AND read_at IS NULL
+      `).run(readAt, chatId, currentUser);
 
-      // Update chat unread count
+      // Update chat unread count to reflect only unread messages for current user
+      const unreadCount = this.db.prepare(`
+        SELECT COUNT(*) as count FROM messages 
+        WHERE chat_id = ? AND recipient = ? AND read_at IS NULL
+      `).get(chatId, currentUser) as { count: number };
+
       this.db.prepare(`
         UPDATE chats 
-        SET unread_count = 0 
+        SET unread_count = ? 
         WHERE id = ?
-      `).run(chatId);
+      `).run(unreadCount.count, chatId);
 
       console.log(`[DB] Marked ${result.changes} messages as read for chat ${chatId}`);
       return result.changes;
@@ -223,14 +281,14 @@ export class SyncQueries {
   /**
    * Get unread message count for all chats
    */
-  async getUnreadCounts(): Promise<Record<string, number>> {
+  async getUnreadCounts(currentUser: string = 'You'): Promise<Record<string, number>> {
     try {
       const unreadCounts = this.db.prepare(`
         SELECT chat_id, COUNT(*) as count
         FROM messages 
-        WHERE is_read = 0 AND sender != 'You'
+        WHERE read_at IS NULL AND recipient = ?
         GROUP BY chat_id
-      `).all();
+      `).all(currentUser);
 
       const result: Record<string, number> = {};
       unreadCounts.forEach((row: any) => {

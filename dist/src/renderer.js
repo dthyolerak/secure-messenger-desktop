@@ -1092,19 +1092,19 @@
             }
             return dispatcher.useContext(Context);
           }
-          function useState11(initialState5) {
+          function useState8(initialState7) {
             var dispatcher = resolveDispatcher();
-            return dispatcher.useState(initialState5);
+            return dispatcher.useState(initialState7);
           }
           function useReducer(reducer, initialArg, init) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useReducer(reducer, initialArg, init);
           }
-          function useRef7(initialValue) {
+          function useRef6(initialValue) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useRef(initialValue);
           }
-          function useEffect12(create, deps) {
+          function useEffect11(create, deps) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useEffect(create, deps);
           }
@@ -1887,15 +1887,15 @@
           exports.useContext = useContext8;
           exports.useDebugValue = useDebugValue2;
           exports.useDeferredValue = useDeferredValue;
-          exports.useEffect = useEffect12;
+          exports.useEffect = useEffect11;
           exports.useId = useId2;
           exports.useImperativeHandle = useImperativeHandle;
           exports.useInsertionEffect = useInsertionEffect3;
           exports.useLayoutEffect = useLayoutEffect3;
           exports.useMemo = useMemo8;
           exports.useReducer = useReducer;
-          exports.useRef = useRef7;
-          exports.useState = useState11;
+          exports.useRef = useRef6;
+          exports.useState = useState8;
           exports.useSyncExternalStore = useSyncExternalStore2;
           exports.useTransition = useTransition;
           exports.version = ReactVersion;
@@ -2391,9 +2391,9 @@
           if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === "function") {
             __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(new Error());
           }
-          var React15 = require_react();
+          var React13 = require_react();
           var Scheduler = require_scheduler();
-          var ReactSharedInternals = React15.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React13.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           var suppressWarning = false;
           function setSuppressWarning(newSuppressWarning) {
             {
@@ -3998,7 +3998,7 @@
             {
               if (props.value == null) {
                 if (typeof props.children === "object" && props.children !== null) {
-                  React15.Children.forEach(props.children, function(child) {
+                  React13.Children.forEach(props.children, function(child) {
                     if (child == null) {
                       return;
                     }
@@ -13638,20 +13638,20 @@
           }
           function mountReducer(reducer, initialArg, init) {
             var hook = mountWorkInProgressHook();
-            var initialState5;
+            var initialState7;
             if (init !== void 0) {
-              initialState5 = init(initialArg);
+              initialState7 = init(initialArg);
             } else {
-              initialState5 = initialArg;
+              initialState7 = initialArg;
             }
-            hook.memoizedState = hook.baseState = initialState5;
+            hook.memoizedState = hook.baseState = initialState7;
             var queue = {
               pending: null,
               interleaved: null,
               lanes: NoLanes,
               dispatch: null,
               lastRenderedReducer: reducer,
-              lastRenderedState: initialState5
+              lastRenderedState: initialState7
             };
             hook.queue = queue;
             var dispatch = queue.dispatch = dispatchReducerAction.bind(null, currentlyRenderingFiber$1, queue);
@@ -13933,28 +13933,28 @@
               scheduleUpdateOnFiber(root3, fiber, SyncLane, NoTimestamp);
             }
           }
-          function mountState(initialState5) {
+          function mountState(initialState7) {
             var hook = mountWorkInProgressHook();
-            if (typeof initialState5 === "function") {
-              initialState5 = initialState5();
+            if (typeof initialState7 === "function") {
+              initialState7 = initialState7();
             }
-            hook.memoizedState = hook.baseState = initialState5;
+            hook.memoizedState = hook.baseState = initialState7;
             var queue = {
               pending: null,
               interleaved: null,
               lanes: NoLanes,
               dispatch: null,
               lastRenderedReducer: basicStateReducer,
-              lastRenderedState: initialState5
+              lastRenderedState: initialState7
             };
             hook.queue = queue;
             var dispatch = queue.dispatch = dispatchSetState.bind(null, currentlyRenderingFiber$1, queue);
             return [hook.memoizedState, dispatch];
           }
-          function updateState(initialState5) {
+          function updateState(initialState7) {
             return updateReducer(basicStateReducer);
           }
-          function rerenderState(initialState5) {
+          function rerenderState(initialState7) {
             return rerenderReducer(basicStateReducer);
           }
           function pushEffect(tag, create, destroy, deps) {
@@ -14470,13 +14470,13 @@
                 mountHookTypesDev();
                 return mountRef(initialValue);
               },
-              useState: function(initialState5) {
+              useState: function(initialState7) {
                 currentHookNameInDev = "useState";
                 mountHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnMountInDEV;
                 try {
-                  return mountState(initialState5);
+                  return mountState(initialState7);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -14574,13 +14574,13 @@
                 updateHookTypesDev();
                 return mountRef(initialValue);
               },
-              useState: function(initialState5) {
+              useState: function(initialState7) {
                 currentHookNameInDev = "useState";
                 updateHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnMountInDEV;
                 try {
-                  return mountState(initialState5);
+                  return mountState(initialState7);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -14678,13 +14678,13 @@
                 updateHookTypesDev();
                 return updateRef();
               },
-              useState: function(initialState5) {
+              useState: function(initialState7) {
                 currentHookNameInDev = "useState";
                 updateHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnUpdateInDEV;
                 try {
-                  return updateState(initialState5);
+                  return updateState(initialState7);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -14782,13 +14782,13 @@
                 updateHookTypesDev();
                 return updateRef();
               },
-              useState: function(initialState5) {
+              useState: function(initialState7) {
                 currentHookNameInDev = "useState";
                 updateHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnRerenderInDEV;
                 try {
-                  return rerenderState(initialState5);
+                  return rerenderState(initialState7);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -14896,14 +14896,14 @@
                 mountHookTypesDev();
                 return mountRef(initialValue);
               },
-              useState: function(initialState5) {
+              useState: function(initialState7) {
                 currentHookNameInDev = "useState";
                 warnInvalidHookAccess();
                 mountHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnMountInDEV;
                 try {
-                  return mountState(initialState5);
+                  return mountState(initialState7);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -15017,14 +15017,14 @@
                 updateHookTypesDev();
                 return updateRef();
               },
-              useState: function(initialState5) {
+              useState: function(initialState7) {
                 currentHookNameInDev = "useState";
                 warnInvalidHookAccess();
                 updateHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnUpdateInDEV;
                 try {
-                  return updateState(initialState5);
+                  return updateState(initialState7);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -15138,14 +15138,14 @@
                 updateHookTypesDev();
                 return updateRef();
               },
-              useState: function(initialState5) {
+              useState: function(initialState7) {
                 currentHookNameInDev = "useState";
                 warnInvalidHookAccess();
                 updateHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnUpdateInDEV;
                 try {
-                  return rerenderState(initialState5);
+                  return rerenderState(initialState7);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -23569,9 +23569,9 @@
           return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React15 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React15.useSyncExternalStore, useRef7 = React15.useRef, useEffect12 = React15.useEffect, useMemo8 = React15.useMemo, useDebugValue2 = React15.useDebugValue;
+        var React13 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React13.useSyncExternalStore, useRef6 = React13.useRef, useEffect11 = React13.useEffect, useMemo8 = React13.useMemo, useDebugValue2 = React13.useDebugValue;
         exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
-          var instRef = useRef7(null);
+          var instRef = useRef6(null);
           if (null === instRef.current) {
             var inst = { hasValue: false, value: null };
             instRef.current = inst;
@@ -23613,7 +23613,7 @@
             [getSnapshot, getServerSnapshot, selector, isEqual]
           );
           var value = useSyncExternalStore2(subscribe, instRef[0], instRef[1]);
-          useEffect12(
+          useEffect11(
             function() {
               inst.hasValue = true;
               inst.value = value;
@@ -23647,7 +23647,7 @@
       if (true) {
         (function() {
           "use strict";
-          var React15 = require_react();
+          var React13 = require_react();
           var REACT_ELEMENT_TYPE = Symbol.for("react.element");
           var REACT_PORTAL_TYPE = Symbol.for("react.portal");
           var REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
@@ -23673,7 +23673,7 @@
             }
             return null;
           }
-          var ReactSharedInternals = React15.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React13.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           function error(format) {
             {
               {
@@ -24523,11 +24523,11 @@
               return jsxWithValidation(type, props, key, false);
             }
           }
-          var jsx21 = jsxWithValidationDynamic;
-          var jsxs18 = jsxWithValidationStatic;
+          var jsx19 = jsxWithValidationDynamic;
+          var jsxs16 = jsxWithValidationStatic;
           exports.Fragment = REACT_FRAGMENT_TYPE;
-          exports.jsx = jsx21;
-          exports.jsxs = jsxs18;
+          exports.jsx = jsx19;
+          exports.jsxs = jsxs16;
         })();
       }
     }
@@ -24546,7 +24546,7 @@
   });
 
   // src/index.tsx
-  var import_react35 = __toESM(require_react());
+  var import_react33 = __toESM(require_react());
   var import_client = __toESM(require_client());
 
   // node_modules/react-redux/dist/react-redux.mjs
@@ -25147,10 +25147,10 @@
   function assertReducerShape(reducers) {
     Object.keys(reducers).forEach((key) => {
       const reducer = reducers[key];
-      const initialState5 = reducer(void 0, {
+      const initialState7 = reducer(void 0, {
         type: actionTypes_default.INIT
       });
-      if (typeof initialState5 === "undefined") {
+      if (typeof initialState7 === "undefined") {
         throw new Error(false ? formatProdErrorMessage(12) : `The slice reducer for key "${key}" returned undefined during initialization. If the state passed to the reducer is undefined, you must explicitly return the initial state. The initial state may not be undefined. If you don't want to set a value for this reducer, you can use null instead of undefined.`);
       }
       if (typeof reducer(void 0, {
@@ -26701,7 +26701,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   function isStateFunction(x) {
     return typeof x === "function";
   }
-  function createReducer(initialState5, mapOrBuilderCallback) {
+  function createReducer(initialState7, mapOrBuilderCallback) {
     if (true) {
       if (typeof mapOrBuilderCallback === "object") {
         throw new Error(false ? formatProdErrorMessage(8) : "The object notation for `createReducer` has been removed. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createReducer");
@@ -26709,10 +26709,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     }
     let [actionsMap, finalActionMatchers, finalDefaultCaseReducer] = executeReducerBuilderCallback(mapOrBuilderCallback);
     let getInitialState;
-    if (isStateFunction(initialState5)) {
-      getInitialState = () => freezeDraftable(initialState5());
+    if (isStateFunction(initialState7)) {
+      getInitialState = () => freezeDraftable(initialState7());
     } else {
-      const frozenInitialState = freezeDraftable(initialState5);
+      const frozenInitialState = freezeDraftable(initialState7);
       getInitialState = () => frozenInitialState;
     }
     function reducer(state = getInitialState(), action) {
@@ -27433,284 +27433,30 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var { clearError } = authSlice.actions;
   var authSlice_default = authSlice.reducer;
 
-  // src/app/slices/connectionSlice.ts
-  var initialState2 = {
-    status: "offline",
-    reconnectAttempts: 0,
-    showNotification: false
-  };
-  var connectionSlice = createSlice({
-    name: "connection",
-    initialState: initialState2,
-    reducers: {
-      setConnectionStatus(state, action) {
-        const { status, lastConnected, reconnectAttempts } = action.payload;
-        const previousStatus = state.status;
-        state.status = status;
-        if (lastConnected !== void 0) {
-          state.lastConnected = lastConnected;
-        }
-        if (reconnectAttempts !== void 0) {
-          state.reconnectAttempts = reconnectAttempts;
-        }
-        if (previousStatus !== status) {
-          state.showNotification = true;
-          switch (status) {
-            case "connected":
-              state.notificationMessage = "Connected to server";
-              break;
-            case "reconnecting":
-              state.notificationMessage = `Connection lost... Reconnecting (${reconnectAttempts || 0})`;
-              break;
-            case "offline":
-              state.notificationMessage = "Offline - Working in offline mode";
-              break;
-          }
-        }
-      },
-      hideNotification(state) {
-        state.showNotification = false;
-        state.notificationMessage = void 0;
-      },
-      resetConnection(state) {
-        return { ...initialState2 };
-      }
-    }
-  });
-  var { setConnectionStatus, hideNotification, resetConnection } = connectionSlice.actions;
-  var connectionSlice_default = connectionSlice.reducer;
-
-  // src/services/syncIpcClient.ts
-  var SyncIpcClient = class {
+  // src/services/chatsIpcClient.ts
+  var ChatsIpcClient = class {
     constructor() {
-      this.notificationTimeouts = /* @__PURE__ */ new Map();
-      this.currentUserId = null;
-      if (!window.secureMessenger?.sync) {
-        throw new Error("Sync API not available. Ensure preload is properly loaded.");
+      if (!window.secureMessenger?.chats) {
+        throw new Error("Chats API not available. Ensure preload is properly loaded.");
       }
-      this.api = window.secureMessenger.sync;
-      this.setupEventListeners();
-      this.initializeCurrentUser();
+      this.api = window.secureMessenger.chats;
     }
     /**
-     * Initialize current user ID
+     * Fetch chats with pagination from SQLite via IPC.
      */
-    async initializeCurrentUser() {
+    async getChats(request) {
       try {
-        const userId = await this.api.getCurrentUserId();
-        if (userId) {
-          this.currentUserId = userId;
-          console.log("[Sync] Current user ID set:", userId);
-        }
+        return await this.api.getChats(request);
       } catch (error) {
-        console.error("[Sync] Failed to get current user ID:", error);
-      }
-    }
-    /**
-     * Set current user ID for multi-user operations
-     */
-    setCurrentUserId(userId) {
-      this.currentUserId = userId;
-    }
-    /**
-     * Setup event listeners for real-time sync events
-     */
-    setupEventListeners() {
-      this.api.onConnectionStatus((status) => {
-        console.log("[Sync] Connection status changed:", status);
-        store.dispatch(setConnectionStatus({
-          status: status.status,
-          lastConnected: status.lastConnected,
-          reconnectAttempts: status.reconnectAttempts
-        }));
-        if (status.status === "connected") {
-          this.scheduleNotificationHide("connected", 3e3);
-        }
-      });
-      this.api.onConnectionConnected(() => {
-        console.log("[Sync] Connected to server");
-        store.dispatch(setConnectionStatus({ status: "connected" }));
-        this.scheduleNotificationHide("connected", 3e3);
-      });
-      this.api.onConnectionDisconnected(() => {
-        console.log("[Sync] Disconnected from server");
-        store.dispatch(setConnectionStatus({ status: "offline" }));
-      });
-      this.api.onOpenChat((data) => {
-        console.log("[Sync] Opening chat from notification:", data.chatId);
-        store.dispatch(selectChat(data.chatId));
-      });
-      this.api.onMessageInserted((message) => {
-        console.log("[Sync] New message received:", message);
-      });
-      this.api.onChatUpdated((chatData) => {
-        console.log("[Sync] Chat updated:", chatData);
-        const chatItem = {
-          id: chatData.id,
-          name: chatData.name,
-          lastMessage: chatData.last_message,
-          updatedAt: chatData.updated_at,
-          unreadCount: chatData.unread_count || 0
-        };
-        store.dispatch(addOrUpdateChat(chatItem));
-      });
-      this.api.onChatListUpdated(() => {
-        console.log("[Sync] Chat list updated, refreshing...");
-      });
-    }
-    /**
-     * Schedule hiding of notification after delay
-     */
-    scheduleNotificationHide(key, delay2) {
-      const existing = this.notificationTimeouts.get(key);
-      if (existing) {
-        clearTimeout(existing);
-      }
-      const timeout = setTimeout(() => {
-        store.dispatch(hideNotification());
-        this.notificationTimeouts.delete(key);
-      }, delay2);
-      this.notificationTimeouts.set(key, timeout);
-    }
-    /**
-     * Get current connection status
-     */
-    async getConnectionStatus() {
-      try {
-        return await this.api.getConnectionStatus();
-      } catch (error) {
-        console.error("Failed to get connection status:", error);
-        return { status: "offline" };
-      }
-    }
-    /**
-     * Get all chats (legacy method)
-     */
-    async getChats() {
-      try {
-        console.log("[Sync] Fetching chats...");
-        const response = await this.api.getChats();
-        console.log("[Sync] Raw response:", response);
-        if (response.success) {
-          console.log("[Sync] Chat data:", response.data);
-          return response;
-        } else {
-          throw new Error(response.error || "Failed to get chats");
-        }
-      } catch (error) {
-        console.error("Failed to get chats:", error);
-        throw error;
-      }
-    }
-    /**
-     * Get user chats
-     */
-    async getUserChats(userId) {
-      try {
-        const response = await this.api.getUserChats(userId);
-        if (response.success) {
-          return response.data;
-        } else {
-          throw new Error(response.error || "Failed to get user chats");
-        }
-      } catch (error) {
-        console.error("Failed to get user chats:", error);
-        throw error;
-      }
-    }
-    /**
-     * Get messages for a chat
-     */
-    async getMessages(chatId, userId, limit, offset) {
-      try {
-        const response = await this.api.getMessages(chatId, userId, limit, offset);
-        if (response.success) {
-          return response.data;
-        } else {
-          throw new Error(response.error || "Failed to get messages");
-        }
-      } catch (error) {
-        console.error("Failed to get messages:", error);
-        throw error;
-      }
-    }
-    /**
-     * Send a message
-     */
-    async sendMessage(chatId, content) {
-      try {
-        if (!this.currentUserId) {
-          throw new Error("Current user ID not set");
-        }
-        const response = await this.api.sendMessage(chatId, this.currentUserId, content);
-        if (response.success) {
-          console.log("[Sync] Message sent:", response.data);
-          return response.data;
-        } else {
-          throw new Error(response.error || "Failed to send message");
-        }
-      } catch (error) {
-        console.error("Failed to send message:", error);
-        throw error;
-      }
-    }
-    /**
-     * Mark messages as read for a chat
-     */
-    async markMessagesRead(chatId) {
-      try {
-        if (!this.currentUserId) {
-          throw new Error("Current user ID not set");
-        }
-        const response = await this.api.markMessagesRead(chatId, this.currentUserId);
-        if (response.success) {
-          console.log("[Sync] Marked messages as read:", response.data);
-          return response.data;
-        } else {
-          throw new Error(response.error || "Failed to mark messages as read");
-        }
-      } catch (error) {
-        console.error("Failed to mark messages as read:", error);
-        throw error;
-      }
-    }
-    /**
-     * Get or create user
-     */
-    async getOrCreateUser(email, displayName) {
-      try {
-        const response = await this.api.getOrCreateUser(email, displayName);
-        if (response.success) {
-          return response.data;
-        } else {
-          throw new Error(response.error || "Failed to get or create user");
-        }
-      } catch (error) {
-        console.error("Failed to get or create user:", error);
-        throw error;
-      }
-    }
-    /**
-     * Get or create direct chat
-     */
-    async getOrCreateDirectChat(userId1, userId2) {
-      try {
-        const response = await this.api.getOrCreateDirectChat(userId1, userId2);
-        if (response.success) {
-          return response.data;
-        } else {
-          throw new Error(response.error || "Failed to get or create direct chat");
-        }
-      } catch (error) {
-        console.error("Failed to get or create direct chat:", error);
+        console.error("Failed to fetch chats:", error);
         throw error;
       }
     }
   };
-  var syncIpcClient = new SyncIpcClient();
+  var chatsIpcClient = new ChatsIpcClient();
 
   // src/app/slices/chatsSlice.ts
-  var initialState3 = {
+  var initialState2 = {
     items: [],
     selectedChatId: null,
     loading: false,
@@ -27725,34 +27471,26 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var fetchChats = createAsyncThunk(
     "chats/fetchChats",
     async ({ offset = 0, limit = 50 } = {}) => {
-      try {
-        const response = await syncIpcClient.getChats();
-        if (!response || !response.data || !response.data.chats) {
-          throw new Error("Invalid response format: missing data or chats");
-        }
-        const chatItems = response.data.chats.map((chat) => ({
-          id: chat.id,
-          name: chat.name,
-          lastMessage: chat.last_message,
-          updatedAt: chat.updated_at,
-          unreadCount: chat.unread_count || 0
-          // Ensure default value
-        }));
-        return {
-          chats: chatItems,
-          total: response.data.total || 0,
-          hasMore: response.data.hasMore || false,
-          offset
-        };
-      } catch (error) {
-        console.error("Failed to fetch chats:", error);
-        throw error;
-      }
+      const response = await chatsIpcClient.getChats({ offset, limit });
+      const chatItems = response.chats.map((chat) => ({
+        id: chat.id,
+        name: chat.name,
+        lastMessage: chat.last_message,
+        updatedAt: chat.updated_at,
+        unreadCount: chat.unread_count || 0
+        // Ensure default value
+      }));
+      return {
+        chats: chatItems,
+        total: response.total,
+        hasMore: response.hasMore,
+        offset
+      };
     }
   );
   var chatsSlice = createSlice({
     name: "chats",
-    initialState: initialState3,
+    initialState: initialState2,
     reducers: {
       selectChat(state, action) {
         state.selectedChatId = action.payload;
@@ -27823,23 +27561,28 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   }
 
   // src/app/slices/messagesSlice.ts
-  var initialState4 = {
+  var initialState3 = {
     byChatId: {},
     loading: false,
     error: null
   };
   var sendMessage = createAsyncThunk(
     "messages/sendMessage",
-    async ({ chatId, content, sender }, { rejectWithValue }) => {
+    async ({ chatId, content, sender, recipient }, { rejectWithValue }) => {
       try {
-        const payload = { chat_id: chatId, sender, content };
+        const payload = { chat_id: chatId, sender, recipient, content };
         const message = await insertMessage(payload);
+        const readAt = message.read_at ?? (sender === message.sender ? message.timestamp : null);
         return {
           id: message.id,
           chatId: message.chat_id,
           sender: message.sender,
+          recipient: message.recipient,
           content: message.content,
           timestamp: message.timestamp,
+          read_at: readAt,
+          is_read: readAt !== null && readAt !== void 0,
+          is_edited: message.is_edited,
           isOwn: sender === message.sender
         };
       } catch (e) {
@@ -27849,7 +27592,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   );
   var messagesSlice = createSlice({
     name: "messages",
-    initialState: initialState4,
+    initialState: initialState3,
     reducers: {
       setMessagesForChat(state, action) {
         const { chatId, messages } = action.payload;
@@ -27883,18 +27626,165 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var { setMessagesForChat, addMessage } = messagesSlice.actions;
   var messagesSlice_default = messagesSlice.reducer;
 
+  // src/app/slices/connectionSlice.ts
+  var initialState4 = {
+    status: "offline",
+    reconnectAttempts: 0,
+    showNotification: false
+  };
+  var connectionSlice = createSlice({
+    name: "connection",
+    initialState: initialState4,
+    reducers: {
+      setConnectionStatus(state, action) {
+        const { status, lastConnected, reconnectAttempts } = action.payload;
+        const previousStatus = state.status;
+        state.status = status;
+        if (lastConnected !== void 0) {
+          state.lastConnected = lastConnected;
+        }
+        if (reconnectAttempts !== void 0) {
+          state.reconnectAttempts = reconnectAttempts;
+        }
+        if (previousStatus !== status) {
+          state.showNotification = true;
+          switch (status) {
+            case "connected":
+              state.notificationMessage = "Connected to server";
+              break;
+            case "reconnecting":
+              state.notificationMessage = `Connection lost... Reconnecting (${reconnectAttempts || 0})`;
+              break;
+            case "offline":
+              state.notificationMessage = "Offline - Working in offline mode";
+              break;
+          }
+        }
+      },
+      hideNotification(state) {
+        state.showNotification = false;
+        state.notificationMessage = void 0;
+      },
+      resetConnection(state) {
+        return { ...initialState4 };
+      }
+    }
+  });
+  var { setConnectionStatus, hideNotification, resetConnection } = connectionSlice.actions;
+  var connectionSlice_default = connectionSlice.reducer;
+
+  // src/app/slices/usersSlice.ts
+  var initialState5 = {
+    users: [],
+    searchResults: [],
+    isSearching: false,
+    searchError: null,
+    isLoading: false,
+    error: null
+  };
+  var searchUsers = createAsyncThunk(
+    "users/searchUsers",
+    async ({ query, currentUserId }) => {
+      const response = await window.secureMessenger.users.searchUsers(query, currentUserId);
+      if (!response.success) {
+        throw new Error(response.error || "Failed to search users");
+      }
+      return response.users;
+    }
+  );
+  var getAllUsers = createAsyncThunk(
+    "users/getAllUsers",
+    async (currentUserId) => {
+      const response = await window.secureMessenger.users.getAllUsers(currentUserId);
+      if (!response.success) {
+        throw new Error(response.error || "Failed to get users");
+      }
+      return response.users;
+    }
+  );
+  var upsertUser = createAsyncThunk(
+    "users/upsertUser",
+    async ({ email, displayName, username }) => {
+      const response = await window.secureMessenger.users.upsertUser(email, displayName, username);
+      if (!response.success) {
+        throw new Error(response.error || "Failed to upsert user");
+      }
+      return response.users[0];
+    }
+  );
+  var usersSlice = createSlice({
+    name: "users",
+    initialState: initialState5,
+    reducers: {
+      clearSearchResults: (state) => {
+        state.searchResults = [];
+        state.searchError = null;
+      },
+      clearError: (state) => {
+        state.error = null;
+        state.searchError = null;
+      }
+    },
+    extraReducers: (builder) => {
+      builder.addCase(searchUsers.pending, (state) => {
+        state.isSearching = true;
+        state.searchError = null;
+      }).addCase(searchUsers.fulfilled, (state, action) => {
+        state.isSearching = false;
+        state.searchResults = action.payload;
+      }).addCase(searchUsers.rejected, (state, action) => {
+        state.isSearching = false;
+        state.searchError = action.error.message || "Failed to search users";
+      });
+      builder.addCase(getAllUsers.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      }).addCase(getAllUsers.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.users = action.payload;
+      }).addCase(getAllUsers.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || "Failed to get users";
+      });
+      builder.addCase(upsertUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      }).addCase(upsertUser.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (action.payload) {
+          const userWithTimestamp = {
+            ...action.payload,
+            createdAt: Date.now()
+          };
+          const existingIndex = state.users.findIndex((user) => user.id === action.payload.id);
+          if (existingIndex >= 0) {
+            state.users[existingIndex] = userWithTimestamp;
+          } else {
+            state.users.push(userWithTimestamp);
+          }
+        }
+      }).addCase(upsertUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || "Failed to upsert user";
+      });
+    }
+  });
+  var { clearSearchResults, clearError: clearError2 } = usersSlice.actions;
+  var usersSlice_default = usersSlice.reducer;
+
   // src/app/store.ts
   var store = configureStore({
     reducer: {
       auth: authSlice_default,
       chats: chatsSlice_default,
       messages: messagesSlice_default,
-      connection: connectionSlice_default
+      connection: connectionSlice_default,
+      users: usersSlice_default
     }
   });
 
   // src/App.tsx
-  var import_react34 = __toESM(require_react());
+  var import_react32 = __toESM(require_react());
 
   // src/pages/Login.tsx
   var import_react22 = __toESM(require_react());
@@ -36892,7 +36782,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var Welcome_default = Welcome;
 
   // src/layouts/MainLayout.tsx
-  var import_react31 = __toESM(require_react());
+  var import_react29 = __toESM(require_react());
 
   // src/components/Sidebar.tsx
   var import_jsx_runtime7 = __toESM(require_jsx_runtime());
@@ -36950,7 +36840,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var Sidebar_default = Sidebar;
 
   // src/components/ChatList.tsx
-  var import_react26 = __toESM(require_react());
+  var import_react25 = __toESM(require_react());
 
   // src/components/ChatItem.tsx
   var import_jsx_runtime8 = __toESM(require_jsx_runtime());
@@ -36993,194 +36883,29 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   };
   var ChatItem_default = ChatItem;
 
-  // src/components/ChatSearch.tsx
-  var import_react25 = __toESM(require_react());
-
-  // src/services/chatSearchService.ts
-  async function searchChats(query) {
-    if (!query.trim()) {
-      try {
-        const results = await window.secureMessenger?.sync?.getChats?.();
-        if (results?.success) {
-          return {
-            chats: results.data.chats.map((chat) => ({
-              id: chat.id,
-              name: chat.name,
-              lastMessage: chat.last_message,
-              updatedAt: chat.updated_at,
-              unreadCount: chat.unread_count
-            })),
-            total: results.data.total
-          };
-        }
-      } catch {
-      }
-      return { chats: [], total: 0 };
-    }
-    try {
-      const results = await window.secureMessenger?.sync?.getChats?.();
-      if (results?.success) {
-        const allChats = results.data.chats.map((chat) => ({
-          id: chat.id,
-          name: chat.name,
-          lastMessage: chat.last_message,
-          updatedAt: chat.updated_at,
-          unreadCount: chat.unread_count
-        }));
-        const filteredChats = allChats.filter(
-          (chat) => chat.name.toLowerCase().includes(query.toLowerCase()) || chat.lastMessage && chat.lastMessage.toLowerCase().includes(query.toLowerCase())
-        );
-        return { chats: filteredChats, total: filteredChats.length };
-      }
-    } catch {
-    }
-    return { chats: [], total: 0 };
-  }
-  function highlightText(text, query) {
-    if (!query.trim())
-      return text;
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
-    return text.replace(regex, "<mark>$1</mark>");
-  }
-
-  // src/components/ChatSearch.tsx
-  var import_jsx_runtime9 = __toESM(require_jsx_runtime());
-  var ChatSearch = ({ onChatSelect, className = "" }) => {
-    const [query, setQuery] = (0, import_react25.useState)("");
-    const [results, setResults] = (0, import_react25.useState)({ chats: [], total: 0 });
-    const [loading, setLoading] = (0, import_react25.useState)(false);
-    const [error, setError] = (0, import_react25.useState)(null);
-    (0, import_react25.useEffect)(() => {
-      const timeoutId = setTimeout(async () => {
-        if (query.trim()) {
-          try {
-            setLoading(true);
-            setError(null);
-            const searchResults = await searchChats(query);
-            setResults(searchResults);
-          } catch (err) {
-            setError("Failed to search chats");
-            console.error("Search error:", err);
-          } finally {
-            setLoading(false);
-          }
-        } else {
-          setResults({ chats: [], total: 0 });
-        }
-      }, 300);
-      return () => clearTimeout(timeoutId);
-    }, [query]);
-    const handleChatClick = (chatId) => {
-      if (onChatSelect) {
-        onChatSelect(chatId);
-      }
-      setQuery("");
-      setResults({ chats: [], total: 0 });
-    };
-    return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: `chat-search ${className}`, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "relative", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
-          "input",
-          {
-            type: "text",
-            value: query,
-            onChange: (e) => setQuery(e.target.value),
-            placeholder: "Search chats...",
-            className: "w-full px-4 py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-          }
-        ),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "absolute inset-y-0 left-0 flex items-center pl-3", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
-          "svg",
-          {
-            className: "w-4 h-4 text-gray-400",
-            fill: "none",
-            stroke: "currentColor",
-            viewBox: "0 0 24 24",
-            children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
-              "path",
-              {
-                strokeLinecap: "round",
-                strokeLinejoin: "round",
-                strokeWidth: 2,
-                d: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              }
-            )
-          }
-        ) }),
-        loading && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "absolute inset-y-0 right-0 flex items-center pr-3", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" }) })
-      ] }),
-      error && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "mt-2 text-sm text-red-600", children: error }),
-      query && results.chats.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "px-3 py-2 text-xs font-medium text-gray-500 border-b border-gray-200", children: [
-          results.total,
-          " result",
-          results.total !== 1 ? "s" : ""
-        ] }),
-        results.chats.map((chat) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
-          "div",
-          {
-            onClick: () => handleChatClick(chat.id),
-            className: "px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0",
-            children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex items-center justify-between", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex-1 min-w-0", children: [
-                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "text-sm font-medium text-gray-900 truncate", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
-                  "span",
-                  {
-                    dangerouslySetInnerHTML: {
-                      __html: highlightText(chat.name, query)
-                    }
-                  }
-                ) }),
-                chat.lastMessage && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "text-xs text-gray-500 truncate mt-1", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
-                  "span",
-                  {
-                    dangerouslySetInnerHTML: {
-                      __html: highlightText(chat.lastMessage, query)
-                    }
-                  }
-                ) })
-              ] }),
-              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "flex-shrink-0 ml-2", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "text-xs text-gray-400", children: new Date(chat.updatedAt).toLocaleDateString() }) })
-            ] })
-          },
-          chat.id
-        ))
-      ] }),
-      query && !loading && results.chats.length === 0 && !error && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-4 text-center", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "text-sm text-gray-500", children: [
-        'No chats found for "',
-        query,
-        '"'
-      ] }) })
-    ] });
-  };
-  var ChatSearch_default = ChatSearch;
-
   // src/components/ChatList.tsx
-  var import_jsx_runtime10 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime9 = __toESM(require_jsx_runtime());
   var ChatList = ({
     selectedChatId,
-    onSelectChat
+    onSelectChat,
+    onCreateChat,
+    currentUserId
   }) => {
     const dispatch = useDispatch();
-    const [showSearch, setShowSearch] = (0, import_react26.useState)(false);
     const {
       items,
       loading,
       error,
       pagination
     } = useSelector((s) => s.chats);
-    (0, import_react26.useEffect)(() => {
+    (0, import_react25.useEffect)(() => {
       dispatch(fetchChats({ offset: 0, limit: 50 }));
     }, [dispatch]);
-    const handleSearchSelect = (0, import_react26.useCallback)((chatId) => {
-      onSelectChat?.(chatId);
-      setShowSearch(false);
-    }, [onSelectChat]);
-    const sortedChats = (0, import_react26.useMemo)(
+    const sortedChats = (0, import_react25.useMemo)(
       () => [...items].sort((a, b) => b.updatedAt - a.updatedAt),
       [items]
     );
-    const handleScroll = (0, import_react26.useCallback)((event) => {
+    const handleScroll = (0, import_react25.useCallback)((event) => {
       if (loading || !pagination.hasMore)
         return;
       const element = event.currentTarget;
@@ -37194,57 +36919,28 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     }, [dispatch, loading, pagination.hasMore, pagination.offset]);
     if (error) {
-      return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "flex flex-col h-full", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("header", { className: "px-4 py-3 border-b border-gray-200 bg-white", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("h2", { className: "text-lg font-semibold text-secondary", children: "Chats" }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "flex-1 flex items-center justify-center text-red-500", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "text-center", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-sm", children: "Failed to load chats" }),
-          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-xs mt-1", children: error })
+      return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex flex-col h-full", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("header", { className: "px-4 py-3 border-b border-gray-200 bg-white", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("h2", { className: "text-lg font-semibold text-secondary", children: "Chats" }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "flex-1 flex items-center justify-center text-red-500", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "text-center", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "text-sm", children: "Failed to load chats" }),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "text-xs mt-1", children: error })
         ] }) })
       ] });
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "flex flex-col h-full", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("header", { className: "px-4 py-3 border-b border-gray-200 bg-white", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "flex items-center justify-between", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("h2", { className: "text-lg font-semibold text-secondary", children: [
-          "Chats ",
-          pagination.total > 0 && `(${pagination.total})`
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
-          "button",
-          {
-            onClick: () => setShowSearch(!showSearch),
-            className: "p-1 rounded hover:bg-gray-100 transition-colors",
-            title: "Search chats",
-            children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
-              "svg",
-              {
-                className: "w-5 h-5 text-gray-600",
-                fill: "none",
-                stroke: "currentColor",
-                viewBox: "0 0 24 24",
-                children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
-                  "path",
-                  {
-                    strokeLinecap: "round",
-                    strokeLinejoin: "round",
-                    strokeWidth: 2,
-                    d: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  }
-                )
-              }
-            )
-          }
-        )
+    return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex flex-col h-full", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("header", { className: "px-4 py-3 border-b border-gray-200 bg-white", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("h2", { className: "text-lg font-semibold text-secondary", children: [
+        "Chats ",
+        pagination.total > 0 && `(${pagination.total})`
       ] }) }),
-      showSearch && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "px-4 py-3 border-b border-gray-200 bg-white", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(ChatSearch_default, { onChatSelect: handleSearchSelect }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
         "div",
         {
           className: "flex-1 overflow-y-auto",
           onScroll: handleScroll,
-          children: sortedChats.length === 0 && !loading ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "flex items-center justify-center h-full text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "text-center", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-sm", children: "No chats yet" }),
-            /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-xs mt-1", children: "Start a conversation to see it here" })
-          ] }) }) : /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("ul", { className: "divide-y divide-gray-100", children: sortedChats.map((chat) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("li", { children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+          children: sortedChats.length === 0 && !loading ? /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "flex items-center justify-center h-full text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "text-center", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "text-sm", children: "No chats yet" }),
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "text-xs mt-1", children: "Start a conversation to see it here" })
+          ] }) }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("ul", { className: "divide-y divide-gray-100", children: sortedChats.map((chat) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("li", { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
             ChatItem_default,
             {
               chat,
@@ -37254,184 +36950,25 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           ) }, chat.id)) })
         }
       ),
-      loading && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "px-4 py-2 text-center text-sm text-gray-500 bg-gray-50", children: "Loading more chats..." })
+      loading && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "px-4 py-2 text-center text-sm text-gray-500 bg-gray-50", children: "Loading more chats..." })
     ] });
   };
   var ChatList_default = ChatList;
 
   // src/components/MessageThread.tsx
-  var import_react29 = __toESM(require_react());
-
-  // src/components/MessageComposer.tsx
-  var import_react28 = __toESM(require_react());
-
-  // src/components/FileUpload.tsx
   var import_react27 = __toESM(require_react());
-  var import_jsx_runtime11 = __toESM(require_jsx_runtime());
-  var FileUpload = ({
-    onFileSelect,
-    onUploadComplete,
-    className = "",
-    disabled = false,
-    accept = "*/*",
-    maxSize = 10 * 1024 * 1024
-    // 10MB default
-  }) => {
-    const [isDragging2, setIsDragging] = (0, import_react27.useState)(false);
-    const [uploading, setUploading] = (0, import_react27.useState)(false);
-    const [error, setError] = (0, import_react27.useState)(null);
-    const fileInputRef = (0, import_react27.useRef)(null);
-    const handleFileSelect = (file) => {
-      setError(null);
-      if (file.size > maxSize) {
-        setError(`File size must be less than ${Math.round(maxSize / 1024 / 1024)}MB`);
-        return;
-      }
-      if (onFileSelect) {
-        onFileSelect(file);
-      }
-      uploadFile(file);
-    };
-    const uploadFile = async (file) => {
-      setUploading(true);
-      setError(null);
-      try {
-        await new Promise((resolve) => setTimeout(resolve, 1e3));
-        const fileUrl = `https://public.example.com/files/${Date.now()}_${file.name}`;
-        const filename = file.name;
-        if (onUploadComplete) {
-          onUploadComplete(fileUrl, filename);
-        }
-      } catch (err) {
-        setError("Failed to upload file");
-        console.error("Upload error:", err);
-      } finally {
-        setUploading(false);
-      }
-    };
-    const handleDragOver = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (!disabled) {
-        setIsDragging(true);
-      }
-    };
-    const handleDragLeave = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false);
-    };
-    const handleDrop = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false);
-      if (disabled)
-        return;
-      const files = Array.from(e.dataTransfer.files);
-      if (files.length > 0) {
-        const file = files[0];
-        if (file) {
-          handleFileSelect(file);
-        }
-      }
-    };
-    const handleInputChange = (e) => {
-      const files = e.target.files;
-      if (files && files.length > 0) {
-        const file = files[0];
-        if (file) {
-          handleFileSelect(file);
-        }
-      }
-    };
-    const handleClick = () => {
-      if (!disabled && fileInputRef.current) {
-        fileInputRef.current.click();
-      }
-    };
-    const formatFileSize = (bytes) => {
-      if (bytes === 0)
-        return "0 Bytes";
-      const k = 1024;
-      const sizes = ["Bytes", "KB", "MB", "GB"];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-    };
-    return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: `file-upload ${className}`, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(
-        "div",
-        {
-          className: `
-          relative border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
-          ${isDragging2 ? "border-primary bg-primary/10" : "border-gray-300 hover:border-gray-400"}
-          ${disabled ? "opacity-50 cursor-not-allowed" : ""}
-          ${uploading ? "border-primary bg-primary/5" : ""}
-        `,
-          onDragOver: handleDragOver,
-          onDragLeave: handleDragLeave,
-          onDrop: handleDrop,
-          onClick: handleClick,
-          children: [
-            /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
-              "input",
-              {
-                ref: fileInputRef,
-                type: "file",
-                accept,
-                onChange: handleInputChange,
-                disabled,
-                className: "hidden"
-              }
-            ),
-            uploading ? /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "flex flex-col items-center", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-2" }),
-              /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("p", { className: "text-sm text-gray-600", children: "Uploading..." })
-            ] }) : /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "flex flex-col items-center", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
-                "svg",
-                {
-                  className: "w-12 h-12 text-gray-400 mb-2",
-                  fill: "none",
-                  stroke: "currentColor",
-                  viewBox: "0 0 24 24",
-                  children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
-                    "path",
-                    {
-                      strokeLinecap: "round",
-                      strokeLinejoin: "round",
-                      strokeWidth: 2,
-                      d: "M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                    }
-                  )
-                }
-              ),
-              /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("p", { className: "text-sm text-gray-600 mb-1", children: isDragging2 ? "Drop file here" : "Click to upload or drag and drop" }),
-              /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("p", { className: "text-xs text-gray-500", children: [
-                accept !== "*/*" && `${accept} \u2022 `,
-                "Max size: ",
-                formatFileSize(maxSize)
-              ] })
-            ] })
-          ]
-        }
-      ),
-      error && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "mt-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2", children: error })
-    ] });
-  };
-  var FileUpload_default = FileUpload;
 
   // src/components/MessageComposer.tsx
-  var import_jsx_runtime12 = __toESM(require_jsx_runtime());
+  var import_react26 = __toESM(require_react());
+  var import_jsx_runtime10 = __toESM(require_jsx_runtime());
   var MessageComposer = ({
     onSendMessage,
     placeholder = "Type a message...",
     disabled = false
   }) => {
-    const [message, setMessage] = (0, import_react28.useState)("");
-    const [showFileUpload, setShowFileUpload] = (0, import_react28.useState)(false);
-    const [attachedFiles, setAttachedFiles] = (0, import_react28.useState)([]);
-    const textareaRef = (0, import_react28.useRef)(null);
-    (0, import_react28.useEffect)(() => {
+    const [message, setMessage] = (0, import_react26.useState)("");
+    const textareaRef = (0, import_react26.useRef)(null);
+    (0, import_react26.useEffect)(() => {
       const textarea = textareaRef.current;
       if (textarea) {
         textarea.style.height = "auto";
@@ -37455,241 +36992,214 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     };
     const handleFileSelect = () => {
-      setShowFileUpload(!showFileUpload);
-    };
-    const handleFileUploadComplete = (fileUrl, filename) => {
-      setAttachedFiles((prev) => [...prev, {
-        name: filename,
-        url: fileUrl,
-        type: "unknown",
-        // Would be determined from file
-        size: 0
-        // Would be determined from file
-      }]);
-      setShowFileUpload(false);
-    };
-    const handleRemoveFile = (index) => {
-      setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
+      console.log("File selection not implemented yet");
     };
     const handleEmojiPicker = () => {
       console.log("Emoji picker not implemented yet");
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "border-t border-gray-200 bg-white p-4", children: [
-      showFileUpload && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "mb-4", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-        FileUpload_default,
-        {
-          onUploadComplete: handleFileUploadComplete,
-          className: "border border-gray-200 rounded-lg"
-        }
-      ) }),
-      attachedFiles.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "mb-3 flex flex-wrap gap-2", children: attachedFiles.map((file, index) => /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)(
-        "div",
-        {
-          className: "flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-sm",
-          children: [
-            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Paperclip, { size: 14, className: "text-gray-500" }),
-            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("span", { className: "text-gray-700 truncate max-w-xs", children: file.name }),
-            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-              "button",
-              {
-                onClick: () => handleRemoveFile(index),
-                className: "text-gray-500 hover:text-red-500 transition-colors",
-                title: "Remove file",
-                children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(X, { size: 14 })
-              }
-            )
-          ]
-        },
-        index
-      )) }),
-      /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-end gap-2", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center gap-1", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-            "button",
-            {
-              onClick: handleFileSelect,
-              className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
-              title: "Attach file",
-              disabled,
-              children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Paperclip, { size: 20 })
-            }
-          ),
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-            "button",
-            {
-              onClick: handleEmojiPicker,
-              className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
-              title: "Add emoji",
-              disabled,
-              children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Smile, { size: 20 })
-            }
-          )
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "flex-1 relative", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-          "textarea",
-          {
-            ref: textareaRef,
-            value: message,
-            onChange: (e) => setMessage(e.target.value),
-            onKeyDown: handleKeyDown,
-            placeholder,
-            disabled,
-            rows: 1,
-            className: "w-full px-4 py-2 bg-gray-light border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all",
-            style: {
-              minHeight: "40px",
-              maxHeight: "100px"
-            }
-          }
-        ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "border-t border-gray-200 bg-white p-4", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "flex items-end gap-2", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "flex items-center gap-1", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           "button",
           {
-            onClick: handleSend,
-            disabled: !message.trim() || disabled,
-            className: "p-2 bg-primary text-white rounded-lg hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all",
-            "aria-label": "Send message",
-            title: "Send message (Enter)",
-            children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Send, { size: 20 })
+            onClick: handleFileSelect,
+            className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
+            title: "Attach file",
+            disabled,
+            children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Paperclip, { size: 20 })
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+          "button",
+          {
+            onClick: handleEmojiPicker,
+            className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
+            title: "Add emoji",
+            disabled,
+            children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Smile, { size: 20 })
           }
         )
-      ] })
-    ] });
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "flex-1 relative", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+        "textarea",
+        {
+          ref: textareaRef,
+          value: message,
+          onChange: (e) => setMessage(e.target.value),
+          onKeyDown: handleKeyDown,
+          placeholder,
+          disabled,
+          rows: 1,
+          className: "w-full px-4 py-2 bg-gray-light border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all",
+          style: {
+            minHeight: "40px",
+            maxHeight: "100px"
+          }
+        }
+      ) }),
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+        "button",
+        {
+          onClick: handleSend,
+          disabled: !message.trim() || disabled,
+          className: "p-2 bg-primary text-white rounded-lg hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all",
+          "aria-label": "Send message",
+          title: "Send message (Enter)",
+          children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Send, { size: 20 })
+        }
+      )
+    ] }) });
   };
   var MessageComposer_default = MessageComposer;
 
   // src/components/EmptyState.tsx
-  var import_jsx_runtime13 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime11 = __toESM(require_jsx_runtime());
   var EmptyState = () => {
-    return /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "empty-state", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(MessageCircle, { size: 48, className: "empty-state-icon" }),
-      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("h2", { className: "empty-state-title", children: "Select a chat to start messaging" }),
-      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { className: "empty-state-subtitle", children: "Choose a conversation from the list to view and send messages." })
+    return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "empty-state", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(MessageCircle, { size: 48, className: "empty-state-icon" }),
+      /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("h2", { className: "empty-state-title", children: "Select a chat to start messaging" }),
+      /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("p", { className: "empty-state-subtitle", children: "Choose a conversation from the list to view and send messages." })
     ] });
   };
   var EmptyState_default = EmptyState;
 
-  // src/domains/chats/chats.mock.ts
-  var mockChats = [
-    {
-      id: "1",
-      name: "Alice Johnson",
-      last_message: "Hey, are you free later?",
-      updated_at: Date.now() - 1e3 * 60,
-      unread_count: 2
-    },
-    {
-      id: "2",
-      name: "Bob Smith",
-      last_message: "Thanks for the help!",
-      updated_at: Date.now() - 1e3 * 60 * 5,
-      unread_count: 0
-    },
-    {
-      id: "3",
-      name: "Team Chat",
-      last_message: "Meeting at 3pm",
-      updated_at: Date.now() - 1e3 * 60 * 15,
-      unread_count: 5
-    },
-    {
-      id: "4",
-      name: "Carol White",
-      last_message: "Can you review this?",
-      updated_at: Date.now() - 1e3 * 60 * 30,
-      unread_count: 1
-    },
-    {
-      id: "5",
-      name: "David Brown",
-      last_message: "Great work on the project",
-      updated_at: Date.now() - 1e3 * 60 * 60,
-      unread_count: 0
+  // src/services/syncIpcClient.ts
+  var SyncIpcClient = class {
+    constructor() {
+      this.notificationTimeouts = /* @__PURE__ */ new Map();
+      if (!window.secureMessenger?.sync) {
+        throw new Error("Sync API not available. Ensure preload is properly loaded.");
+      }
+      this.api = window.secureMessenger.sync;
+      this.setupEventListeners();
     }
-  ];
-  var mockMessages = {
-    "1": [
-      {
-        id: "m1",
-        chat_id: "1",
-        sender: "Alice Johnson",
-        content: "Hey, are you free later?",
-        timestamp: Date.now() - 1e3 * 60 * 10,
-        is_read: false,
-        is_edited: false
-      },
-      {
-        id: "m2",
-        chat_id: "1",
-        sender: "You",
-        content: "Sure, what's up?",
-        timestamp: Date.now() - 1e3 * 60 * 8,
-        is_read: true,
-        is_edited: false
-      },
-      {
-        id: "m3",
-        chat_id: "1",
-        sender: "Alice Johnson",
-        content: "Want to grab coffee?",
-        timestamp: Date.now() - 1e3 * 60 * 5,
-        is_read: false,
-        is_edited: false
-      },
-      {
-        id: "m4",
-        chat_id: "1",
-        sender: "Alice Johnson",
-        content: "Hey, are you free later?",
-        timestamp: Date.now() - 1e3 * 60,
-        is_read: false,
-        is_edited: false
+    /**
+     * Setup event listeners for real-time sync events
+     */
+    setupEventListeners() {
+      this.api.onConnectionStatus((status) => {
+        console.log("[Sync] Connection status changed:", status);
+        store.dispatch(setConnectionStatus({
+          status: status.status,
+          lastConnected: status.lastConnected,
+          reconnectAttempts: status.reconnectAttempts
+        }));
+        if (status.status === "connected") {
+          this.scheduleNotificationHide("connected", 3e3);
+        }
+      });
+      this.api.onConnectionConnected(() => {
+        console.log("[Sync] Connected to server");
+        store.dispatch(setConnectionStatus({ status: "connected" }));
+        this.scheduleNotificationHide("connected", 3e3);
+      });
+      this.api.onConnectionDisconnected(() => {
+        console.log("[Sync] Disconnected from server");
+        store.dispatch(setConnectionStatus({ status: "offline" }));
+      });
+      this.api.onMessageInserted((message) => {
+        console.log("[Sync] New message received:", message);
+      });
+      this.api.onChatUpdated((chatData) => {
+        console.log("[Sync] Chat updated:", chatData);
+        const chatItem = {
+          id: chatData.id,
+          name: chatData.name,
+          userId: chatData.user_id || chatData.userId,
+          lastMessage: chatData.last_message,
+          updatedAt: chatData.updated_at,
+          unreadCount: chatData.unread_count || 0
+        };
+        store.dispatch(addOrUpdateChat(chatItem));
+      });
+      this.api.onChatListUpdated(() => {
+        console.log("[Sync] Chat list updated, refreshing...");
+      });
+    }
+    /**
+     * Schedule hiding of notification after delay
+     */
+    scheduleNotificationHide(key, delay2) {
+      const existing = this.notificationTimeouts.get(key);
+      if (existing) {
+        clearTimeout(existing);
       }
-    ],
-    "2": [
-      {
-        id: "m5",
-        chat_id: "2",
-        sender: "Bob Smith",
-        content: "Thanks for the help!",
-        timestamp: Date.now() - 1e3 * 60 * 5,
-        is_read: true,
-        is_edited: false
+      const timeout = setTimeout(() => {
+        store.dispatch(hideNotification());
+        this.notificationTimeouts.delete(key);
+      }, delay2);
+      this.notificationTimeouts.set(key, timeout);
+    }
+    /**
+     * Get messages for a chat
+     */
+    async getMessages(chatId, limit, offset, currentUser) {
+      try {
+        return await window.secureMessenger.sync.getMessages(chatId, limit, offset, currentUser);
+      } catch (error) {
+        console.error("Failed to get messages:", error);
+        throw error;
       }
-    ],
-    "3": [
-      {
-        id: "m6",
-        chat_id: "3",
-        sender: "Carol",
-        content: "Meeting at 3pm",
-        timestamp: Date.now() - 1e3 * 60 * 15,
-        is_read: false,
-        is_edited: false
-      },
-      {
-        id: "m7",
-        chat_id: "3",
-        sender: "David",
-        content: "I'll be there",
-        timestamp: Date.now() - 1e3 * 60 * 12,
-        is_read: false,
-        is_edited: false
-      },
-      {
-        id: "m8",
-        chat_id: "3",
-        sender: "You",
-        content: "Sounds good!",
-        timestamp: Date.now() - 1e3 * 60 * 10,
-        is_read: false,
-        is_edited: false
+    }
+    /**
+     * Get or create direct chat with user
+     */
+    async getOrCreateDirectChat(currentUserId, targetUserId) {
+      try {
+        const chatId = [currentUserId, targetUserId].sort().join("_");
+        return {
+          success: true,
+          data: {
+            id: chatId,
+            name: targetUserId,
+            last_message: "",
+            updated_at: Date.now(),
+            unread_count: 0
+          }
+        };
+      } catch (error) {
+        console.error("Failed to get or create direct chat:", error);
+        throw error;
       }
-    ]
+    }
+    /**
+     * Get current connection status
+     */
+    async getConnectionStatus() {
+      try {
+        return await this.api.getConnectionStatus();
+      } catch (error) {
+        console.error("Failed to get connection status:", error);
+        return { status: "offline" };
+      }
+    }
+    /**
+     * Mark messages as read for a chat
+     */
+    async markMessagesRead(chatId, currentUser) {
+      try {
+        return await window.secureMessenger.sync.markMessagesRead(chatId, currentUser);
+      } catch (error) {
+        console.error("Failed to mark messages as read:", error);
+        throw error;
+      }
+    }
+    /**
+     * Send a message
+     */
+    async sendMessage(chatId, content, sender, recipient) {
+      try {
+        return await window.secureMessenger.sync.sendMessage(chatId, content, sender, recipient);
+      } catch (error) {
+        console.error("Failed to send message:", error);
+        throw error;
+      }
+    }
   };
+  var syncIpcClient = new SyncIpcClient();
 
   // src/components/MessageThread.tsx
-  var import_jsx_runtime14 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime12 = __toESM(require_jsx_runtime());
   var MessageThread = ({
     chatId,
     chatName,
@@ -37697,40 +37207,110 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     isLoading = false,
     onSendMessage
   }) => {
-    const [localMessages, setLocalMessages] = (0, import_react29.useState)([]);
-    const [editingMessage, setEditingMessage] = (0, import_react29.useState)(null);
-    const [editContent, setEditContent] = (0, import_react29.useState)("");
-    (0, import_react29.useEffect)(() => {
+    const [localMessages, setLocalMessages] = (0, import_react27.useState)([]);
+    const [editingMessage, setEditingMessage] = (0, import_react27.useState)(null);
+    const [editContent, setEditContent] = (0, import_react27.useState)("");
+    const currentUser = useSelector((s) => s.auth.user?.username || "You");
+    (0, import_react27.useEffect)(() => {
       if (chatId) {
-        const mockData = mockMessages[chatId] || [];
-        const transformedMockData = mockData.map((msg) => ({
-          ...msg,
-          chatId: msg.chat_id
-          // Convert chat_id to chatId
-        }));
-        const allMessages = [...transformedMockData, ...messages];
-        setLocalMessages(allMessages.sort((a, b) => a.timestamp - b.timestamp));
-        const unreadMessages = transformedMockData.filter((msg) => !msg.is_read && msg.sender !== "You");
-        if (unreadMessages.length > 0) {
-          console.log(`Marking ${unreadMessages.length} messages as read`);
-        }
+        const loadMessages = async () => {
+          try {
+            const response = await syncIpcClient.getMessages(chatId, 50, 0, currentUser);
+            if (response.success && response.data) {
+              const transformedMessages = response.data.map((msg) => {
+                const readAt = msg.read_at ?? (msg.is_read ? msg.timestamp : null);
+                const isRead = readAt !== null && readAt !== void 0;
+                return {
+                  id: msg.id,
+                  chatId: msg.chat_id,
+                  sender: msg.sender,
+                  recipient: msg.recipient,
+                  content: msg.content,
+                  timestamp: msg.timestamp,
+                  read_at: readAt,
+                  is_read: isRead,
+                  is_edited: Boolean(msg.is_edited)
+                };
+              });
+              const allMessages = [...transformedMessages, ...messages];
+              const dedupedMessages = Array.from(
+                new Map(allMessages.map((msg) => [msg.id, msg])).values()
+              );
+              setLocalMessages(dedupedMessages.sort((a, b) => a.timestamp - b.timestamp));
+              const unreadMessages = transformedMessages.filter(
+                (msg) => msg.recipient === currentUser && !msg.is_read
+              );
+              if (unreadMessages.length > 0) {
+                console.log(`Marking ${unreadMessages.length} messages as read`);
+                await syncIpcClient.markMessagesRead(chatId, currentUser);
+              }
+            }
+          } catch (error) {
+            console.error("Failed to load messages:", error);
+            setLocalMessages(messages);
+          }
+        };
+        loadMessages();
       } else {
         setLocalMessages([]);
       }
-    }, [chatId, messages]);
-    const handleSendMessage = (content) => {
-      if (!chatId || !onSendMessage)
+    }, [chatId, messages, currentUser]);
+    (0, import_react27.useEffect)(() => {
+      const handleMessageInserted = (message) => {
+        if (message.chat_id === chatId) {
+          const readAt = message.read_at ?? (message.is_read ? message.timestamp : null);
+          const newMessage = {
+            id: message.id,
+            chatId: message.chat_id,
+            sender: message.sender,
+            recipient: message.recipient,
+            content: message.content,
+            timestamp: message.timestamp,
+            read_at: readAt,
+            is_read: readAt !== null && readAt !== void 0,
+            is_edited: Boolean(message.is_edited)
+          };
+          setLocalMessages((prev) => {
+            const exists = prev.some((msg) => msg.id === newMessage.id);
+            if (!exists) {
+              return [...prev, newMessage].sort((a, b) => a.timestamp - b.timestamp);
+            }
+            return prev;
+          });
+        }
+      };
+      if (window.secureMessenger && window.secureMessenger.sync) {
+        window.secureMessenger.sync.onMessageInserted(handleMessageInserted);
+      }
+      return () => {
+      };
+    }, [chatId, currentUser]);
+    const handleSendMessage = async (content) => {
+      if (!chatId)
         return;
-      const newMessage = {
-        id: `msg_${Date.now()}`,
+      const now2 = Date.now();
+      const immediateMessage = {
+        id: `msg_${now2}_${Math.random().toString(36).substr(2, 9)}`,
         chatId,
-        sender: "You",
+        sender: currentUser,
+        recipient: chatName || "Unknown",
         content,
-        timestamp: Date.now(),
+        timestamp: now2,
+        read_at: now2,
         is_read: true,
         is_edited: false
       };
-      setLocalMessages((prev) => [...prev, newMessage]);
+      setLocalMessages((prev) => [...prev, immediateMessage]);
+      try {
+        const recipient = chatName || "Unknown";
+        await syncIpcClient.sendMessage(chatId, content, currentUser, recipient);
+        if (onSendMessage) {
+          onSendMessage(chatId, content);
+        }
+      } catch (error) {
+        console.error("Failed to send message:", error);
+        setLocalMessages((prev) => prev.filter((msg) => msg.id !== immediateMessage.id));
+      }
     };
     const handleEditMessage = (messageId) => {
       const message = localMessages.find((m) => m.id === messageId);
@@ -37753,76 +37333,122 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const handleDeleteMessage = (messageId) => {
       setLocalMessages((prev) => prev.filter((msg) => msg.id !== messageId));
     };
+    const formatFileSize = (bytes) => {
+      if (bytes === 0)
+        return "0 Bytes";
+      const k = 1024;
+      const sizes = ["Bytes", "KB", "MB", "GB"];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    };
     const formatTimestamp = (timestamp) => {
       return new Date(timestamp).toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit"
       });
     };
+    const renderAttachment = (message) => {
+      if (!message.type || message.type === "text")
+        return null;
+      return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "mt-2 p-2 bg-white/10 rounded-lg", children: message.type === "image" ? /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "space-y-2", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+          "img",
+          {
+            src: `file://${message.file_path}`,
+            alt: message.file_name,
+            className: "max-w-full h-auto rounded cursor-pointer hover:opacity-90 transition-opacity",
+            onClick: () => {
+              window.open(`file://${message.file_path}`, "_blank");
+            }
+          }
+        ),
+        message.file_name && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs opacity-75", children: message.file_name })
+      ] }) : /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center gap-2", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "w-8 h-8 bg-white/20 rounded flex items-center justify-center", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("svg", { className: "w-4 h-4", fill: "currentColor", viewBox: "0 0 20 20", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("path", { fillRule: "evenodd", d: "M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z", clipRule: "evenodd" }) }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex-1 min-w-0", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-sm font-medium truncate", children: message.file_name }),
+          message.file_size && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs opacity-75", children: formatFileSize(message.file_size) })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+          "button",
+          {
+            onClick: () => {
+              const link = document.createElement("a");
+              link.href = `file://${message.file_path}`;
+              link.download = message.file_name || "download";
+              link.click();
+            },
+            className: "p-1 hover:bg-white/20 rounded transition-colors",
+            title: "Download file",
+            children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("svg", { className: "w-4 h-4", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" }) })
+          }
+        )
+      ] }) });
+    };
     if (!chatId) {
-      return /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(EmptyState_default, {});
+      return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(EmptyState_default, {});
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("main", { className: "flex flex-col h-full bg-white", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("header", { className: "px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-white", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "flex items-center space-x-3", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("div", { className: "w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-white font-semibold", children: chatName?.charAt(0).toUpperCase() }),
-          /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("h2", { className: "text-lg font-semibold text-secondary", children: chatName || "Chat" }),
-            /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("p", { className: "text-xs text-gray-500", children: "Active now" })
+    return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("main", { className: "flex flex-col h-full bg-white", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("header", { className: "px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-white", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center space-x-3", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-white font-semibold", children: chatName?.charAt(0).toUpperCase() }),
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("h2", { className: "text-lg font-semibold text-secondary", children: chatName || "Chat" }),
+            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs text-gray-500", children: "Active now" })
           ] })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "flex items-center space-x-2", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center space-x-2", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
             "button",
             {
               className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
               "aria-label": "Voice call",
               title: "Voice call",
-              children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(Phone, { size: 18 })
+              children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Phone, { size: 18 })
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
             "button",
             {
               className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
               "aria-label": "Video call",
               title: "Video call",
-              children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(Video, { size: 18 })
+              children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Video, { size: 18 })
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
             "button",
             {
               className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
               "aria-label": "Search",
               title: "Search",
-              children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(Search, { size: 18 })
+              children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Search, { size: 18 })
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
             "button",
             {
               className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
               "aria-label": "More options",
               title: "More options",
-              children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(EllipsisVertical, { size: 18 })
+              children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(EllipsisVertical, { size: 18 })
             }
           )
         ] })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("div", { className: "flex-1 overflow-y-auto px-6 py-4 space-y-4", children: localMessages.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("div", { className: "flex items-center justify-center h-full text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "text-center", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("p", { className: "text-sm", children: "No messages yet" }),
-        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("p", { className: "text-xs mt-1", children: "Start the conversation" })
-      ] }) }) : localMessages.map((message) => /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "flex-1 overflow-y-auto px-6 py-4 space-y-4", children: localMessages.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "flex items-center justify-center h-full text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "text-center", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-sm", children: "No messages yet" }),
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs mt-1", children: "Start the conversation" })
+      ] }) }) : localMessages.map((message) => /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
         "div",
         {
-          className: `flex ${message.sender === "You" ? "justify-end" : "justify-start"} group`,
-          children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+          className: `flex ${message.sender === currentUser ? "justify-end" : "justify-start"} group`,
+          children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
             "div",
             {
-              className: `max-w-xs lg:max-w-md px-4 py-2 rounded-lg relative ${message.sender === "You" ? "bg-primary text-white" : "bg-gray-100 text-gray-900"}`,
-              children: editingMessage === message.id ? /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "space-y-2", children: [
-                /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+              className: `max-w-xs lg:max-w-md px-4 py-2 rounded-lg relative ${message.sender === currentUser ? "bg-primary text-white" : "bg-gray-100 text-gray-900"}`,
+              children: editingMessage === message.id ? /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "space-y-2", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
                   "input",
                   {
                     type: "text",
@@ -37832,8 +37458,8 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
                     autoFocus: true
                   }
                 ),
-                /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "flex gap-2", children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+                /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex gap-2", children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
                     "button",
                     {
                       onClick: handleSaveEdit,
@@ -37841,7 +37467,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
                       children: "Save"
                     }
                   ),
-                  /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+                  /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
                     "button",
                     {
                       onClick: () => setEditingMessage(null),
@@ -37850,36 +37476,37 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
                     }
                   )
                 ] })
-              ] }) : /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)(import_jsx_runtime14.Fragment, { children: [
-                /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("p", { className: "text-sm", children: message.content }),
-                /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "flex items-center justify-between mt-1", children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)(
+              ] }) : /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)(import_jsx_runtime12.Fragment, { children: [
+                /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-sm", children: message.content }),
+                renderAttachment(message),
+                /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center justify-between mt-1", children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)(
                     "p",
                     {
-                      className: `text-xs ${message.sender === "You" ? "text-orange-100" : "text-gray-500"}`,
+                      className: `text-xs ${message.sender === currentUser ? "text-orange-100" : "text-gray-500"}`,
                       children: [
                         formatTimestamp(message.timestamp),
                         message.is_edited && " (edited)"
                       ]
                     }
                   ),
-                  message.sender === "You" && /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity", children: [
-                    /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+                  message.sender === currentUser && /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity", children: [
+                    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
                       "button",
                       {
                         onClick: () => handleEditMessage(message.id),
                         className: "p-1 hover:bg-white/20 rounded",
                         title: "Edit message",
-                        children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(Pen, { size: 12 })
+                        children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Pen, { size: 12 })
                       }
                     ),
-                    /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+                    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
                       "button",
                       {
                         onClick: () => handleDeleteMessage(message.id),
                         className: "p-1 hover:bg-white/20 rounded",
                         title: "Delete message",
-                        children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(Trash2, { size: 12 })
+                        children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Trash2, { size: 12 })
                       }
                     )
                   ] })
@@ -37890,7 +37517,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         },
         message.id
       )) }),
-      /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
         MessageComposer_default,
         {
           onSendMessage: handleSendMessage,
@@ -37902,14 +37529,14 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var MessageThread_default = MessageThread;
 
   // src/components/ConnectionStatusBar.tsx
-  var import_react30 = __toESM(require_react());
-  var import_jsx_runtime15 = __toESM(require_jsx_runtime());
+  var import_react28 = __toESM(require_react());
+  var import_jsx_runtime13 = __toESM(require_jsx_runtime());
   var ConnectionStatusBar = () => {
     const dispatch = useDispatch();
     const { status, showNotification, notificationMessage } = useSelector(
       (state) => state.connection
     );
-    (0, import_react30.useEffect)(() => {
+    (0, import_react28.useEffect)(() => {
       if (status === "reconnecting" && showNotification) {
         const timeout = setTimeout(() => {
           dispatch(hideNotification());
@@ -37923,11 +37550,11 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const getStatusIcon = () => {
       switch (status) {
         case "connected":
-          return /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(Wifi, { size: 16, className: "text-green-500" });
+          return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Wifi, { size: 16, className: "text-green-500" });
         case "reconnecting":
-          return /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(RefreshCw, { size: 16, className: "text-yellow-500 animate-spin" });
+          return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(RefreshCw, { size: 16, className: "text-yellow-500 animate-spin" });
         case "offline":
-          return /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(WifiOff, { size: 16, className: "text-red-500" });
+          return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(WifiOff, { size: 16, className: "text-red-500" });
         default:
           return null;
       }
@@ -37944,65 +37571,155 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           return "bg-gray-50 border-gray-200 text-gray-800";
       }
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("div", { className: "fixed top-4 right-4 z-50 max-w-sm", children: /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: `flex items-center justify-between p-3 rounded-lg border shadow-sm ${getStatusColor()}`, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "flex items-center space-x-2", children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "fixed top-4 right-4 z-50 max-w-sm", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: `flex items-center justify-between p-3 rounded-lg border shadow-sm ${getStatusColor()}`, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex items-center space-x-2", children: [
         getStatusIcon(),
-        /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("span", { className: "text-sm font-medium", children: notificationMessage || "Connection status changed" })
+        /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("span", { className: "text-sm font-medium", children: notificationMessage || "Connection status changed" })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
         "button",
         {
           onClick: () => dispatch(hideNotification()),
           className: "ml-2 p-1 rounded hover:bg-black/10 transition-colors",
           "aria-label": "Dismiss notification",
-          children: /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(X, { size: 14 })
+          children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(X, { size: 14 })
         }
       )
     ] }) });
   };
   var ConnectionStatusBar_default = ConnectionStatusBar;
 
+  // src/services/ipcClient.ts
+  function requireApi() {
+    if (!window.secureMessenger) {
+      throw new Error("secureMessenger API is not available");
+    }
+    return window.secureMessenger;
+  }
+  var api = requireApi();
+  var ipcClient = {
+    auth: {
+      getSession: () => api.auth.getSession(),
+      startSession: (payload) => api.auth.startSession(payload)
+    },
+    users: {
+      searchUsers: (query, currentUserId) => api.users.searchUsers(query, currentUserId),
+      upsertUser: (email, displayName, username) => api.users.upsertUser(email, displayName, username),
+      getAllUsers: (currentUserId) => api.users.getAllUsers(currentUserId)
+    }
+  };
+
+  // src/app/slices/authSlice.ts
+  var initialState6 = {
+    status: "loading",
+    session: null
+  };
+  var selectUser = (state) => state.auth.session?.user || null;
+  var checkSession2 = createAsyncThunk(
+    "auth/checkSession",
+    async () => {
+      const session = await ipcClient.auth.getSession();
+      return { session };
+    }
+  );
+  var startSession = createAsyncThunk(
+    "auth/startSession",
+    async (payload) => {
+      const session = await ipcClient.auth.startSession(payload);
+      return { session };
+    }
+  );
+  var authSlice2 = createSlice({
+    name: "auth",
+    initialState: initialState6,
+    reducers: {},
+    extraReducers: (builder) => {
+      builder.addCase(checkSession2.pending, (state) => {
+        state.status = "loading";
+      }).addCase(checkSession2.fulfilled, (state, action) => {
+        const session = action.payload.session;
+        if (session) {
+          state.status = "authenticated";
+          state.session = session;
+        } else {
+          state.status = "unauthenticated";
+          state.session = null;
+        }
+      }).addCase(checkSession2.rejected, (state) => {
+        state.status = "unauthenticated";
+        state.session = null;
+      }).addCase(startSession.pending, (state) => {
+        state.status = "loading";
+      }).addCase(startSession.fulfilled, (state, action) => {
+        state.status = "authenticated";
+        state.session = action.payload.session;
+      }).addCase(startSession.rejected, (state) => {
+        state.status = "unauthenticated";
+        state.session = null;
+      });
+    }
+  });
+  var authReducer = authSlice2.reducer;
+
   // src/layouts/MainLayout.tsx
-  var import_jsx_runtime16 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime14 = __toESM(require_jsx_runtime());
   var MainLayout = () => {
     const dispatch = useDispatch();
     const selectedChatId = useSelector((s) => s.chats.selectedChatId);
     const chats = useSelector((s) => s.chats.items);
     const messagesByChat = useSelector((s) => s.messages.byChatId);
-    const user = useSelector((s) => s.auth.user);
-    const handleSelectChat = import_react31.default.useCallback(
+    const user = useSelector(selectUser);
+    const handleSelectChat = import_react29.default.useCallback(
       (chatId) => {
         dispatch(selectChat(chatId));
         const selectedChat2 = chats.find((c) => c.id === chatId);
         if (selectedChat2 && selectedChat2.unreadCount > 0) {
-          syncIpcClient.markMessagesRead(chatId).catch((error) => {
+          syncIpcClient.markMessagesRead(chatId, user?.username || "You").catch((error) => {
             console.error("Failed to mark messages as read:", error);
           });
         }
       },
-      [dispatch, chats]
+      [dispatch, chats, user?.username]
     );
     const selectedChat = chats.find((c) => c.id === selectedChatId);
     const selectedMessages = selectedChatId ? messagesByChat[selectedChatId] ?? [] : [];
-    const handleSendMessage = import_react31.default.useCallback(
-      (chatId, content) => {
+    const handleSendMessage = import_react29.default.useCallback(
+      async (chatId, content) => {
         if (!user?.username)
           return;
-        dispatch(sendMessage({ chatId, content, sender: user.username }));
+        const sender = user.username;
+        const recipient = selectedChat?.userId || selectedChat?.name || "Unknown";
+        dispatch(sendMessage({ chatId, content, sender, recipient }));
       },
-      [dispatch, user?.username]
+      [dispatch, user?.username, selectedChat?.userId, selectedChat?.name]
     );
-    return /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "flex h-screen bg-gray-light", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "flex flex-1", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Sidebar_default, {}),
-        /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("aside", { className: "w-80 bg-white border-r border-gray-200 flex flex-col", children: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(
+    const handleCreateChat = import_react29.default.useCallback(
+      async (userId) => {
+        try {
+          const currentUserId = user?.id || "current_user";
+          const chat = await syncIpcClient.getOrCreateDirectChat(currentUserId, userId);
+          if (chat && chat.success) {
+            dispatch(selectChat(chat.data.id));
+          }
+        } catch (error) {
+          console.error("Failed to create chat:", error);
+        }
+      },
+      [dispatch, user?.id]
+    );
+    return /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "flex h-screen bg-gray-light", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "flex flex-1", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(Sidebar_default, {}),
+        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("aside", { className: "w-80 bg-white border-r border-gray-200 flex flex-col", children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
           ChatList_default,
           {
             selectedChatId,
-            onSelectChat: handleSelectChat
+            onSelectChat: handleSelectChat,
+            onCreateChat: handleCreateChat,
+            currentUserId: user?.id || "current_user"
           }
         ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("section", { className: "flex-1 flex flex-col bg-white", children: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("section", { className: "flex-1 flex flex-col bg-white", children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
           MessageThread_default,
           {
             chatId: selectedChatId,
@@ -38012,26 +37729,26 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           }
         ) })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(ConnectionStatusBar_default, {})
+      /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(ConnectionStatusBar_default, {})
     ] });
   };
   var MainLayout_default = MainLayout;
 
   // src/components/TopNavbar.tsx
-  var import_react32 = __toESM(require_react());
-  var import_jsx_runtime17 = __toESM(require_jsx_runtime());
+  var import_react30 = __toESM(require_react());
+  var import_jsx_runtime15 = __toESM(require_jsx_runtime());
   var TopNavbar = () => {
     const dispatch = useDispatch();
     const user = useSelector((s) => s.auth.user);
-    const [dropdownOpen, setDropdownOpen] = (0, import_react32.useState)(false);
+    const [dropdownOpen, setDropdownOpen] = (0, import_react30.useState)(false);
     const handleLogout = () => {
       setDropdownOpen(false);
       void dispatch(logout());
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime17.jsxs)("header", { className: "top-navbar", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime17.jsx)("div", { className: "top-navbar-left", children: /* @__PURE__ */ (0, import_jsx_runtime17.jsx)("h1", { className: "top-navbar-title", children: "Secure Messenger" }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime17.jsxs)("div", { className: "top-navbar-right", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime17.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("header", { className: "top-navbar", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("div", { className: "top-navbar-left", children: /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("h1", { className: "top-navbar-title", children: "Secure Messenger" }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "top-navbar-right", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)(
           "button",
           {
             type: "button",
@@ -38041,18 +37758,18 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
             "aria-expanded": dropdownOpen,
             "aria-haspopup": "menu",
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(User, { size: 20 }),
-              /* @__PURE__ */ (0, import_jsx_runtime17.jsx)("span", { className: "top-navbar-username", children: user?.username }),
-              /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(ChevronDown, { size: 16, className: dropdownOpen ? "rotate" : "" })
+              /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(User, { size: 20 }),
+              /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("span", { className: "top-navbar-username", children: user?.username }),
+              /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(ChevronDown, { size: 16, className: dropdownOpen ? "rotate" : "" })
             ]
           }
         ),
-        dropdownOpen && /* @__PURE__ */ (0, import_jsx_runtime17.jsxs)("div", { className: "top-navbar-dropdown", role: "menu", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime17.jsxs)("div", { className: "top-navbar-dropdown-item", role: "menuitem", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(User, { size: 16 }),
-            /* @__PURE__ */ (0, import_jsx_runtime17.jsx)("span", { children: user?.username })
+        dropdownOpen && /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "top-navbar-dropdown", role: "menu", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "top-navbar-dropdown-item", role: "menuitem", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(User, { size: 16 }),
+            /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("span", { children: user?.username })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime17.jsxs)(
+          /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)(
             "button",
             {
               type: "button",
@@ -38060,8 +37777,8 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
               onClick: handleLogout,
               role: "menuitem",
               children: [
-                /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(LogOut, { size: 16 }),
-                /* @__PURE__ */ (0, import_jsx_runtime17.jsx)("span", { children: "Logout" })
+                /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(LogOut, { size: 16 }),
+                /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("span", { children: "Logout" })
               ]
             }
           )
@@ -38072,10 +37789,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var TopNavbar_default = TopNavbar;
 
   // src/hooks/useKeyboardShortcuts.ts
-  var import_react33 = __toESM(require_react());
+  var import_react31 = __toESM(require_react());
   function useKeyboardShortcuts(shortcuts) {
     const dispatch = useDispatch();
-    (0, import_react33.useEffect)(() => {
+    (0, import_react31.useEffect)(() => {
       const handleKeyDown = (event) => {
         for (const shortcut of shortcuts) {
           const {
@@ -38121,7 +37838,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   ];
 
   // src/pages/Home.tsx
-  var import_jsx_runtime18 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime16 = __toESM(require_jsx_runtime());
   var Home = () => {
     const dispatch = useDispatch();
     const user = useSelector((s) => s.auth.user);
@@ -38129,48 +37846,48 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       void dispatch(logout());
     };
     useKeyboardShortcuts(createAppShortcuts(dispatch));
-    return /* @__PURE__ */ (0, import_jsx_runtime18.jsxs)("div", { className: "home-container", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(TopNavbar_default, {}),
-      /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(MainLayout_default, {})
+    return /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "home-container", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(TopNavbar_default, {}),
+      /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(MainLayout_default, {})
     ] });
   };
   var Home_default = Home;
 
   // src/App.tsx
-  var import_jsx_runtime19 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime17 = __toESM(require_jsx_runtime());
   var FIRST_LAUNCH_KEY = "smd.hasCompletedWelcome";
   var App = () => {
     const dispatch = useDispatch();
     const authStatus = useSelector((s) => s.auth.status);
     const authError = useSelector((s) => s.auth.error);
-    const initialFlag = (0, import_react34.useMemo)(
+    const initialFlag = (0, import_react32.useMemo)(
       () => typeof window !== "undefined" && window.localStorage.getItem(FIRST_LAUNCH_KEY) === "true",
       []
     );
-    const [hasCompletedWelcome, setHasCompletedWelcome] = (0, import_react34.useState)(initialFlag);
-    const [authView, setAuthView] = (0, import_react34.useState)("login");
-    (0, import_react34.useEffect)(() => {
+    const [hasCompletedWelcome, setHasCompletedWelcome] = (0, import_react32.useState)(initialFlag);
+    const [authView, setAuthView] = (0, import_react32.useState)("login");
+    (0, import_react32.useEffect)(() => {
       void dispatch(checkSession());
     }, [dispatch]);
-    const handleLogin = (0, import_react34.useCallback)(
+    const handleLogin = (0, import_react32.useCallback)(
       async (username, password) => {
         void dispatch(login({ username }));
       },
       [dispatch]
     );
-    const handleRegister = (0, import_react34.useCallback)(
+    const handleRegister = (0, import_react32.useCallback)(
       async (email, displayName, password) => {
         void dispatch(register({ email, displayName, password }));
       },
       [dispatch]
     );
-    const handleForgotPassword = (0, import_react34.useCallback)(
+    const handleForgotPassword = (0, import_react32.useCallback)(
       async (email) => {
         console.log("Password reset requested for:", email);
       },
       []
     );
-    const handleWelcomeContinue = (0, import_react34.useCallback)(() => {
+    const handleWelcomeContinue = (0, import_react32.useCallback)(() => {
       try {
         window.localStorage.setItem(FIRST_LAUNCH_KEY, "true");
         setHasCompletedWelcome(true);
@@ -38179,16 +37896,16 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     }, []);
     if (authStatus === "authenticated") {
       if (!hasCompletedWelcome) {
-        return /* @__PURE__ */ (0, import_jsx_runtime19.jsx)(Welcome_default, { isLoading: false, onContinue: handleWelcomeContinue });
+        return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(Welcome_default, { isLoading: false, onContinue: handleWelcomeContinue });
       }
-      return /* @__PURE__ */ (0, import_jsx_runtime19.jsx)(Home_default, {});
+      return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(Home_default, {});
     }
     if (authStatus === "idle") {
-      return /* @__PURE__ */ (0, import_jsx_runtime19.jsx)("div", { style: { padding: 24 }, children: "Loading\u2026" });
+      return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)("div", { style: { padding: 24 }, children: "Loading\u2026" });
     }
     switch (authView) {
       case "register":
-        return /* @__PURE__ */ (0, import_jsx_runtime19.jsx)(
+        return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(
           Register_default,
           {
             isLoading: false,
@@ -38198,7 +37915,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           }
         );
       case "forgot":
-        return /* @__PURE__ */ (0, import_jsx_runtime19.jsx)(
+        return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(
           ForgotPassword_default,
           {
             isLoading: false,
@@ -38209,7 +37926,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         );
       case "login":
       default:
-        return /* @__PURE__ */ (0, import_jsx_runtime19.jsx)(
+        return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(
           Login_default,
           {
             isLoading: false,
@@ -38224,14 +37941,14 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var App_default = App;
 
   // src/index.tsx
-  var import_jsx_runtime20 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime18 = __toESM(require_jsx_runtime());
   var container = document.getElementById("root");
   if (!container) {
     throw new Error("Root element #root not found");
   }
   var root = (0, import_client.createRoot)(container);
   root.render(
-    /* @__PURE__ */ (0, import_jsx_runtime20.jsx)(import_react35.default.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_runtime20.jsx)(Provider_default, { store, children: /* @__PURE__ */ (0, import_jsx_runtime20.jsx)(App_default, {}) }) })
+    /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(import_react33.default.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(Provider_default, { store, children: /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(App_default, {}) }) })
   );
 })();
 /*! Bundled license information:

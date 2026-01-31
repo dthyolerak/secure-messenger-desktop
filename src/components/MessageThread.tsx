@@ -1,19 +1,12 @@
 // src/components/MessageThread.tsx
 import React, { useState, useEffect } from 'react';
 import { Search, MoreVertical, Phone, Video, Edit2, Trash2 } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../app/store';
+import type { MessageItem } from '../domains/messages/messages.types';
 import MessageComposer from './MessageComposer';
 import EmptyState from './EmptyState';
-import { mockMessages } from '../domains/chats/chats.mock';
-
-export interface MessageItem {
-  id: string;
-  chatId: string;
-  sender: string;
-  content: string;
-  timestamp: number;
-  is_read?: boolean;
-  is_edited?: boolean;
-}
+import { syncIpcClient } from '../services/syncIpcClient';
 
 export interface MessageThreadProps {
   chatId?: string | null;
@@ -37,46 +30,137 @@ const MessageThread: React.FC<MessageThreadProps> = ({
   const [localMessages, setLocalMessages] = useState<MessageItem[]>([]);
   const [editingMessage, setEditingMessage] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
+  const currentUser = useSelector((s: RootState) => s.auth.user?.username || 'You');
 
-  // Load messages from mock data or props
+  // Load messages from SQLite when chat changes
   useEffect(() => {
     if (chatId) {
-      const mockData = mockMessages[chatId] || [];
-      // Transform mock data to match MessageItem interface
-      const transformedMockData = mockData.map(msg => ({
-        ...msg,
-        chatId: msg.chat_id, // Convert chat_id to chatId
-      }));
-      const allMessages = [...transformedMockData, ...messages];
-      setLocalMessages(allMessages.sort((a, b) => a.timestamp - b.timestamp));
+      const loadMessages = async () => {
+        try {
+          const response = await syncIpcClient.getMessages(chatId, 50, 0, currentUser);
+          if (response.success && response.data) {
+            // Transform to MessageItem format
+            const transformedMessages: MessageItem[] = response.data.map((msg: any) => {
+              const readAt = msg.read_at ?? (msg.is_read ? msg.timestamp : null);
+              const isRead = readAt !== null && readAt !== undefined;
+
+              return {
+                id: msg.id,
+                chatId: msg.chat_id,
+                sender: msg.sender,
+                recipient: msg.recipient,
+                content: msg.content,
+                timestamp: msg.timestamp,
+                read_at: readAt,
+                is_read: isRead,
+                is_edited: Boolean(msg.is_edited),
+              };
+            });
+
+            const allMessages = [...transformedMessages, ...messages];
+            const dedupedMessages = Array.from(
+              new Map(allMessages.map((msg) => [msg.id, msg])).values(),
+            );
+
+            setLocalMessages(dedupedMessages.sort((a, b) => a.timestamp - b.timestamp));
+
+            // Mark messages as read when chat is opened
+            const unreadMessages = transformedMessages.filter(
+              (msg) => msg.recipient === currentUser && !msg.is_read,
+            );
+            if (unreadMessages.length > 0) {
+              console.log(`Marking ${unreadMessages.length} messages as read`);
+              await syncIpcClient.markMessagesRead(chatId, currentUser);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load messages:', error);
+          setLocalMessages(messages); // Fallback to props
+        }
+      };
       
-      // Mark messages as read when chat is opened
-      const unreadMessages = transformedMockData.filter(msg => !msg.is_read && msg.sender !== 'You');
-      if (unreadMessages.length > 0) {
-        console.log(`Marking ${unreadMessages.length} messages as read`);
-        // TODO: Implement actual read status update via IPC
-      }
+      loadMessages();
     } else {
       setLocalMessages([]);
     }
-  }, [chatId, messages]);
+  }, [chatId, messages, currentUser]);
 
-  const handleSendMessage = (content: string) => {
-    if (!chatId || !onSendMessage) return;
+  // Listen for new messages via IPC events
+  useEffect(() => {
+    const handleMessageInserted = (message: any) => {
+      if (message.chat_id === chatId) {
+        // Transform to MessageItem format
+        const readAt = message.read_at ?? (message.is_read ? message.timestamp : null);
+        const newMessage: MessageItem = {
+          id: message.id,
+          chatId: message.chat_id,
+          sender: message.sender,
+          recipient: message.recipient,
+          content: message.content,
+          timestamp: message.timestamp,
+          read_at: readAt,
+          is_read: readAt !== null && readAt !== undefined,
+          is_edited: Boolean(message.is_edited),
+        };
+        
+        // Add message if it doesn't already exist
+        setLocalMessages(prev => {
+          const exists = prev.some(msg => msg.id === newMessage.id);
+          if (!exists) {
+            return [...prev, newMessage].sort((a, b) => a.timestamp - b.timestamp);
+          }
+          return prev;
+        });
+      }
+    };
 
-    const newMessage: MessageItem = {
-      id: `msg_${Date.now()}`,
+    // Subscribe to message events
+    if (window.secureMessenger && window.secureMessenger.sync) {
+      window.secureMessenger.sync.onMessageInserted(handleMessageInserted);
+    }
+
+    // Cleanup
+    return () => {
+      // Note: We can't easily remove listeners with current API design
+      // But this is fine since the component will unmount
+    };
+  }, [chatId, currentUser]);
+
+  const handleSendMessage = async (content: string) => {
+    if (!chatId) return;
+
+    // Create immediate message for UI display
+    const now = Date.now();
+    const immediateMessage: MessageItem = {
+      id: `msg_${now}_${Math.random().toString(36).substr(2, 9)}`,
       chatId,
-      sender: 'You',
+      sender: currentUser,
+      recipient: chatName || 'Unknown',
       content,
-      timestamp: Date.now(),
+      timestamp: now,
+      read_at: now,
       is_read: true,
       is_edited: false,
     };
 
-    setLocalMessages(prev => [...prev, newMessage]);
-    // Don't call onSendMessage since we're just updating local state for now
-    // onSendMessage(chatId, content);
+    // Add message to local state immediately for instant feedback
+    setLocalMessages(prev => [...prev, immediateMessage]);
+
+    try {
+      // Send message via IPC (will be persisted and synced)
+      const recipient = chatName || 'Unknown';
+      await syncIpcClient.sendMessage(chatId, content, currentUser, recipient);
+      
+      // The IPC will emit events that update Redux state and trigger chat reordering
+      // But we can also trigger immediate chat update for better UX
+      if (onSendMessage) {
+        onSendMessage(chatId, content);
+      }
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      // Remove the message from local state if sending failed
+      setLocalMessages(prev => prev.filter(msg => msg.id !== immediateMessage.id));
+    }
   };
 
   const handleEditMessage = (messageId: string) => {
@@ -106,11 +190,73 @@ const MessageThread: React.FC<MessageThreadProps> = ({
     // TODO: Implement actual deletion via IPC
   };
 
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   const formatTimestamp = (timestamp: number) => {
     return new Date(timestamp).toLocaleTimeString([], {
       hour: '2-digit',
       minute: '2-digit',
     });
+  };
+
+  const renderAttachment = (message: MessageItem) => {
+    if (!message.type || message.type === 'text') return null;
+
+    return (
+      <div className="mt-2 p-2 bg-white/10 rounded-lg">
+        {message.type === 'image' ? (
+          <div className="space-y-2">
+            <img 
+              src={`file://${message.file_path}`} 
+              alt={message.file_name}
+              className="max-w-full h-auto rounded cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => {
+                // Open image in default viewer
+                window.open(`file://${message.file_path}`, '_blank');
+              }}
+            />
+            {message.file_name && (
+              <p className="text-xs opacity-75">{message.file_name}</p>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{message.file_name}</p>
+              {message.file_size && (
+                <p className="text-xs opacity-75">{formatFileSize(message.file_size)}</p>
+              )}
+            </div>
+            <button
+              onClick={() => {
+                // Download file
+                const link = document.createElement('a');
+                link.href = `file://${message.file_path}`;
+                link.download = message.file_name || 'download';
+                link.click();
+              }}
+              className="p-1 hover:bg-white/20 rounded transition-colors"
+              title="Download file"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
+    );
   };
 
   if (!chatId) {
@@ -177,12 +323,12 @@ const MessageThread: React.FC<MessageThreadProps> = ({
             <div
               key={message.id}
               className={`flex ${
-                message.sender === 'You' ? 'justify-end' : 'justify-start'
+                message.sender === currentUser ? 'justify-end' : 'justify-start'
               } group`}
             >
               <div
                 className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg relative ${
-                  message.sender === 'You'
+                  message.sender === currentUser
                     ? 'bg-primary text-white'
                     : 'bg-gray-100 text-gray-900'
                 }`}
@@ -215,10 +361,11 @@ const MessageThread: React.FC<MessageThreadProps> = ({
                 ) : (
                   <>
                     <p className="text-sm">{message.content}</p>
+                    {renderAttachment(message)}
                     <div className="flex items-center justify-between mt-1">
                       <p
                         className={`text-xs ${
-                          message.sender === 'You' ? 'text-orange-100' : 'text-gray-500'
+                          message.sender === currentUser ? 'text-orange-100' : 'text-gray-500'
                         }`}
                       >
                         {formatTimestamp(message.timestamp)}
@@ -226,7 +373,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
                       </p>
                       
                       {/* Action buttons for own messages */}
-                      {message.sender === 'You' && (
+                      {message.sender === currentUser && (
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => handleEditMessage(message.id)}

@@ -11,7 +11,6 @@ import type { ChatItem } from '../app/slices/chatsSlice';
 class SyncIpcClient {
   private api: any;
   private notificationTimeouts: Map<string, NodeJS.Timeout> = new Map();
-  private currentUserId: string | null = null;
 
   constructor() {
     if (!window.secureMessenger?.sync) {
@@ -19,29 +18,6 @@ class SyncIpcClient {
     }
     this.api = window.secureMessenger.sync;
     this.setupEventListeners();
-    this.initializeCurrentUser();
-  }
-
-  /**
-   * Initialize current user ID
-   */
-  private async initializeCurrentUser(): Promise<void> {
-    try {
-      const userId = await this.api.getCurrentUserId();
-      if (userId) {
-        this.currentUserId = userId;
-        console.log('[Sync] Current user ID set:', userId);
-      }
-    } catch (error) {
-      console.error('[Sync] Failed to get current user ID:', error);
-    }
-  }
-
-  /**
-   * Set current user ID for multi-user operations
-   */
-  setCurrentUserId(userId: string): void {
-    this.currentUserId = userId;
   }
 
   /**
@@ -77,12 +53,6 @@ class SyncIpcClient {
       // Don't auto-hide offline notification
     });
 
-    // Listen for open chat events (from desktop notifications)
-    this.api.onOpenChat((data: { chatId: string }) => {
-      console.log('[Sync] Opening chat from notification:', data.chatId);
-      store.dispatch(selectChat(data.chatId));
-    });
-
     // Listen for message insertions
     this.api.onMessageInserted((message: any) => {
       console.log('[Sync] New message received:', message);
@@ -97,6 +67,7 @@ class SyncIpcClient {
       const chatItem: ChatItem = {
         id: chatData.id,
         name: chatData.name,
+        userId: chatData.user_id || chatData.userId,
         lastMessage: chatData.last_message,
         updatedAt: chatData.updated_at,
         unreadCount: chatData.unread_count || 0,
@@ -133,6 +104,41 @@ class SyncIpcClient {
   }
 
   /**
+   * Get messages for a chat
+   */
+  async getMessages(chatId: string, limit?: number, offset?: number, currentUser?: string) {
+    try {
+      return await window.secureMessenger.sync.getMessages(chatId, limit, offset, currentUser);
+    } catch (error) {
+      console.error('Failed to get messages:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get or create direct chat with user
+   */
+  async getOrCreateDirectChat(currentUserId: string, targetUserId: string) {
+    try {
+      // Mock implementation - create or return existing chat
+      const chatId = [currentUserId, targetUserId].sort().join('_');
+      return {
+        success: true,
+        data: {
+          id: chatId,
+          name: targetUserId,
+          last_message: '',
+          updated_at: Date.now(),
+          unread_count: 0
+        }
+      };
+    } catch (error) {
+      console.error('Failed to get or create direct chat:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get current connection status
    */
   async getConnectionStatus() {
@@ -145,98 +151,11 @@ class SyncIpcClient {
   }
 
   /**
-   * Get all chats (legacy method)
-   */
-  async getChats() {
-    try {
-      console.log('[Sync] Fetching chats...');
-      const response = await this.api.getChats();
-      console.log('[Sync] Raw response:', response);
-      
-      if (response.success) {
-        console.log('[Sync] Chat data:', response.data);
-        return response;
-      } else {
-        throw new Error(response.error || 'Failed to get chats');
-      }
-    } catch (error) {
-      console.error('Failed to get chats:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get user chats
-   */
-  async getUserChats(userId: string) {
-    try {
-      const response = await this.api.getUserChats(userId);
-      if (response.success) {
-        return response.data;
-      } else {
-        throw new Error(response.error || 'Failed to get user chats');
-      }
-    } catch (error) {
-      console.error('Failed to get user chats:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get messages for a chat
-   */
-  async getMessages(chatId: string, userId: string, limit?: number, offset?: number) {
-    try {
-      const response = await this.api.getMessages(chatId, userId, limit, offset);
-      if (response.success) {
-        return response.data;
-      } else {
-        throw new Error(response.error || 'Failed to get messages');
-      }
-    } catch (error) {
-      console.error('Failed to get messages:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Send a message
-   */
-  async sendMessage(chatId: string, content: string) {
-    try {
-      if (!this.currentUserId) {
-        throw new Error('Current user ID not set');
-      }
-
-      const response = await this.api.sendMessage(chatId, this.currentUserId, content);
-      if (response.success) {
-        console.log('[Sync] Message sent:', response.data);
-        return response.data;
-      } else {
-        throw new Error(response.error || 'Failed to send message');
-      }
-    } catch (error) {
-      console.error('Failed to send message:', error);
-      throw error;
-    }
-  }
-
-  /**
    * Mark messages as read for a chat
    */
-  async markMessagesRead(chatId: string) {
+  async markMessagesRead(chatId: string, currentUser?: string) {
     try {
-      if (!this.currentUserId) {
-        throw new Error('Current user ID not set');
-      }
-
-      const response = await this.api.markMessagesRead(chatId, this.currentUserId);
-      if (response.success) {
-        console.log('[Sync] Marked messages as read:', response.data);
-        return response.data;
-      } else {
-        throw new Error(response.error || 'Failed to mark messages as read');
-      }
+      return await window.secureMessenger.sync.markMessagesRead(chatId, currentUser);
     } catch (error) {
       console.error('Failed to mark messages as read:', error);
       throw error;
@@ -244,35 +163,13 @@ class SyncIpcClient {
   }
 
   /**
-   * Get or create user
+   * Send a message
    */
-  async getOrCreateUser(email: string, displayName: string) {
+  async sendMessage(chatId: string, content: string, sender: string, recipient: string) {
     try {
-      const response = await this.api.getOrCreateUser(email, displayName);
-      if (response.success) {
-        return response.data;
-      } else {
-        throw new Error(response.error || 'Failed to get or create user');
-      }
+      return await window.secureMessenger.sync.sendMessage(chatId, content, sender, recipient);
     } catch (error) {
-      console.error('Failed to get or create user:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get or create direct chat
-   */
-  async getOrCreateDirectChat(userId1: string, userId2: string) {
-    try {
-      const response = await this.api.getOrCreateDirectChat(userId1, userId2);
-      if (response.success) {
-        return response.data;
-      } else {
-        throw new Error(response.error || 'Failed to get or create direct chat');
-      }
-    } catch (error) {
-      console.error('Failed to get or create direct chat:', error);
+      console.error('Failed to send message:', error);
       throw error;
     }
   }

@@ -4096,7 +4096,9 @@ var AuthSessionSchema = external_exports.object({
   expiresAt: external_exports.number()
 });
 var StartSessionInputSchema = external_exports.object({
-  displayName: external_exports.string().min(1).max(64).optional()
+  displayName: external_exports.string().min(1).max(64).optional(),
+  email: external_exports.string().email().optional(),
+  username: external_exports.string().min(1).max(64).optional()
 });
 var GetSessionResponseSchema = external_exports.object({
   session: AuthSessionSchema.nullable()
@@ -4139,11 +4141,11 @@ async function loadSession() {
     throw error;
   }
 }
-async function startNewSession(displayName) {
+async function startNewSession(displayName, email, username) {
   const session = {
     user: {
       id: (0, import_node_crypto.randomUUID)(),
-      email: "",
+      email: email || "",
       displayName: displayName || "Guest User",
       passwordHash: "",
       createdAt: Date.now(),
@@ -4169,9 +4171,66 @@ async function clearSession() {
     }
   }
 }
+async function upsertUserGlobal(db2, email, displayName, username) {
+  try {
+    const existingUser = db2.prepare("SELECT * FROM users WHERE email = ?").get(email);
+    if (existingUser) {
+      db2.prepare(`
+        UPDATE users 
+        SET display_name = ?, username = ?, updated_at = ?
+        WHERE email = ?
+      `).run(displayName, username, Date.now(), email);
+      const updatedUser = db2.prepare("SELECT * FROM users WHERE email = ?").get(email);
+      const user = {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        displayName: updatedUser.display_name,
+        passwordHash: updatedUser.password_hash,
+        createdAt: updatedUser.created_at,
+        updatedAt: updatedUser.updated_at
+      };
+      return {
+        success: true,
+        user
+      };
+    } else {
+      const user = {
+        id: (0, import_node_crypto.randomUUID)(),
+        email,
+        displayName,
+        passwordHash: "demo_hash",
+        // Default hash for demo users
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+      db2.prepare(`
+        INSERT INTO users (id, email, display_name, username, password_hash, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        user.id,
+        user.email,
+        user.displayName,
+        username,
+        user.passwordHash,
+        user.createdAt,
+        user.updatedAt
+      );
+      return {
+        success: true,
+        user
+      };
+    }
+  } catch (error) {
+    console.error("Upsert user error:", error);
+    return {
+      success: false,
+      error: "Failed to upsert user"
+    };
+  }
+}
 
 // src/domains/auth/auth.ipc.ts
-function registerAuthIpcHandlers(ipcMain6) {
+function registerAuthIpcHandlers(ipcMain6, db2) {
   ipcMain6.handle(AUTH_IPC_CHANNELS.getSession, async () => {
     const session = await loadSession();
     return GetSessionResponseSchema.parse({ session });
@@ -4181,9 +4240,23 @@ function registerAuthIpcHandlers(ipcMain6) {
     async (_event, rawPayload) => {
       const payload = StartSessionInputSchema.parse(rawPayload);
       const session = await startNewSession(payload.displayName);
+      if (db2 && payload.email && payload.displayName) {
+        try {
+          const username = payload.username || payload.email?.split("@")[0] || "user";
+          await upsertUserGlobal(db2, payload.email, payload.displayName, username);
+        } catch (error) {
+          console.error("Failed to upsert user globally:", error);
+        }
+      }
       return StartSessionResponseSchema.parse({ session });
     }
   );
+  ipcMain6.handle("auth:upsertUser", async (_event, { email, displayName, username }) => {
+    if (!db2) {
+      return { success: false, error: "Database not available" };
+    }
+    return await upsertUserGlobal(db2, email, displayName, username);
+  });
 }
 
 // src/domains/messages/messages.ipc.ts
@@ -4197,12 +4270,16 @@ var MESSAGES_IPC_CHANNELS = {
 
 // src/domains/messages/messages.service.ts
 async function insertMessage(payload) {
+  const now = Date.now();
   const message = {
-    id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    id: `msg_${now}_${Math.random().toString(36).substr(2, 9)}`,
     chat_id: payload.chat_id,
     sender: payload.sender,
+    recipient: payload.recipient,
     content: payload.content,
-    timestamp: Date.now()
+    timestamp: now,
+    read_at: now,
+    is_edited: false
   };
   return message;
 }
@@ -4214,6 +4291,7 @@ async function listMessages(chatId) {
 var InsertMessageSchema = external_exports.object({
   chat_id: external_exports.string(),
   sender: external_exports.string(),
+  recipient: external_exports.string(),
   content: external_exports.string().min(1)
 });
 var ListMessagesSchema = external_exports.object({
@@ -4706,23 +4784,23 @@ var WebSocketClient = class extends import_events.EventEmitter {
   }
 };
 
-// electron/db/queries.ts
+// electron/db/yqueries.ts
 var MessageEventSchema = external_exports.object({
   id: external_exports.string(),
   chat_id: external_exports.string(),
-  sender_id: external_exports.string().optional(),
-  sender: external_exports.string().optional(),
+  sender: external_exports.string(),
+  recipient: external_exports.string(),
   content: external_exports.string(),
-  timestamp: external_exports.number()
-}).transform((data) => {
-  return {
-    ...data,
-    sender_id: data.sender_id || data.sender
-  };
+  timestamp: external_exports.number(),
+  read_at: external_exports.number().nullable().optional(),
+  is_read: external_exports.boolean().optional(),
+  is_edited: external_exports.boolean().optional()
 });
 var ChatUpdateEventSchema = external_exports.object({
   chat_id: external_exports.string(),
   name: external_exports.string().optional(),
+  unread_count: external_exports.number().optional(),
+  last_message: external_exports.string().optional(),
   updated_at: external_exports.number()
 });
 var SyncQueries = class {
@@ -4733,9 +4811,13 @@ var SyncQueries = class {
    * Insert or update message with deduplication
    * Returns true if message was inserted, false if duplicate
    */
-  async insertMessage(message) {
+  async insertMessage(message, currentUser = "You") {
     try {
+      console.log("[DB] Raw message received:", message);
       const validated = MessageEventSchema.parse(message);
+      console.log("[DB] Message validated successfully:", validated);
+      const readAt = validated.read_at !== void 0 ? validated.read_at : validated.is_read ? validated.timestamp : validated.sender === currentUser ? validated.timestamp : null;
+      const isEdited = validated.is_edited ? 1 : 0;
       const existing = this.db.prepare(
         "SELECT id FROM messages WHERE id = ?"
       ).get(validated.id);
@@ -4743,88 +4825,44 @@ var SyncQueries = class {
         console.log(`[DB] Duplicate message ignored: ${validated.id}`);
         return false;
       }
-      if (validated.sender_id && !validated.sender_id.startsWith("user")) {
-        const existingUser = this.db.prepare(
-          "SELECT id FROM users WHERE display_name = ?"
-        ).get(validated.sender_id);
-        if (!existingUser) {
-          const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-          this.db.prepare(`
-            INSERT INTO users (id, email, display_name, password_hash, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?)
-          `).run(
-            userId,
-            `${validated.sender_id.toLowerCase().replace(" ", "_")}@example.com`,
-            validated.sender_id,
-            "demo_hash",
-            Date.now(),
-            Date.now()
-          );
-          console.log(`[DB] Created user for sender: ${validated.sender_id} -> ${userId}`);
-          validated.sender_id = userId;
-        } else {
-          validated.sender_id = existingUser.id;
-        }
-      }
-      const existingChat = this.db.prepare(
-        "SELECT id FROM chats WHERE id = ?"
-      ).get(validated.chat_id);
-      if (!existingChat) {
-        this.db.prepare(`
-          INSERT INTO chats (id, name, type, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?)
-        `).run(
-          validated.chat_id,
-          `Chat ${validated.chat_id}`,
-          "direct",
-          Date.now(),
-          Date.now()
-        );
-        console.log(`[DB] Created chat: ${validated.chat_id}`);
-        this.db.prepare(`
-          INSERT INTO chat_participants (id, chat_id, user_id, joined_at, last_read_at)
-          VALUES (?, ?, ?, ?, ?)
-        `).run(
-          `cp_${validated.chat_id}_current_user`,
-          validated.chat_id,
-          "current_user",
-          Date.now(),
-          0
-        );
-        if (validated.sender_id !== "current_user") {
-          this.db.prepare(`
-            INSERT INTO chat_participants (id, chat_id, user_id, joined_at, last_read_at)
-            VALUES (?, ?, ?, ?, ?)
-          `).run(
-            `cp_${validated.chat_id}_${validated.sender_id}`,
-            validated.chat_id,
-            validated.sender_id,
-            Date.now(),
-            0
-          );
-        }
-      }
+      console.log("[DB] Inserting new message into database...");
       const insertMessage2 = this.db.prepare(`
-        INSERT INTO messages (id, chat_id, sender_id, content, timestamp, is_edited, deleted_at)
-        VALUES (?, ?, ?, ?, ?, 0, 0)
+        INSERT INTO messages (id, chat_id, sender, recipient, content, timestamp, read_at, is_edited)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+      const selectUnreadCount = this.db.prepare(`
+        SELECT COUNT(*) as count FROM messages
+        WHERE chat_id = ? AND recipient = ? AND read_at IS NULL
       `);
       const updateChat = this.db.prepare(`
         UPDATE chats 
-        SET updated_at = ?
+        SET last_message = ?, updated_at = ?, unread_count = ?
         WHERE id = ?
       `);
       const transaction = this.db.transaction(() => {
+        console.log("[DB] Executing message insert...");
         insertMessage2.run(
           validated.id,
           validated.chat_id,
-          validated.sender_id,
+          validated.sender,
+          validated.recipient,
           validated.content,
-          validated.timestamp
+          validated.timestamp,
+          readAt,
+          isEdited
         );
-        updateChat.run(validated.timestamp, validated.chat_id);
+        console.log("[DB] Executing chat update...");
+        const unreadCount = selectUnreadCount.get(validated.chat_id, currentUser);
+        updateChat.run(
+          validated.content,
+          validated.timestamp,
+          unreadCount.count,
+          validated.chat_id
+        );
+        console.log("[DB] Transaction completed successfully");
       });
       transaction();
-      console.log(`[DB] Message inserted: ${validated.id}`);
+      console.log(`[DB] Message inserted successfully: ${validated.id}`);
       return true;
     } catch (error) {
       console.error("[DB] Failed to insert message:", error);
@@ -4832,294 +4870,7 @@ var SyncQueries = class {
     }
   }
   /**
-   * Get chats for a specific user with unread counts
-   */
-  async getUserChats(userId) {
-    try {
-      this.db.prepare(`
-        CREATE TABLE IF NOT EXISTS message_reads (
-          id TEXT PRIMARY KEY,
-          message_id TEXT NOT NULL,
-          user_id TEXT NOT NULL,
-          read_at INTEGER NOT NULL,
-          FOREIGN KEY (message_id) REFERENCES messages (id) ON DELETE CASCADE,
-          FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-          UNIQUE(message_id, user_id)
-        );
-      `).run();
-      this.db.prepare(`
-        CREATE TABLE IF NOT EXISTS message_attachments (
-          id TEXT PRIMARY KEY,
-          message_id TEXT NOT NULL,
-          filename TEXT NOT NULL,
-          file_url TEXT NOT NULL,
-          file_type TEXT NOT NULL,
-          file_size INTEGER NOT NULL,
-          uploaded_at INTEGER NOT NULL,
-          FOREIGN KEY (message_id) REFERENCES messages (id) ON DELETE CASCADE
-        );
-      `).run();
-      this.db.prepare(`
-        CREATE INDEX IF NOT EXISTS idx_message_reads_message_id ON message_reads(message_id);
-      `).run();
-      this.db.prepare(`
-        CREATE INDEX IF NOT EXISTS idx_message_reads_user_id ON message_reads(user_id);
-      `).run();
-      this.db.prepare(`
-        CREATE INDEX IF NOT EXISTS idx_message_attachments_message_id ON message_attachments(message_id);
-      `).run();
-      const chats = this.db.prepare(`
-        SELECT DISTINCT 
-          c.id,
-          c.name,
-          c.type,
-          c.updated_at,
-          COALESCE(
-            (
-              SELECT COUNT(*) 
-              FROM messages m 
-              LEFT JOIN message_reads mr ON m.id = mr.message_id AND mr.user_id = ?
-              WHERE m.chat_id = c.id 
-                AND m.sender_id != ? 
-                AND mr.read_at IS NULL
-            ), 0
-          ) as unread_count,
-          (
-            SELECT m.content 
-            FROM messages m 
-            WHERE m.chat_id = c.id 
-            ORDER BY m.timestamp DESC 
-            LIMIT 1
-          ) as last_message
-        FROM chats c
-        INNER JOIN chat_participants cp ON c.id = cp.chat_id
-        WHERE cp.user_id = ?
-        ORDER BY c.updated_at DESC
-      `).all(userId, userId, userId);
-      return chats;
-    } catch (error) {
-      console.error("[DB] Failed to get user chats:", error);
-      throw error;
-    }
-  }
-  /**
-   * Get messages for a chat with pagination and user read status
-   */
-  async getMessagesForChat(chatId, userId, limit = 50, offset = 0) {
-    try {
-      const messages = this.db.prepare(`
-        SELECT 
-          m.*,
-          u.display_name as sender_name,
-          CASE 
-            WHEN mr.read_at IS NOT NULL THEN 1 
-            ELSE 0 
-          END as is_read
-        FROM messages m
-        INNER JOIN users u ON m.sender_id = u.id
-        LEFT JOIN message_reads mr ON m.id = mr.message_id AND mr.user_id = ?
-        WHERE m.chat_id = ? AND m.deleted_at = 0
-        ORDER BY m.timestamp DESC 
-        LIMIT ? OFFSET ?
-      `).all(userId, chatId, limit, offset);
-      return messages.reverse();
-    } catch (error) {
-      console.error("[DB] Failed to get messages:", error);
-      throw error;
-    }
-  }
-  /**
-   * Mark messages as read for a user in a chat
-   */
-  async markMessagesAsRead(chatId, userId) {
-    try {
-      const unreadMessages = this.db.prepare(`
-        SELECT m.id
-        FROM messages m
-        LEFT JOIN message_reads mr ON m.id = mr.message_id AND mr.user_id = ?
-        WHERE m.chat_id = ? 
-          AND m.sender_id != ? 
-          AND mr.read_at IS NULL
-          AND m.deleted_at = 0
-      `).all(userId, chatId, userId);
-      let markedCount = 0;
-      if (unreadMessages.length > 0) {
-        const insertRead = this.db.prepare(`
-          INSERT OR IGNORE INTO message_reads (id, message_id, user_id, read_at)
-          VALUES (?, ?, ?, ?)
-        `);
-        const transaction = this.db.transaction(() => {
-          unreadMessages.forEach((msg) => {
-            insertRead.run(`mr_${msg.id}_${userId}_${Date.now()}`, msg.id, userId, Date.now());
-            markedCount++;
-          });
-        });
-        transaction();
-      }
-      this.db.prepare(`
-        UPDATE chat_participants 
-        SET last_read_at = ?
-        WHERE chat_id = ? AND user_id = ?
-      `).run(Date.now(), chatId, userId);
-      console.log(`[DB] Marked ${markedCount} messages as read for user ${userId} in chat ${chatId}`);
-      return markedCount;
-    } catch (error) {
-      console.error("[DB] Failed to mark messages as read:", error);
-      throw error;
-    }
-  }
-  /**
-   * Send a message and persist to database
-   */
-  async sendMessage(chatId, senderId, content) {
-    try {
-      const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const timestamp = Date.now();
-      const insertMessage2 = this.db.prepare(`
-        INSERT INTO messages (id, chat_id, sender_id, content, timestamp, is_edited, deleted_at)
-        VALUES (?, ?, ?, ?, ?, 0, 0)
-      `);
-      const updateChat = this.db.prepare(`
-        UPDATE chats 
-        SET updated_at = ?
-        WHERE id = ?
-      `);
-      const transaction = this.db.transaction(() => {
-        insertMessage2.run(messageId, chatId, senderId, content, timestamp);
-        updateChat.run(timestamp, chatId);
-      });
-      transaction();
-      await this.markMessagesAsRead(chatId, senderId);
-      const message = {
-        id: messageId,
-        chat_id: chatId,
-        sender_id: senderId,
-        content,
-        timestamp,
-        is_edited: 0,
-        deleted_at: 0
-      };
-      console.log(`[DB] Message sent: ${messageId}`);
-      return message;
-    } catch (error) {
-      console.error("[DB] Failed to send message:", error);
-      throw error;
-    }
-  }
-  /**
-   * Get user by ID
-   */
-  async getUserById(userId) {
-    try {
-      const user = this.db.prepare(`
-        SELECT id, email, display_name, created_at, updated_at
-        FROM users 
-        WHERE id = ?
-      `).get(userId);
-      return user || null;
-    } catch (error) {
-      console.error("[DB] Failed to get user:", error);
-      throw error;
-    }
-  }
-  /**
-   * Get or create user by email
-   */
-  async getOrCreateUser(email, displayName) {
-    try {
-      let user = this.db.prepare(`
-        SELECT id, email, display_name, created_at, updated_at
-        FROM users 
-        WHERE email = ?
-      `).get(email);
-      if (!user) {
-        const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const now = Date.now();
-        this.db.prepare(`
-          INSERT INTO users (id, email, display_name, password_hash, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?)
-        `).run(userId, email, displayName, "demo_hash", now, now);
-        user = {
-          id: userId,
-          email,
-          display_name: displayName,
-          created_at: now,
-          updated_at: now
-        };
-        console.log(`[DB] Created new user: ${userId}`);
-      }
-      return user;
-    } catch (error) {
-      console.error("[DB] Failed to get or create user:", error);
-      throw error;
-    }
-  }
-  /**
-   * Get chat participants
-   */
-  async getChatParticipants(chatId) {
-    try {
-      const participants = this.db.prepare(`
-        SELECT cp.*, u.display_name, u.email
-        FROM chat_participants cp
-        INNER JOIN users u ON cp.user_id = u.id
-        WHERE cp.chat_id = ?
-        ORDER BY cp.joined_at ASC
-      `).all(chatId);
-      return participants;
-    } catch (error) {
-      console.error("[DB] Failed to get chat participants:", error);
-      throw error;
-    }
-  }
-  /**
-   * Create or get direct chat between two users
-   */
-  async getOrCreateDirectChat(userId1, userId2) {
-    try {
-      const existingChat = this.db.prepare(`
-        SELECT c.*
-        FROM chats c
-        INNER JOIN chat_participants cp1 ON c.id = cp1.chat_id
-        INNER JOIN chat_participants cp2 ON c.id = cp2.chat_id
-        WHERE c.type = 'direct' 
-          AND cp1.user_id = ? AND cp2.user_id = ?
-          AND cp1.user_id != cp2.user_id
-      `).get(userId1, userId2);
-      if (existingChat) {
-        return existingChat;
-      }
-      const chatId = `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const now = Date.now();
-      const otherUser = await this.getUserById(userId2);
-      this.db.prepare(`
-        INSERT INTO chats (id, name, type, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?)
-      `).run(chatId, otherUser?.display_name || "Unknown User", "direct", now, now);
-      this.db.prepare(`
-        INSERT INTO chat_participants (id, chat_id, user_id, joined_at, last_read_at)
-        VALUES (?, ?, ?, ?, ?)
-      `).run(`cp_${chatId}_${userId1}`, chatId, userId1, now, now);
-      this.db.prepare(`
-        INSERT INTO chat_participants (id, chat_id, user_id, joined_at, last_read_at)
-        VALUES (?, ?, ?, ?, ?)
-      `).run(`cp_${chatId}_${userId2}`, chatId, userId2, now, 0);
-      const chat = {
-        id: chatId,
-        name: otherUser?.display_name || "Unknown User",
-        type: "direct",
-        created_at: now,
-        updated_at: now
-      };
-      console.log(`[DB] Created direct chat: ${chatId}`);
-      return chat;
-    } catch (error) {
-      console.error("[DB] Failed to create direct chat:", error);
-      throw error;
-    }
-  }
-  /**
-   * Upsert chat with latest data (for sync events)
+   * Upsert chat with latest data
    * Returns true if chat was updated/inserted
    */
   async upsertChat(chatUpdate) {
@@ -5135,6 +4886,14 @@ var SyncQueries = class {
           updateFields.push("name = ?");
           values.push(validated.name);
         }
+        if (validated.unread_count !== void 0) {
+          updateFields.push("unread_count = ?");
+          values.push(validated.unread_count);
+        }
+        if (validated.last_message !== void 0) {
+          updateFields.push("last_message = ?");
+          values.push(validated.last_message);
+        }
         if (validated.updated_at !== void 0) {
           updateFields.push("updated_at = ?");
           values.push(validated.updated_at);
@@ -5146,6 +4905,19 @@ var SyncQueries = class {
           console.log(`[DB] Chat updated: ${validated.chat_id}`);
           return true;
         }
+      } else {
+        this.db.prepare(`
+          INSERT INTO chats (id, name, last_message, updated_at, unread_count)
+          VALUES (?, ?, ?, ?, ?)
+        `).run(
+          validated.chat_id,
+          validated.name || "Unknown Chat",
+          validated.last_message || "",
+          validated.updated_at,
+          validated.unread_count || 0
+        );
+        console.log(`[DB] Chat inserted: ${validated.chat_id}`);
+        return true;
       }
       return false;
     } catch (error) {
@@ -5154,27 +4926,48 @@ var SyncQueries = class {
     }
   }
   /**
-   * Get all chats ordered by updated_at DESC (legacy method)
+   * Get messages for a chat with pagination (for current user)
+   */
+  async getMessagesForChat(chatId, limit = 50, offset = 0, currentUser = "You") {
+    try {
+      const messages = this.db.prepare(`
+        SELECT * FROM messages 
+        WHERE chat_id = ? AND (sender = ? OR recipient = ?)
+        ORDER BY timestamp ASC 
+        LIMIT ? OFFSET ?
+      `).all(chatId, currentUser, currentUser, limit, offset);
+      return messages;
+    } catch (error) {
+      console.error("[DB] Failed to get messages:", error);
+      throw error;
+    }
+  }
+  /**
+   * Get all messages for a chat (for sync purposes)
+   */
+  async getAllMessagesForChat(chatId, limit = 50, offset = 0) {
+    try {
+      const messages = this.db.prepare(`
+        SELECT * FROM messages 
+        WHERE chat_id = ? 
+        ORDER BY timestamp ASC 
+        LIMIT ? OFFSET ?
+      `).all(chatId, limit, offset);
+      return messages;
+    } catch (error) {
+      console.error("[DB] Failed to get messages:", error);
+      throw error;
+    }
+  }
+  /**
+   * Get all chats ordered by updated_at DESC
    */
   async getAllChats() {
     try {
       const chats = this.db.prepare(`
-        SELECT 
-          c.id,
-          c.name,
-          c.type,
-          c.updated_at,
-          c.created_at,
-          (
-            SELECT m.content 
-            FROM messages m 
-            WHERE m.chat_id = c.id AND m.deleted_at = 0
-            ORDER BY m.timestamp DESC 
-            LIMIT 1
-          ) as last_message,
-          0 as unread_count
-        FROM chats c 
-        ORDER BY c.updated_at DESC
+        SELECT id, name, last_message, updated_at, COALESCE(unread_count, 0) as unread_count
+        FROM chats 
+        ORDER BY updated_at DESC
       `).all();
       return chats;
     } catch (error) {
@@ -5183,92 +4976,64 @@ var SyncQueries = class {
     }
   }
   /**
-   * Add file attachment to a message
+   * Mark messages as read for a chat
    */
-  async addMessageAttachment(messageId, filename, fileUrl, fileType, fileSize) {
+  async markMessagesAsRead(chatId, currentUser = "You") {
     try {
-      const attachmentId = `att_${messageId}_${Date.now()}`;
-      this.db.prepare(`
-        INSERT INTO message_attachments (id, message_id, filename, file_url, file_type, file_size, uploaded_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(
-        attachmentId,
-        messageId,
-        filename,
-        fileUrl,
-        fileType,
-        fileSize,
-        Date.now()
-      );
-      console.log(`[DB] Added attachment: ${filename} to message ${messageId}`);
-      return true;
-    } catch (error) {
-      console.error("[DB] Failed to add message attachment:", error);
-      return false;
-    }
-  }
-  /**
-   * Get attachments for a message
-   */
-  async getMessageAttachments(messageId) {
-    try {
-      const attachments = this.db.prepare(`
-        SELECT id, filename, file_url, file_type, file_size, uploaded_at
-        FROM message_attachments
-        WHERE message_id = ?
-        ORDER BY uploaded_at ASC
-      `).all(messageId);
-      return attachments;
-    } catch (error) {
-      console.error("[DB] Failed to get message attachments:", error);
-      return [];
-    }
-  }
-  /**
-   * Get unread count for a user in a specific chat
-   */
-  async getUnreadCount(chatId, userId) {
-    try {
+      const readAt = Date.now();
       const result = this.db.prepare(`
-        SELECT COUNT(*) as count
-        FROM messages m
-        LEFT JOIN message_reads mr ON m.id = mr.message_id AND mr.user_id = ?
-        WHERE m.chat_id = ? 
-          AND m.sender_id != ? 
-          AND mr.read_at IS NULL
-          AND m.deleted_at = 0
-      `).get(userId, chatId, userId);
-      return result.count || 0;
+        UPDATE messages 
+        SET read_at = ? 
+        WHERE chat_id = ? AND recipient = ? AND read_at IS NULL
+      `).run(readAt, chatId, currentUser);
+      const unreadCount = this.db.prepare(`
+        SELECT COUNT(*) as count FROM messages 
+        WHERE chat_id = ? AND recipient = ? AND read_at IS NULL
+      `).get(chatId, currentUser);
+      this.db.prepare(`
+        UPDATE chats 
+        SET unread_count = ? 
+        WHERE id = ?
+      `).run(unreadCount.count, chatId);
+      console.log(`[DB] Marked ${result.changes} messages as read for chat ${chatId}`);
+      return result.changes;
     } catch (error) {
-      console.error("[DB] Failed to get unread count:", error);
+      console.error("[DB] Failed to mark messages as read:", error);
       throw error;
     }
   }
   /**
-   * Get all unread counts for a user
+   * Get unread message count for all chats
    */
-  async getAllUnreadCounts(userId) {
+  async getUnreadCounts(currentUser = "You") {
     try {
       const unreadCounts = this.db.prepare(`
-        SELECT 
-          m.chat_id,
-          COUNT(*) as count
-        FROM messages m
-        LEFT JOIN message_reads mr ON m.id = mr.message_id AND mr.user_id = ?
-        INNER JOIN chat_participants cp ON m.chat_id = cp.chat_id
-        WHERE cp.user_id = ?
-          AND m.sender_id != ? 
-          AND mr.read_at IS NULL
-          AND m.deleted_at = 0
-        GROUP BY m.chat_id
-      `).all(userId, userId, userId);
+        SELECT chat_id, COUNT(*) as count
+        FROM messages 
+        WHERE read_at IS NULL AND recipient = ?
+        GROUP BY chat_id
+      `).all(currentUser);
       const result = {};
       unreadCounts.forEach((row) => {
         result[row.chat_id] = row.count;
       });
       return result;
     } catch (error) {
-      console.error("[DB] Failed to get all unread counts:", error);
+      console.error("[DB] Failed to get unread counts:", error);
+      throw error;
+    }
+  }
+  /**
+   * Delete message by ID
+   */
+  async deleteMessage(messageId) {
+    try {
+      const result = this.db.prepare(`
+        DELETE FROM messages WHERE id = ?
+      `).run(messageId);
+      return result.changes > 0;
+    } catch (error) {
+      console.error("[DB] Failed to delete message:", error);
       throw error;
     }
   }
@@ -5280,14 +5045,14 @@ var SyncQueries = class {
       const result = this.db.prepare(`
         UPDATE messages 
         SET content = ?, is_edited = 1 
-        WHERE id = ? AND deleted_at = 0
+        WHERE id = ?
       `).run(content, messageId);
       if (result.changes > 0) {
         this.db.prepare(`
           UPDATE chats 
-          SET updated_at = ?
+          SET last_message = ?, updated_at = ?
           WHERE id = (SELECT chat_id FROM messages WHERE id = ?)
-        `).run(Date.now(), messageId);
+        `).run(content, Date.now(), messageId);
       }
       return result.changes > 0;
     } catch (error) {
@@ -5295,73 +5060,140 @@ var SyncQueries = class {
       throw error;
     }
   }
-  /**
-   * Delete message (soft delete)
-   */
-  async deleteMessage(messageId) {
-    try {
-      const result = this.db.prepare(`
-        UPDATE messages 
-        SET deleted_at = ?
-        WHERE id = ? AND deleted_at = 0
-      `).run(Date.now(), messageId);
-      if (result.changes > 0) {
-        this.db.prepare(`
-          UPDATE chats 
-          SET updated_at = ?
-          WHERE id = (SELECT chat_id FROM messages WHERE id = ?)
-        `).run(Date.now(), messageId);
-      }
-      return result.changes > 0;
-    } catch (error) {
-      console.error("[DB] Failed to delete message:", error);
-      throw error;
-    }
-  }
 };
+
+// electron/db/migrations.ts
+var DEFAULT_CURRENT_USER = "You";
+function ensureMessagesTable(db2) {
+  db2.exec(`
+    CREATE TABLE IF NOT EXISTS messages (
+      id TEXT PRIMARY KEY,
+      chat_id TEXT NOT NULL,
+      sender TEXT NOT NULL,
+      recipient TEXT NOT NULL,
+      content TEXT NOT NULL,
+      timestamp INTEGER NOT NULL,
+      read_at INTEGER,
+      is_edited INTEGER DEFAULT 0,
+      FOREIGN KEY (chat_id) REFERENCES chats (id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_messages_chat_timestamp
+      ON messages(chat_id, timestamp DESC);
+  `);
+}
+function getMessagesColumns(db2) {
+  return db2.prepare("PRAGMA table_info(messages)").all();
+}
+function getChatNamesById(db2) {
+  const rows = db2.prepare("SELECT id, name FROM chats").all();
+  return new Map(rows.map((row) => [row.id, row.name]));
+}
+function migrateMessagesSchema(db2, currentUser = DEFAULT_CURRENT_USER) {
+  const columns = getMessagesColumns(db2);
+  if (columns.length === 0) {
+    ensureMessagesTable(db2);
+    return;
+  }
+  const columnNames = new Set(columns.map((column) => column.name));
+  const needsMigration = !columnNames.has("recipient") || !columnNames.has("read_at");
+  if (!needsMigration) {
+    return;
+  }
+  const chatNamesById = getChatNamesById(db2);
+  const migrate = db2.transaction(() => {
+    db2.exec(`
+      CREATE TABLE messages_new (
+        id TEXT PRIMARY KEY,
+        chat_id TEXT NOT NULL,
+        sender TEXT NOT NULL,
+        recipient TEXT NOT NULL,
+        content TEXT NOT NULL,
+        timestamp INTEGER NOT NULL,
+        read_at INTEGER,
+        is_edited INTEGER DEFAULT 0,
+        FOREIGN KEY (chat_id) REFERENCES chats (id) ON DELETE CASCADE
+      );
+    `);
+    const rows = db2.prepare("SELECT * FROM messages").all();
+    const insert = db2.prepare(`
+      INSERT INTO messages_new (
+        id,
+        chat_id,
+        sender,
+        recipient,
+        content,
+        timestamp,
+        read_at,
+        is_edited
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    rows.forEach((row) => {
+      const sender = row.sender ?? row.sender_id ?? "Unknown";
+      const inferredRecipient = sender === currentUser ? chatNamesById.get(row.chat_id) || "Unknown" : currentUser;
+      const recipient = row.recipient ?? inferredRecipient;
+      const readAt = row.read_at ?? (row.is_read ? row.timestamp : null);
+      const isEdited = typeof row.is_edited === "number" ? row.is_edited : 0;
+      insert.run(
+        row.id,
+        row.chat_id,
+        sender,
+        recipient,
+        row.content,
+        row.timestamp,
+        readAt,
+        isEdited
+      );
+    });
+    db2.exec("DROP TABLE messages");
+    db2.exec("ALTER TABLE messages_new RENAME TO messages");
+    db2.exec(`
+      CREATE INDEX IF NOT EXISTS idx_messages_chat_timestamp
+        ON messages(chat_id, timestamp DESC);
+    `);
+  });
+  migrate();
+}
+function ensureMessageSchema(db2, currentUser = DEFAULT_CURRENT_USER) {
+  ensureMessagesTable(db2);
+  migrateMessagesSchema(db2, currentUser);
+}
 
 // electron/ipc/events.ts
 var import_electron5 = require("electron");
 var IPC_EVENTS = {
-  // Connection status
-  GET_CONNECTION_STATUS: "sync:get-connection-status",
-  // Messages
-  GET_MESSAGES: "sync:get-messages",
-  SEND_MESSAGE: "sync:send-message",
-  MARK_MESSAGES_READ: "sync:mark-messages-read",
-  // Chats
-  GET_CHATS: "sync:get-chats",
-  GET_USER_CHATS: "sync:get-user-chats",
-  // Users
-  GET_OR_CREATE_USER: "sync:get-or-create-user",
-  GET_OR_CREATE_DIRECT_CHAT: "sync:get-or-create-direct-chat",
-  // File attachments
-  ADD_MESSAGE_ATTACHMENT: "sync:add-message-attachment",
-  GET_MESSAGE_ATTACHMENTS: "sync:get-message-attachments",
-  // Events (emitted from main to renderer)
+  // Connection status events
   CONNECTION_STATUS: "sync:connection-status",
   CONNECTION_CONNECTED: "sync:connection-connected",
   CONNECTION_DISCONNECTED: "sync:connection-disconnected",
+  // Message events
   MESSAGE_INSERTED: "sync:message-inserted",
   MESSAGE_UPDATED: "sync:message-updated",
   MESSAGE_DELETED: "sync:message-deleted",
+  // Chat events
   CHAT_UPDATED: "sync:chat-updated",
-  CHAT_LIST_UPDATED: "sync:chat-list-updated"
+  CHAT_LIST_UPDATED: "sync:chat-list-updated",
+  // Request/response channels (for renderer to main)
+  GET_CONNECTION_STATUS: "sync:get-connection-status",
+  GET_MESSAGES: "sync:get-messages",
+  GET_CHATS: "sync:get-chats",
+  MARK_MESSAGES_READ: "sync:mark-messages-read",
+  SEND_MESSAGE: "sync:send-message"
 };
 var MessageInsertedPayloadSchema = external_exports.object({
   id: external_exports.string(),
   chat_id: external_exports.string(),
-  sender_id: external_exports.string(),
-  sender_name: external_exports.string(),
+  sender: external_exports.string(),
+  recipient: external_exports.string(),
   content: external_exports.string(),
   timestamp: external_exports.number(),
-  is_read: external_exports.boolean(),
-  is_edited: external_exports.boolean()
+  read_at: external_exports.number().nullable().optional(),
+  is_read: external_exports.boolean().optional(),
+  is_edited: external_exports.boolean().optional()
 });
 var ChatUpdatedPayloadSchema = external_exports.object({
   id: external_exports.string(),
   name: external_exports.string(),
-  type: external_exports.string(),
   last_message: external_exports.string().optional(),
   updated_at: external_exports.number(),
   unread_count: external_exports.number()
@@ -5372,40 +5204,6 @@ var ConnectionStatusPayloadSchema = external_exports.object({
   reconnectAttempts: external_exports.number().optional()
 });
 var SyncIPCEmitter = class {
-  /**
-   * Show desktop notification for new message
-   */
-  static showDesktopNotification(chatName, senderName, content, chatId) {
-    try {
-      if (!import_electron5.Notification.isSupported()) {
-        console.log("[IPC] Desktop notifications not supported");
-        return;
-      }
-      const notification = new import_electron5.Notification({
-        title: `New message from ${senderName}`,
-        body: `${chatName}: ${content.substring(0, 100)}${content.length > 100 ? "..." : ""}`,
-        silent: false,
-        icon: void 0
-        // Could add app icon here
-      });
-      notification.on("click", () => {
-        const windows = import_electron5.BrowserWindow.getAllWindows();
-        if (windows.length > 0) {
-          const mainWindow = windows[0];
-          if (mainWindow) {
-            mainWindow.show();
-            mainWindow.focus();
-            mainWindow.webContents.send("sync:open-chat", { chatId });
-          }
-        }
-        notification.close();
-      });
-      notification.show();
-      console.log(`[IPC] Desktop notification shown for chat ${chatId}`);
-    } catch (error) {
-      console.error("[IPC] Failed to show desktop notification:", error);
-    }
-  }
   /**
    * Emit message inserted event to all renderer windows
    */
@@ -5489,140 +5287,91 @@ var SyncIPCEmitter = class {
    * Emit message deleted event
    */
   static emitMessageDeleted(messageId) {
+    const payload = { messageId };
     import_electron5.webContents.getAllWebContents().forEach((contents) => {
       contents.send(IPC_EVENTS.MESSAGE_DELETED, { messageId });
     });
     console.log(`[IPC] Message deleted event sent: ${messageId}`);
   }
+  /**
+   * Show desktop notification for new message
+   */
+  static showDesktopNotification(message, chatName) {
+    try {
+      const validated = MessageInsertedPayloadSchema.parse(message);
+      if (validated.recipient === "You" && validated.sender !== "You") {
+        const notification = new import_electron5.Notification({
+          title: validated.sender,
+          body: validated.content,
+          subtitle: chatName,
+          silent: false
+        });
+        notification.on("click", () => {
+          const windows = import_electron5.BrowserWindow.getAllWindows();
+          if (windows.length > 0) {
+            const mainWindow = windows[0];
+            if (mainWindow) {
+              mainWindow.show();
+              mainWindow.focus();
+              if (mainWindow.webContents) {
+                mainWindow.webContents.send("sync:open-chat", validated.chat_id);
+              }
+            }
+          }
+        });
+        notification.show();
+        console.log(`[Notification] Desktop notification sent for message: ${validated.id}`);
+      }
+    } catch (error) {
+      console.error("[Notification] Failed to show desktop notification:", error);
+    }
+  }
 };
 function registerSyncIPCHandlers(syncQueries2) {
-  import_electron5.ipcMain.handle(IPC_EVENTS.GET_MESSAGES, async (event, { chatId, userId, limit, offset }) => {
+  console.log("[IPC] Starting registration of sync IPC handlers...");
+  if (!syncQueries2) {
+    console.error("[IPC] syncQueries parameter is null/undefined");
+    return;
+  }
+  console.log("[IPC] syncQueries parameter is valid, registering handlers...");
+  import_electron5.ipcMain.handle(IPC_EVENTS.GET_MESSAGES, async (event, { chatId, limit, offset, currentUser }) => {
+    console.log("[IPC] GET_MESSAGES handler called for chatId:", chatId);
     try {
-      if (!chatId || !userId) {
-        throw new Error("chatId and userId are required");
+      if (!chatId) {
+        throw new Error("chatId is required");
       }
       const messages = await syncQueries2.getMessagesForChat(
         chatId,
-        userId,
         limit || 50,
-        offset || 0
+        offset || 0,
+        currentUser
       );
+      console.log("[IPC] GET_MESSAGES retrieved", messages.length, "messages");
       return { success: true, data: messages };
     } catch (error) {
       console.error("[IPC] Get messages failed:", error);
       return { success: false, error: "Failed to get messages" };
     }
   });
+  console.log("[IPC] GET_MESSAGES handler registered");
   import_electron5.ipcMain.handle(IPC_EVENTS.GET_CHATS, async () => {
     try {
-      console.log("[IPC] Getting all chats...");
-      console.log("[IPC] SyncQueries available:", !!syncQueries2);
-      if (!syncQueries2) {
-        console.error("[IPC] SyncQueries not initialized");
-        return { success: false, error: "Database not initialized" };
-      }
       const chats = await syncQueries2.getAllChats();
-      console.log(`[IPC] Retrieved ${chats.length} chats from database`);
-      if (chats.length === 0) {
-        console.log("[IPC] No chats found, returning empty response");
-        return {
-          success: true,
-          data: {
-            chats: [],
-            total: 0,
-            hasMore: false
-          }
-        };
-      }
-      const response = {
-        success: true,
-        data: {
-          chats: chats.map((chat) => ({
-            id: chat.id,
-            name: chat.name,
-            last_message: chat.last_message,
-            updated_at: chat.updated_at,
-            unread_count: chat.unread_count || 0
-          })),
-          total: chats.length,
-          hasMore: false
-        }
-      };
-      console.log("[IPC] Sending response:", JSON.stringify(response, null, 2));
-      return response;
+      return { success: true, data: chats };
     } catch (error) {
       console.error("[IPC] Get chats failed:", error);
-      console.error("[IPC] Error details:", error instanceof Error ? error.stack : String(error));
       return { success: false, error: "Failed to get chats" };
     }
   });
-  import_electron5.ipcMain.handle(IPC_EVENTS.GET_USER_CHATS, async (event, { userId }) => {
+  import_electron5.ipcMain.handle(IPC_EVENTS.MARK_MESSAGES_READ, async (event, { chatId, currentUser }) => {
+    console.log("[IPC] MARK_MESSAGES_READ handler called for chatId:", chatId);
     try {
-      if (!userId) {
-        throw new Error("userId is required");
+      if (!chatId) {
+        throw new Error("chatId is required");
       }
-      const chats = await syncQueries2.getUserChats(userId);
-      return { success: true, data: chats };
-    } catch (error) {
-      console.error("[IPC] Get user chats failed:", error);
-      return { success: false, error: "Failed to get user chats" };
-    }
-  });
-  import_electron5.ipcMain.handle(IPC_EVENTS.ADD_MESSAGE_ATTACHMENT, async (event, { messageId, filename, fileUrl, fileType, fileSize }) => {
-    try {
-      if (!messageId || !filename || !fileUrl || !fileType) {
-        throw new Error("messageId, filename, fileUrl, and fileType are required");
-      }
-      const success = await syncQueries2.addMessageAttachment(messageId, filename, fileUrl, fileType, fileSize);
-      return { success, error: success ? null : "Failed to add attachment" };
-    } catch (error) {
-      console.error("[IPC] Add message attachment failed:", error);
-      return { success: false, error: "Failed to add message attachment" };
-    }
-  });
-  import_electron5.ipcMain.handle(IPC_EVENTS.GET_MESSAGE_ATTACHMENTS, async (event, { messageId }) => {
-    try {
-      if (!messageId) {
-        throw new Error("messageId is required");
-      }
-      const attachments = await syncQueries2.getMessageAttachments(messageId);
-      return { success: true, data: attachments };
-    } catch (error) {
-      console.error("[IPC] Get message attachments failed:", error);
-      return { success: false, error: "Failed to get message attachments" };
-    }
-  });
-  import_electron5.ipcMain.handle(IPC_EVENTS.GET_OR_CREATE_USER, async (event, { email, displayName }) => {
-    try {
-      if (!email || !displayName) {
-        throw new Error("email and displayName are required");
-      }
-      const user = await syncQueries2.getOrCreateUser(email, displayName);
-      return { success: true, data: user };
-    } catch (error) {
-      console.error("[IPC] Get or create user failed:", error);
-      return { success: false, error: "Failed to get or create user" };
-    }
-  });
-  import_electron5.ipcMain.handle(IPC_EVENTS.GET_OR_CREATE_DIRECT_CHAT, async (event, { userId1, userId2 }) => {
-    try {
-      if (!userId1 || !userId2) {
-        throw new Error("userId1 and userId2 are required");
-      }
-      const chat = await syncQueries2.getOrCreateDirectChat(userId1, userId2);
-      return { success: true, data: chat };
-    } catch (error) {
-      console.error("[IPC] Get or create direct chat failed:", error);
-      return { success: false, error: "Failed to get or create direct chat" };
-    }
-  });
-  import_electron5.ipcMain.handle(IPC_EVENTS.MARK_MESSAGES_READ, async (event, { chatId, userId }) => {
-    try {
-      if (!chatId || !userId) {
-        throw new Error("chatId and userId are required");
-      }
-      const count = await syncQueries2.markMessagesAsRead(chatId, userId);
-      const chats = await syncQueries2.getUserChats(userId);
+      const count = await syncQueries2.markMessagesAsRead(chatId, currentUser);
+      console.log("[IPC] MARK_MESSAGES_READ marked", count, "messages as read");
+      const chats = await syncQueries2.getAllChats();
       const updatedChat = chats.find((c) => c.id === chatId);
       if (updatedChat) {
         SyncIPCEmitter.emitChatUpdated(updatedChat);
@@ -5633,23 +5382,37 @@ function registerSyncIPCHandlers(syncQueries2) {
       return { success: false, error: "Failed to mark messages as read" };
     }
   });
-  import_electron5.ipcMain.handle(IPC_EVENTS.SEND_MESSAGE, async (event, { chatId, senderId, content }) => {
+  import_electron5.ipcMain.handle(IPC_EVENTS.SEND_MESSAGE, async (event, { chatId, content, sender, recipient }) => {
     try {
-      if (!chatId || !senderId || !content) {
-        throw new Error("chatId, senderId, and content are required");
+      if (!chatId || !content || !sender || !recipient) {
+        throw new Error("chatId, content, sender, and recipient are required");
       }
-      const message = await syncQueries2.sendMessage(chatId, senderId, content);
-      if (message) {
-        const sender = await syncQueries2.getUserById(senderId);
-        const messageWithSender = {
-          ...message,
-          sender_name: sender?.display_name || "Unknown",
-          is_read: true
-          // Sender's messages are always read by them
-        };
-        SyncIPCEmitter.emitMessageInserted(messageWithSender);
-        return { success: true, data: messageWithSender };
+      const timestamp = Date.now();
+      const message = {
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        chat_id: chatId,
+        sender,
+        recipient,
+        content,
+        timestamp,
+        read_at: timestamp,
+        is_edited: false
+      };
+      console.log("[IPC] Attempting to insert message:", message);
+      const inserted = await syncQueries2.insertMessage(message, sender);
+      console.log("[IPC] Message insert result:", inserted);
+      if (inserted) {
+        SyncIPCEmitter.emitMessageInserted(message);
+        const chats = await syncQueries2.getAllChats();
+        const updatedChat = chats.find((c) => c.id === chatId);
+        if (updatedChat) {
+          SyncIPCEmitter.emitChatUpdated(updatedChat);
+        }
+        SyncIPCEmitter.emitChatListUpdated();
+        console.log("[IPC] Message sent successfully:", message.id);
+        return { success: true, data: message };
       } else {
+        console.log("[IPC] Message insertion returned false - likely duplicate or validation failed");
         return { success: false, error: "Failed to send message" };
       }
     } catch (error) {
@@ -5664,23 +5427,10 @@ function registerSyncIPCHandlers(syncQueries2) {
 var db = null;
 var wsClient = null;
 var syncQueries = null;
-var currentUserId = null;
 function initializeDatabase() {
   try {
     const Database = eval("require")("better-sqlite3");
     db = new Database("chats.db");
-    const tableInfo = db.prepare(`
-      SELECT sql FROM sqlite_master 
-      WHERE type='table' AND name='messages'
-    `).get();
-    if (tableInfo && (!tableInfo.sql.includes("sender_id TEXT") || !tableInfo.sql.includes("chat_participants"))) {
-      console.log("[DB] Messages table missing multi-user schema, migrating...");
-      db.exec("DROP TABLE IF EXISTS messages");
-      db.exec("DROP TABLE IF EXISTS chats");
-      db.exec("DROP TABLE IF EXISTS chat_participants");
-      db.exec("DROP TABLE IF EXISTS message_reads");
-      console.log("[DB] Dropped old tables for migration");
-    }
     db.exec(`
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
@@ -5694,210 +5444,49 @@ function initializeDatabase() {
       CREATE TABLE IF NOT EXISTS chats (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
-        type TEXT NOT NULL DEFAULT 'direct', 
-        created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL
+        last_message TEXT,
+        updated_at INTEGER NOT NULL,
+        unread_count INTEGER DEFAULT 0
       );
-      
-      CREATE TABLE IF NOT EXISTS chat_participants (
-        id TEXT PRIMARY KEY,
-        chat_id TEXT NOT NULL,
-        user_id TEXT NOT NULL,
-        joined_at INTEGER NOT NULL,
-        last_read_at INTEGER DEFAULT 0,
-        FOREIGN KEY (chat_id) REFERENCES chats (id) ON DELETE CASCADE,
-        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-        UNIQUE(chat_id, user_id)
-      );
-      
-      CREATE TABLE IF NOT EXISTS messages (
-        id TEXT PRIMARY KEY,
-        chat_id TEXT NOT NULL,
-        sender_id TEXT NOT NULL,
-        content TEXT NOT NULL,
-        timestamp INTEGER NOT NULL,
-        is_edited INTEGER DEFAULT 0,
-        deleted_at INTEGER DEFAULT 0,
-        FOREIGN KEY (chat_id) REFERENCES chats (id) ON DELETE CASCADE,
-        FOREIGN KEY (sender_id) REFERENCES users (id) ON DELETE CASCADE
-      );
-      
-      CREATE TABLE IF NOT EXISTS message_reads (
-        id TEXT PRIMARY KEY,
-        message_id TEXT NOT NULL,
-        user_id TEXT NOT NULL,
-        read_at INTEGER NOT NULL,
-        FOREIGN KEY (message_id) REFERENCES messages (id) ON DELETE CASCADE,
-        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-        UNIQUE(message_id, user_id)
-      );
-      
-      CREATE TABLE IF NOT EXISTS message_attachments (
-        id TEXT PRIMARY KEY,
-        message_id TEXT NOT NULL,
-        filename TEXT NOT NULL,
-        file_url TEXT NOT NULL,
-        file_type TEXT NOT NULL,
-        file_size INTEGER NOT NULL,
-        uploaded_at INTEGER NOT NULL,
-        FOREIGN KEY (message_id) REFERENCES messages (id) ON DELETE CASCADE
-      );
-      
+    `);
+    ensureMessageSchema(db, "You");
+    db.exec(`
       CREATE INDEX IF NOT EXISTS idx_chats_updated_at ON chats(updated_at DESC);
-      CREATE INDEX IF NOT EXISTS idx_messages_chat_timestamp ON messages(chat_id, timestamp DESC);
       CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-      CREATE INDEX IF NOT EXISTS idx_chat_participants_chat_id ON chat_participants(chat_id);
-      CREATE INDEX IF NOT EXISTS idx_chat_participants_user_id ON chat_participants(user_id);
-      CREATE INDEX IF NOT EXISTS idx_message_reads_message_id ON message_reads(message_id);
-      CREATE INDEX IF NOT EXISTS idx_message_reads_user_id ON message_reads(user_id);
-      CREATE INDEX IF NOT EXISTS idx_message_attachments_message_id ON message_attachments(message_id);
     `);
     const chatCount = db.prepare("SELECT COUNT(*) as count FROM chats").get();
-    console.log(`[DB] Current chat count: ${chatCount.count}`);
     if (chatCount.count === 0) {
-      console.log("[DB] Inserting demo data...");
-      const insertUser = db.prepare(`
-        INSERT INTO users (id, email, display_name, password_hash, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `);
-      const demoUsers = [
-        ["user1", "alice@example.com", "Alice Johnson", "hash1", Date.now() - 864e5, Date.now() - 864e5],
-        ["user2", "bob@example.com", "Bob Smith", "hash2", Date.now() - 864e5, Date.now() - 864e5],
-        ["user3", "carol@example.com", "Carol White", "hash3", Date.now() - 864e5, Date.now() - 864e5],
-        ["user4", "david@example.com", "David Brown", "hash4", Date.now() - 864e5, Date.now() - 864e5],
-        ["user5", "emma@example.com", "Emma Davis", "hash5", Date.now() - 864e5, Date.now() - 864e5],
-        ["user6", "frank@example.com", "Frank Miller", "hash6", Date.now() - 864e5, Date.now() - 864e5],
-        ["user7", "grace@example.com", "Grace Wilson", "hash7", Date.now() - 864e5, Date.now() - 864e5],
-        ["user8", "henry@example.com", "Henry Moore", "hash8", Date.now() - 864e5, Date.now() - 864e5],
-        ["user9", "ivy@example.com", "Ivy Chen", "hash9", Date.now() - 864e5, Date.now() - 864e5],
-        ["user10", "jack@example.com", "Jack Taylor", "hash10", Date.now() - 864e5, Date.now() - 864e5],
-        ["user11", "kate@example.com", "Kate Anderson", "hash11", Date.now() - 864e5, Date.now() - 864e5],
-        ["user12", "liam@example.com", "Liam Thomas", "hash12", Date.now() - 864e5, Date.now() - 864e5],
-        ["user13", "mia@example.com", "Mia Jackson", "hash13", Date.now() - 864e5, Date.now() - 864e5],
-        ["user14", "noah@example.com", "Noah White", "hash14", Date.now() - 864e5, Date.now() - 864e5],
-        ["user15", "olivia@example.com", "Olivia Harris", "hash15", Date.now() - 864e5, Date.now() - 864e5],
-        ["user16", "peter@example.com", "Peter Martin", "hash16", Date.now() - 864e5, Date.now() - 864e5],
-        ["user17", "quinn@example.com", "Quinn Lee", "hash17", Date.now() - 864e5, Date.now() - 864e5],
-        ["user18", "rachel@example.com", "Rachel Clark", "hash18", Date.now() - 864e5, Date.now() - 864e5],
-        ["user19", "sam@example.com", "Sam Lewis", "hash19", Date.now() - 864e5, Date.now() - 864e5],
-        ["user20", "tina@example.com", "Tina Walker", "hash20", Date.now() - 864e5, Date.now() - 864e5],
-        ["current_user", "user@example.com", "You", "hash_current", Date.now() - 864e5, Date.now() - 864e5]
-      ];
-      demoUsers.forEach((user) => {
-        console.log(`[DB] Inserting user: ${user[1]}`);
-        insertUser.run(...user);
-      });
       const insertChat = db.prepare(`
-        INSERT INTO chats (id, name, type, created_at, updated_at)
+        INSERT INTO chats (id, name, last_message, updated_at, unread_count)
         VALUES (?, ?, ?, ?, ?)
       `);
       const demoChats = [
-        ["chat1", "Alice Johnson", "direct", Date.now() - 864e5, Date.now() - 1e3 * 60],
-        ["chat2", "Bob Smith", "direct", Date.now() - 864e5, Date.now() - 1e3 * 60 * 5],
-        ["chat3", "Team Chat", "group", Date.now() - 864e5, Date.now() - 1e3 * 60 * 15],
-        ["chat4", "Carol White", "direct", Date.now() - 864e5, Date.now() - 1e3 * 60 * 30],
-        ["chat5", "David Brown", "direct", Date.now() - 864e5, Date.now() - 1e3 * 60 * 60],
-        ["chat6", "Emma Davis", "direct", Date.now() - 864e5, Date.now() - 1e3 * 60 * 120],
-        ["chat7", "Frank Miller", "direct", Date.now() - 864e5, Date.now() - 1e3 * 60 * 180],
-        ["chat8", "Grace Wilson", "direct", Date.now() - 864e5, Date.now() - 1e3 * 60 * 240],
-        ["chat9", "Henry Moore", "direct", Date.now() - 864e5, Date.now() - 1e3 * 60 * 300],
-        ["chat10", "Ivy Chen", "direct", Date.now() - 864e5, Date.now() - 1e3 * 60 * 360],
-        ["chat11", "Jack Taylor", "direct", Date.now() - 864e5, Date.now() - 1e3 * 60 * 420],
-        ["chat12", "Kate Anderson", "direct", Date.now() - 864e5, Date.now() - 1e3 * 60 * 480],
-        ["chat13", "Liam Thomas", "direct", Date.now() - 864e5, Date.now() - 1e3 * 60 * 540],
-        ["chat14", "Mia Jackson", "direct", Date.now() - 864e5, Date.now() - 1e3 * 60 * 600],
-        ["chat15", "Noah White", "direct", Date.now() - 864e5, Date.now() - 1e3 * 60 * 660],
-        ["chat16", "Olivia Harris", "direct", Date.now() - 864e5, Date.now() - 1e3 * 60 * 720],
-        ["chat17", "Peter Martin", "direct", Date.now() - 864e5, Date.now() - 1e3 * 60 * 780],
-        ["chat18", "Quinn Lee", "direct", Date.now() - 864e5, Date.now() - 1e3 * 60 * 840],
-        ["chat19", "Rachel Clark", "direct", Date.now() - 864e5, Date.now() - 1e3 * 60 * 900],
-        ["chat20", "Sam Lewis", "direct", Date.now() - 864e5, Date.now() - 1e3 * 60 * 960]
+        ["1", "Alice Johnson", "Hey, are you free later?", Date.now() - 1e3 * 60, 2],
+        ["2", "Bob Smith", "Thanks for the help!", Date.now() - 1e3 * 60 * 5, 0],
+        ["3", "Team Chat", "Meeting at 3pm", Date.now() - 1e3 * 60 * 15, 5],
+        ["4", "Carol White", "Can you review this?", Date.now() - 1e3 * 60 * 30, 1],
+        ["5", "David Brown", "Great work on the project", Date.now() - 1e3 * 60 * 60, 0]
       ];
-      demoChats.forEach((chat) => {
-        console.log(`[DB] Inserting chat: ${chat[1]}`);
-        insertChat.run(...chat);
-      });
-      const insertParticipant = db.prepare(`
-        INSERT INTO chat_participants (id, chat_id, user_id, joined_at, last_read_at)
-        VALUES (?, ?, ?, ?, ?)
-      `);
-      const participantId = 1;
-      demoChats.forEach((chat, index) => {
-        insertParticipant.run(`p${participantId + index * 10}`, chat[0], "current_user", Date.now() - 864e5, 0);
-        if (chat[2] === "direct") {
-          const otherUserId = `user${index + 1}`;
-          insertParticipant.run(`p${participantId + index * 10 + 1}`, chat[0], otherUserId, Date.now() - 864e5, 0);
-        } else {
-          for (let i = 1; i <= 4; i++) {
-            insertParticipant.run(`p${participantId + index * 10 + i}`, chat[0], `user${i}`, Date.now() - 864e5, 0);
-          }
-        }
-      });
+      demoChats.forEach((chat) => insertChat.run(...chat));
       const insertMessage2 = db.prepare(`
-        INSERT INTO messages (id, chat_id, sender_id, content, timestamp, is_edited, deleted_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO messages (id, chat_id, sender, recipient, content, timestamp, read_at, is_edited)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `);
-      const demoMessages = [];
-      const messageTemplates = [
-        "Hey, how are you doing?",
-        "Did you see the latest updates?",
-        "Want to grab lunch later?",
-        "Thanks for your help yesterday!",
-        "Can you review this document?",
-        "Meeting at 3pm today",
-        "Great work on the project!",
-        "Let's catch up soon",
-        "Did you get my email?",
-        "Happy Friday! ",
-        "Quick question about the report",
-        "See you tomorrow!",
-        "That sounds perfect",
-        "I'll send you the files",
-        "Can we reschedule?",
-        "Looking forward to it!",
-        "Thanks for the quick response",
-        "How's the new project going?",
-        "Coffee break? ",
-        "Have a great weekend!"
+      const now = Date.now();
+      const demoMessages = [
+        // Chat 1 messages (Alice Johnson)
+        ["m1", "1", "Alice Johnson", "You", "Hey, are you free later?", now - 1e3 * 60 * 10, null, 0],
+        ["m2", "1", "You", "Alice Johnson", "Sure, what's up?", now - 1e3 * 60 * 8, null, 0],
+        ["m3", "1", "Alice Johnson", "You", "Want to grab coffee?", now - 1e3 * 60 * 5, null, 0],
+        ["m4", "1", "Alice Johnson", "You", "Hey, are you free later?", now - 1e3 * 60, null, 0],
+        // Chat 2 messages (Bob Smith)
+        ["m5", "2", "Bob Smith", "You", "Thanks for the help!", now - 1e3 * 60 * 5, null, 0],
+        // Chat 3 messages (Team Chat)
+        ["m6", "3", "Carol", "Team Chat", "Meeting at 3pm", now - 1e3 * 60 * 15, null, 0],
+        ["m7", "3", "David", "Team Chat", "I'll be there", now - 1e3 * 60 * 12, null, 0],
+        ["m8", "3", "You", "Team Chat", "Sounds good!", now - 1e3 * 60 * 10, null, 0]
       ];
-      demoChats.forEach((chat, chatIndex) => {
-        const messageCount = Math.floor(Math.random() * 5) + 2;
-        for (let i = 0; i < messageCount; i++) {
-          const isFromCurrentUser = Math.random() > 0.7;
-          const senderId = isFromCurrentUser ? "current_user" : `user${chatIndex + 1}`;
-          const timestamp = Date.now() - 1e3 * 60 * (messageCount - i) * 30;
-          demoMessages.push([
-            `m${chatIndex}_${i}`,
-            chat[0],
-            senderId,
-            messageTemplates[Math.floor(Math.random() * messageTemplates.length)],
-            timestamp,
-            0,
-            0
-          ]);
-        }
-      });
-      demoMessages.forEach((msg) => {
-        insertMessage2.run(...msg);
-      });
-      const insertMessageRead = db.prepare(`
-        INSERT INTO message_reads (id, message_id, user_id, read_at)
-        VALUES (?, ?, ?, ?)
-      `);
-      demoMessages.forEach((msg, index) => {
-        if (msg[2] !== "current_user" && Math.random() > 0.5) {
-          insertMessageRead.run(
-            `mr_${msg[0]}_current_user`,
-            msg[0],
-            "current_user",
-            msg[4] + 1e3 * 60
-            // Read 1 minute after message
-          );
-        }
-      });
-      console.log("[DB] Demo data insertion completed");
-    } else {
-      console.log("[DB] Demo data already exists");
+      demoMessages.forEach((msg) => insertMessage2.run(...msg));
     }
     console.log("Database initialized successfully");
   } catch (error) {
@@ -5951,29 +5540,24 @@ async function handleSyncEvent(event) {
   try {
     switch (event.type) {
       case "new_message":
-        const messageInserted = await syncQueries.insertMessage(event.payload);
+        if (!event.payload?.sender || !event.payload?.recipient) {
+          console.error("[SYNC] new_message missing sender/recipient:", event.payload);
+          return;
+        }
+        const currentUser = event.payload.recipient || "You";
+        const messageInserted = await syncQueries.insertMessage(event.payload, currentUser);
         if (messageInserted) {
-          const messages = await syncQueries.getMessagesForChat(event.payload.chat_id, currentUserId || "current_user", 1, 0);
+          const messages = await syncQueries.getMessagesForChat(event.payload.chat_id, 50, 0, currentUser);
           const fullMessage = messages.find((m) => m.id === event.payload.id);
           if (fullMessage) {
-            const chats = await syncQueries.getUserChats(currentUserId || "current_user");
-            const chatInfo = chats.find((c) => c.id === event.payload.chat_id);
-            if (fullMessage.sender_id !== currentUserId && chatInfo) {
-              SyncIPCEmitter.showDesktopNotification(
-                chatInfo.name,
-                fullMessage.sender_name,
-                fullMessage.content,
-                event.payload.chat_id
-              );
+            SyncIPCEmitter.emitMessageInserted(fullMessage);
+            const chats = await syncQueries.getAllChats();
+            const chat = chats.find((c) => c.id === event.payload.chat_id);
+            if (chat) {
+              SyncIPCEmitter.showDesktopNotification(fullMessage, chat.name);
             }
-            const messageWithSender = {
-              ...fullMessage,
-              sender_name: fullMessage.sender_name,
-              is_read: fullMessage.is_read === 1
-            };
-            SyncIPCEmitter.emitMessageInserted(messageWithSender);
           }
-          const updatedChats = await syncQueries.getUserChats(currentUserId || "current_user");
+          const updatedChats = await syncQueries.getAllChats();
           const updatedChat = updatedChats.find((c) => c.id === event.payload.chat_id);
           if (updatedChat) {
             SyncIPCEmitter.emitChatUpdated(updatedChat);
@@ -5984,7 +5568,7 @@ async function handleSyncEvent(event) {
       case "chat_update":
         const chatUpdated = await syncQueries.upsertChat(event.payload);
         if (chatUpdated) {
-          const chats = await syncQueries.getUserChats(currentUserId || "current_user");
+          const chats = await syncQueries.getAllChats();
           const fullChat = chats.find((c) => c.id === event.payload.chat_id);
           if (fullChat) {
             SyncIPCEmitter.emitChatUpdated(fullChat);
@@ -6019,20 +5603,28 @@ function createMainWindow() {
 }
 import_electron6.app.whenReady().then(async () => {
   initializeDatabase();
-  currentUserId = "current_user";
   await initializeWebSocketSync();
   registerAuthIpcHandlers(import_electron6.ipcMain);
   registerMessageIpc();
   registerSyncIpc();
   registerChatsIpc(db);
   if (syncQueries) {
+    console.log("[Main] Registering sync IPC handlers...");
     registerSyncIPCHandlers(syncQueries);
+    console.log("[Main] Sync IPC handlers registered successfully");
+  } else {
+    console.warn("[Main] syncQueries is null, creating fallback...");
+    if (db) {
+      syncQueries = new SyncQueries(db);
+      console.log("[Main] Created fallback syncQueries, registering handlers...");
+      registerSyncIPCHandlers(syncQueries);
+      console.log("[Main] Fallback sync IPC handlers registered successfully");
+    } else {
+      console.error("[Main] Database is null - cannot create fallback syncQueries");
+    }
   }
   import_electron6.ipcMain.handle("sync:get-connection-status", () => {
     return getConnectionStatus();
-  });
-  import_electron6.ipcMain.handle("sync:get-current-user-id", () => {
-    return currentUserId;
   });
   createMainWindow();
   import_electron6.app.on("activate", () => {

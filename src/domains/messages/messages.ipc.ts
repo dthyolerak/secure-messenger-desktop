@@ -8,6 +8,7 @@ import { insertMessage, listMessages } from './messages.service';
 const InsertMessageSchema = z.object({
   chat_id: z.string(),
   sender: z.string(),
+  recipient: z.string(),
   content: z.string().min(1),
 });
 

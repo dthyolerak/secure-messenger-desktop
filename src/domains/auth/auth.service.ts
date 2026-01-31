@@ -46,11 +46,13 @@ export async function loadSession(): Promise<AuthSession | null> {
 
 export async function startNewSession(
   displayName?: string,
+  email?: string,
+  username?: string,
 ): Promise<AuthSession> {
   const session: AuthSession = {
     user: {
       id: randomUUID(),
-      email: '',
+      email: email || '',
       displayName: displayName || 'Guest User',
       passwordHash: '',
       createdAt: Date.now(),
@@ -80,6 +82,72 @@ export async function clearSession(): Promise<void> {
 }
 
 // SQLite-based user management
+export async function upsertUserGlobal(db: any, email: string, displayName: string, username: string): Promise<{ success: boolean; user?: User; error?: string }> {
+  try {
+    // Check if user already exists
+    const existingUser = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    
+    if (existingUser) {
+      // Update existing user
+      db.prepare(`
+        UPDATE users 
+        SET display_name = ?, username = ?, updated_at = ?
+        WHERE email = ?
+      `).run(displayName, username, Date.now(), email);
+      
+      const updatedUser = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+      
+      const user: User = {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        displayName: updatedUser.display_name,
+        passwordHash: updatedUser.password_hash,
+        createdAt: updatedUser.created_at,
+        updatedAt: updatedUser.updated_at,
+      };
+      
+      return {
+        success: true,
+        user,
+      };
+    } else {
+      // Create new user
+      const user: User = {
+        id: randomUUID(),
+        email,
+        displayName,
+        passwordHash: 'demo_hash', // Default hash for demo users
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+
+      db.prepare(`
+        INSERT INTO users (id, email, display_name, username, password_hash, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        user.id,
+        user.email,
+        user.displayName,
+        username,
+        user.passwordHash,
+        user.createdAt,
+        user.updatedAt
+      );
+
+      return {
+        success: true,
+        user,
+      };
+    }
+  } catch (error) {
+    console.error('Upsert user error:', error);
+    return {
+      success: false,
+      error: 'Failed to upsert user',
+    };
+  }
+}
+
 export async function registerUser(db: any, request: RegisterRequest): Promise<RegisterResponse> {
   try {
     // Check if user already exists

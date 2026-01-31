@@ -18,6 +18,8 @@ export const AuthSessionSchema = z.object({
 
 export const StartSessionInputSchema = z.object({
   displayName: z.string().min(1).max(64).optional(),
+  email: z.string().email().optional(),
+  username: z.string().min(1).max(64).optional(),
 });
 
 export const GetSessionResponseSchema = z.object({

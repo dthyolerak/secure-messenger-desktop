@@ -15,6 +15,9 @@ const initialState: AuthState = {
   session: null,
 };
 
+// Selector to get user from session
+export const selectUser = (state: { auth: AuthState }) => state.auth.session?.user || null;
+
 export const checkSession = createAsyncThunk(
   'auth/checkSession',
   async () => {

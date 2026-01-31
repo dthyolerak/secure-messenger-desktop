@@ -1,7 +1,6 @@
 // src/components/MessageComposer.tsx
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, Smile, X } from 'lucide-react';
-import FileUpload from './FileUpload';
+import { Send, Paperclip, Smile } from 'lucide-react';
 
 export interface MessageComposerProps {
   onSendMessage: (content: string) => void;
@@ -19,8 +18,6 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
   disabled = false,
 }) => {
   const [message, setMessage] = useState('');
-  const [showFileUpload, setShowFileUpload] = useState(false);
-  const [attachedFiles, setAttachedFiles] = useState<Array<{name: string, url: string, type: string, size: number}>>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-resize textarea based on content
@@ -53,22 +50,8 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
   };
 
   const handleFileSelect = () => {
-    setShowFileUpload(!showFileUpload);
-  };
-
-  const handleFileUploadComplete = (fileUrl: string, filename: string) => {
-    // Add file to attached files list
-    setAttachedFiles(prev => [...prev, {
-      name: filename,
-      url: fileUrl,
-      type: 'unknown', // Would be determined from file
-      size: 0 // Would be determined from file
-    }]);
-    setShowFileUpload(false);
-  };
-
-  const handleRemoveFile = (index: number) => {
-    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+    // TODO: Implement file selection
+    console.log('File selection not implemented yet');
   };
 
   const handleEmojiPicker = () => {
@@ -78,38 +61,6 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
 
   return (
     <div className="border-t border-gray-200 bg-white p-4">
-      {/* File Upload Area */}
-      {showFileUpload && (
-        <div className="mb-4">
-          <FileUpload 
-            onUploadComplete={handleFileUploadComplete}
-            className="border border-gray-200 rounded-lg"
-          />
-        </div>
-      )}
-
-      {/* Attached Files */}
-      {attachedFiles.length > 0 && (
-        <div className="mb-3 flex flex-wrap gap-2">
-          {attachedFiles.map((file, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-sm"
-            >
-              <Paperclip size={14} className="text-gray-500" />
-              <span className="text-gray-700 truncate max-w-xs">{file.name}</span>
-              <button
-                onClick={() => handleRemoveFile(index)}
-                className="text-gray-500 hover:text-red-500 transition-colors"
-                title="Remove file"
-              >
-                <X size={14} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
       <div className="flex items-end gap-2">
         {/* Left side buttons */}
         <div className="flex items-center gap-1">

@@ -8,6 +8,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import type { RootState, AppDispatch } from '../app/store';
 import { selectChat } from '../app/slices/chatsSlice';
 import { sendMessage } from '../app/slices/messagesSlice';
+import { selectUser } from '../app/slices/authSlice';
 import { syncIpcClient } from '../services/syncIpcClient';
 
 /**
@@ -21,7 +22,7 @@ const MainLayout: React.FC = () => {
   const selectedChatId = useSelector((s: RootState) => s.chats.selectedChatId);
   const chats = useSelector((s: RootState) => s.chats.items);
   const messagesByChat = useSelector((s: RootState) => s.messages.byChatId);
-  const user = useSelector((s: RootState) => s.auth.user);
+  const user = useSelector(selectUser);
 
   const handleSelectChat = React.useCallback(
     (chatId: string) => {
@@ -30,23 +31,41 @@ const MainLayout: React.FC = () => {
       // Mark messages as read when chat is opened
       const selectedChat = chats.find((c) => c.id === chatId);
       if (selectedChat && selectedChat.unreadCount > 0) {
-        syncIpcClient.markMessagesRead(chatId).catch(error => {
+        syncIpcClient.markMessagesRead(chatId, user?.username || 'You').catch(error => {
           console.error('Failed to mark messages as read:', error);
         });
       }
     },
-    [dispatch, chats],
+    [dispatch, chats, user?.username],
   );
 
   const selectedChat = chats.find((c) => c.id === selectedChatId);
   const selectedMessages = selectedChatId ? messagesByChat[selectedChatId] ?? [] : [];
 
   const handleSendMessage = React.useCallback(
-    (chatId: string, content: string) => {
+    async (chatId: string, content: string) => {
       if (!user?.username) return;
-      dispatch(sendMessage({ chatId, content, sender: user.username }));
+      const sender = user.username;
+      const recipient = selectedChat?.userId || selectedChat?.name || 'Unknown';
+      dispatch(sendMessage({ chatId, content, sender, recipient }));
     },
-    [dispatch, user?.username],
+    [dispatch, user?.username, selectedChat?.userId, selectedChat?.name],
+  );
+
+  const handleCreateChat = React.useCallback(
+    async (userId: string) => {
+      try {
+        // Create or get direct chat with the selected user
+        const currentUserId = user?.id || 'current_user';
+        const chat = await syncIpcClient.getOrCreateDirectChat(currentUserId, userId);
+        if (chat && chat.success) {
+          dispatch(selectChat(chat.data.id));
+        }
+      } catch (error) {
+        console.error('Failed to create chat:', error);
+      }
+    },
+    [dispatch, user?.id],
   );
 
   return (
@@ -60,6 +79,8 @@ const MainLayout: React.FC = () => {
           <ChatList
             selectedChatId={selectedChatId}
             onSelectChat={handleSelectChat}
+            onCreateChat={handleCreateChat}
+            currentUserId={user?.id || 'current_user'}
           />
         </aside>
 

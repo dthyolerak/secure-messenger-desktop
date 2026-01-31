@@ -5,6 +5,7 @@ export interface User {
   id: string;
   email: string;
   displayName: string;
+  username?: string;
   passwordHash: string;
   createdAt: number;
   updatedAt: number;
@@ -54,4 +55,6 @@ export type AuthIpcChannel =
 // Legacy compatibility
 export interface StartSessionPayload {
   displayName?: string;
+  email?: string;
+  username?: string;
 }

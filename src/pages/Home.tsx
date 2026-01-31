@@ -8,7 +8,7 @@ import TopNavbar from '../components/TopNavbar';
 import { selectChat } from '../app/slices/chatsSlice';
 import { useKeyboardShortcuts, createAppShortcuts } from '../hooks/useKeyboardShortcuts';
 import type { ChatItem } from '../app/slices/chatsSlice';
-import type { MessageItem } from '../components/MessageThread';
+import type { MessageItem } from '../domains/messages/messages.types';
 
 const Home: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();

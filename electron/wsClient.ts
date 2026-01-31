@@ -14,8 +14,11 @@ export interface MessageEvent {
   id: string;
   chat_id: string;
   sender: string;
+  recipient: string;
   content: string;
   timestamp: number;
+  read_at?: number | null;
+  is_edited?: boolean;
 }
 
 export interface ChatUpdateEvent {

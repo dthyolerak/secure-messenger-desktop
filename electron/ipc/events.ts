@@ -2,55 +2,46 @@
 import { ipcMain, webContents, Notification, BrowserWindow } from 'electron';
 import { z } from 'zod';
 
-// IPC event names for sync operations
+// IPC Event Names - typed and secure
 export const IPC_EVENTS = {
-  // Connection status
-  GET_CONNECTION_STATUS: 'sync:get-connection-status',
-  
-  // Messages
-  GET_MESSAGES: 'sync:get-messages',
-  SEND_MESSAGE: 'sync:send-message',
-  MARK_MESSAGES_READ: 'sync:mark-messages-read',
-  
-  // Chats
-  GET_CHATS: 'sync:get-chats',
-  GET_USER_CHATS: 'sync:get-user-chats',
-  
-  // Users
-  GET_OR_CREATE_USER: 'sync:get-or-create-user',
-  GET_OR_CREATE_DIRECT_CHAT: 'sync:get-or-create-direct-chat',
-  
-  // File attachments
-  ADD_MESSAGE_ATTACHMENT: 'sync:add-message-attachment',
-  GET_MESSAGE_ATTACHMENTS: 'sync:get-message-attachments',
-  
-  // Events (emitted from main to renderer)
+  // Connection status events
   CONNECTION_STATUS: 'sync:connection-status',
   CONNECTION_CONNECTED: 'sync:connection-connected',
   CONNECTION_DISCONNECTED: 'sync:connection-disconnected',
+  
+  // Message events
   MESSAGE_INSERTED: 'sync:message-inserted',
   MESSAGE_UPDATED: 'sync:message-updated',
   MESSAGE_DELETED: 'sync:message-deleted',
+  
+  // Chat events
   CHAT_UPDATED: 'sync:chat-updated',
   CHAT_LIST_UPDATED: 'sync:chat-list-updated',
+  
+  // Request/response channels (for renderer to main)
+  GET_CONNECTION_STATUS: 'sync:get-connection-status',
+  GET_MESSAGES: 'sync:get-messages',
+  GET_CHATS: 'sync:get-chats',
+  MARK_MESSAGES_READ: 'sync:mark-messages-read',
+  SEND_MESSAGE: 'sync:send-message',
 } as const;
 
 // Event payload schemas for validation
 export const MessageInsertedPayloadSchema = z.object({
   id: z.string(),
   chat_id: z.string(),
-  sender_id: z.string(),
-  sender_name: z.string(),
+  sender: z.string(),
+  recipient: z.string(),
   content: z.string(),
   timestamp: z.number(),
-  is_read: z.boolean(),
-  is_edited: z.boolean(),
+  read_at: z.number().nullable().optional(),
+  is_read: z.boolean().optional(),
+  is_edited: z.boolean().optional(),
 });
 
 export const ChatUpdatedPayloadSchema = z.object({
   id: z.string(),
   name: z.string(),
-  type: z.string(),
   last_message: z.string().optional(),
   updated_at: z.number(),
   unread_count: z.number(),
@@ -66,46 +57,6 @@ export const ConnectionStatusPayloadSchema = z.object({
  * Secure IPC event emitter - only emits validated data
  */
 export class SyncIPCEmitter {
-  /**
-   * Show desktop notification for new message
-   */
-  static showDesktopNotification(chatName: string, senderName: string, content: string, chatId: string): void {
-    try {
-      if (!Notification.isSupported()) {
-        console.log('[IPC] Desktop notifications not supported');
-        return;
-      }
-
-      const notification = new Notification({
-        title: `New message from ${senderName}`,
-        body: `${chatName}: ${content.substring(0, 100)}${content.length > 100 ? '...' : ''}`,
-        silent: false,
-        icon: undefined, // Could add app icon here
-      });
-
-      // Handle notification click
-      notification.on('click', () => {
-        // Focus the main window and emit event to open chat
-        const windows = BrowserWindow.getAllWindows();
-        if (windows.length > 0) {
-          const mainWindow = windows[0];
-          if (mainWindow) {
-            mainWindow.show();
-            mainWindow.focus();
-            // Send event to renderer to open the specific chat
-            mainWindow.webContents.send('sync:open-chat', { chatId });
-          }
-        }
-        notification.close();
-      });
-
-      notification.show();
-      console.log(`[IPC] Desktop notification shown for chat ${chatId}`);
-    } catch (error) {
-      console.error('[IPC] Failed to show desktop notification:', error);
-    }
-  }
-
   /**
    * Emit message inserted event to all renderer windows
    */
@@ -208,11 +159,53 @@ export class SyncIPCEmitter {
    * Emit message deleted event
    */
   static emitMessageDeleted(messageId: string): void {
+    const payload = { messageId };
+    
     webContents.getAllWebContents().forEach(contents => {
       contents.send(IPC_EVENTS.MESSAGE_DELETED, { messageId });
     });
     
     console.log(`[IPC] Message deleted event sent: ${messageId}`);
+  }
+
+  /**
+   * Show desktop notification for new message
+   */
+  static showDesktopNotification(message: unknown, chatName: string): void {
+    try {
+      const validated = MessageInsertedPayloadSchema.parse(message);
+      
+      // Only show notification for messages from other users to current user
+      if (validated.recipient === 'You' && validated.sender !== 'You') {
+        const notification = new Notification({
+          title: validated.sender,
+          body: validated.content,
+          subtitle: chatName,
+          silent: false,
+        });
+
+        notification.on('click', () => {
+          // Focus the main window and emit event to open the chat
+          const windows = BrowserWindow.getAllWindows();
+          if (windows.length > 0) {
+            const mainWindow = windows[0];
+            if (mainWindow) {
+              mainWindow.show();
+              mainWindow.focus();
+              // Send IPC event to renderer to open the specific chat
+              if (mainWindow.webContents) {
+                mainWindow.webContents.send('sync:open-chat', validated.chat_id);
+              }
+            }
+          }
+        });
+
+        notification.show();
+        console.log(`[Notification] Desktop notification sent for message: ${validated.id}`);
+      }
+    } catch (error) {
+      console.error('[Notification] Failed to show desktop notification:', error);
+    }
   }
 }
 
@@ -220,164 +213,68 @@ export class SyncIPCEmitter {
  * Register IPC handlers for renderer requests
  */
 export function registerSyncIPCHandlers(syncQueries: any): void {
+  console.log('[IPC] Starting registration of sync IPC handlers...');
+  
+  if (!syncQueries) {
+    console.error('[IPC] syncQueries parameter is null/undefined');
+    return;
+  }
+  
+  console.log('[IPC] syncQueries parameter is valid, registering handlers...');
+  // Get connection status - Note: This is handled by main.ts, so we skip registration here
+  // ipcMain.handle(IPC_EVENTS.GET_CONNECTION_STATUS, () => {
+  //   // This will be handled by the main sync service
+  //   return { status: 'offline' }; // Default fallback
+  // });
+
   // Get messages for a chat
-  ipcMain.handle(IPC_EVENTS.GET_MESSAGES, async (event, { chatId, userId, limit, offset }) => {
+  ipcMain.handle(IPC_EVENTS.GET_MESSAGES, async (event, { chatId, limit, offset, currentUser }) => {
+    console.log('[IPC] GET_MESSAGES handler called for chatId:', chatId);
     try {
-      if (!chatId || !userId) {
-        throw new Error('chatId and userId are required');
+      if (!chatId) {
+        throw new Error('chatId is required');
       }
       
       const messages = await syncQueries.getMessagesForChat(
-        chatId, 
-        userId,
-        limit || 50, 
-        offset || 0
+        chatId,
+        limit || 50,
+        offset || 0,
+        currentUser
       );
       
+      console.log('[IPC] GET_MESSAGES retrieved', messages.length, 'messages');
       return { success: true, data: messages };
     } catch (error) {
       console.error('[IPC] Get messages failed:', error);
       return { success: false, error: 'Failed to get messages' };
     }
   });
+  console.log('[IPC] GET_MESSAGES handler registered');
 
   // Get all chats
   ipcMain.handle(IPC_EVENTS.GET_CHATS, async () => {
     try {
-      console.log('[IPC] Getting all chats...');
-      console.log('[IPC] SyncQueries available:', !!syncQueries);
-      
-      if (!syncQueries) {
-        console.error('[IPC] SyncQueries not initialized');
-        return { success: false, error: 'Database not initialized' };
-      }
-      
       const chats = await syncQueries.getAllChats();
-      console.log(`[IPC] Retrieved ${chats.length} chats from database`);
-      
-      // If no chats, return empty response with proper structure
-      if (chats.length === 0) {
-        console.log('[IPC] No chats found, returning empty response');
-        return { 
-          success: true, 
-          data: {
-            chats: [],
-            total: 0,
-            hasMore: false
-          }
-        };
-      }
-      
-      const response = { 
-        success: true, 
-        data: {
-          chats: chats.map((chat: any) => ({
-            id: chat.id,
-            name: chat.name,
-            last_message: chat.last_message,
-            updated_at: chat.updated_at,
-            unread_count: chat.unread_count || 0,
-          })),
-          total: chats.length,
-          hasMore: false
-        }
-      };
-      
-      console.log('[IPC] Sending response:', JSON.stringify(response, null, 2));
-      return response;
+      return { success: true, data: chats };
     } catch (error) {
       console.error('[IPC] Get chats failed:', error);
-      console.error('[IPC] Error details:', error instanceof Error ? error.stack : String(error));
       return { success: false, error: 'Failed to get chats' };
     }
   });
 
-  // Get user chats
-  ipcMain.handle(IPC_EVENTS.GET_USER_CHATS, async (event, { userId }) => {
-    try {
-      if (!userId) {
-        throw new Error('userId is required');
-      }
-      
-      const chats = await syncQueries.getUserChats(userId);
-      return { success: true, data: chats };
-    } catch (error) {
-      console.error('[IPC] Get user chats failed:', error);
-      return { success: false, error: 'Failed to get user chats' };
-    }
-  });
-
-  // Add message attachment
-  ipcMain.handle(IPC_EVENTS.ADD_MESSAGE_ATTACHMENT, async (event, { messageId, filename, fileUrl, fileType, fileSize }) => {
-    try {
-      if (!messageId || !filename || !fileUrl || !fileType) {
-        throw new Error('messageId, filename, fileUrl, and fileType are required');
-      }
-      
-      const success = await syncQueries.addMessageAttachment(messageId, filename, fileUrl, fileType, fileSize);
-      return { success, error: success ? null : 'Failed to add attachment' };
-    } catch (error) {
-      console.error('[IPC] Add message attachment failed:', error);
-      return { success: false, error: 'Failed to add message attachment' };
-    }
-  });
-
-  // Get message attachments
-  ipcMain.handle(IPC_EVENTS.GET_MESSAGE_ATTACHMENTS, async (event, { messageId }) => {
-    try {
-      if (!messageId) {
-        throw new Error('messageId is required');
-      }
-      
-      const attachments = await syncQueries.getMessageAttachments(messageId);
-      return { success: true, data: attachments };
-    } catch (error) {
-      console.error('[IPC] Get message attachments failed:', error);
-      return { success: false, error: 'Failed to get message attachments' };
-    }
-  });
-
-  // Get or create user
-  ipcMain.handle(IPC_EVENTS.GET_OR_CREATE_USER, async (event, { email, displayName }) => {
-    try {
-      if (!email || !displayName) {
-        throw new Error('email and displayName are required');
-      }
-      
-      const user = await syncQueries.getOrCreateUser(email, displayName);
-      return { success: true, data: user };
-    } catch (error) {
-      console.error('[IPC] Get or create user failed:', error);
-      return { success: false, error: 'Failed to get or create user' };
-    }
-  });
-
-  // Get or create direct chat
-  ipcMain.handle(IPC_EVENTS.GET_OR_CREATE_DIRECT_CHAT, async (event, { userId1, userId2 }) => {
-    try {
-      if (!userId1 || !userId2) {
-        throw new Error('userId1 and userId2 are required');
-      }
-      
-      const chat = await syncQueries.getOrCreateDirectChat(userId1, userId2);
-      return { success: true, data: chat };
-    } catch (error) {
-      console.error('[IPC] Get or create direct chat failed:', error);
-      return { success: false, error: 'Failed to get or create direct chat' };
-    }
-  });
-
   // Mark messages as read
-  ipcMain.handle(IPC_EVENTS.MARK_MESSAGES_READ, async (event, { chatId, userId }) => {
+  ipcMain.handle(IPC_EVENTS.MARK_MESSAGES_READ, async (event, { chatId, currentUser }) => {
+    console.log('[IPC] MARK_MESSAGES_READ handler called for chatId:', chatId);
     try {
-      if (!chatId || !userId) {
-        throw new Error('chatId and userId are required');
+      if (!chatId) {
+        throw new Error('chatId is required');
       }
       
-      const count = await syncQueries.markMessagesAsRead(chatId, userId);
+      const count = await syncQueries.markMessagesAsRead(chatId, currentUser);
+      console.log('[IPC] MARK_MESSAGES_READ marked', count, 'messages as read');
       
       // After marking messages as read, emit chat update to refresh UI
-      const chats = await syncQueries.getUserChats(userId);
+      const chats = await syncQueries.getAllChats();
       const updatedChat = chats.find((c: any) => c.id === chatId);
       if (updatedChat) {
         SyncIPCEmitter.emitChatUpdated(updatedChat);
@@ -391,28 +288,48 @@ export function registerSyncIPCHandlers(syncQueries: any): void {
   });
 
   // Send message (outgoing)
-  ipcMain.handle(IPC_EVENTS.SEND_MESSAGE, async (event, { chatId, senderId, content }) => {
+  ipcMain.handle(IPC_EVENTS.SEND_MESSAGE, async (event, { chatId, content, sender, recipient }) => {
     try {
-      if (!chatId || !senderId || !content) {
-        throw new Error('chatId, senderId, and content are required');
+      if (!chatId || !content || !sender || !recipient) {
+        throw new Error('chatId, content, sender, and recipient are required');
       }
       
-      // Send message and persist to database
-      const message = await syncQueries.sendMessage(chatId, senderId, content);
+      // Create message object
+      const timestamp = Date.now();
+      const message = {
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        chat_id: chatId,
+        sender,
+        recipient,
+        content,
+        timestamp,
+        read_at: timestamp,
+        is_edited: false,
+      };
       
-      if (message) {
-        // Get sender info for the message
-        const sender = await syncQueries.getUserById(senderId);
-        const messageWithSender = {
-          ...message,
-          sender_name: sender?.display_name || 'Unknown',
-          is_read: true, // Sender's messages are always read by them
-        };
-        
+      console.log('[IPC] Attempting to insert message:', message);
+      
+      // Insert into database
+      const inserted = await syncQueries.insertMessage(message, sender);
+      
+      console.log('[IPC] Message insert result:', inserted);
+      
+      if (inserted) {
         // Emit to renderer
-        SyncIPCEmitter.emitMessageInserted(messageWithSender);
-        return { success: true, data: messageWithSender };
+        SyncIPCEmitter.emitMessageInserted(message);
+        
+        // Get updated chat data and emit chat update to trigger reordering
+        const chats = await syncQueries.getAllChats();
+        const updatedChat = chats.find((c: any) => c.id === chatId);
+        if (updatedChat) {
+          SyncIPCEmitter.emitChatUpdated(updatedChat);
+        }
+        SyncIPCEmitter.emitChatListUpdated();
+        
+        console.log('[IPC] Message sent successfully:', message.id);
+        return { success: true, data: message };
       } else {
+        console.log('[IPC] Message insertion returned false - likely duplicate or validation failed');
         return { success: false, error: 'Failed to send message' };
       }
     } catch (error) {
