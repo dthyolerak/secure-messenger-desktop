@@ -10,6 +10,15 @@ export interface FileAttachmentProps {
   onDownload?: (localPath: string) => void;
 }
 
+const toFileUrl = (filePath: string): string => {
+  if (!filePath) return '';
+  if (filePath.startsWith('file://')) return filePath;
+  const normalized = filePath.replace(/\\/g, '/');
+  const isWindowsPath = /^[a-zA-Z]:\//.test(normalized);
+  const prefix = isWindowsPath ? 'file:///' : 'file://';
+  return encodeURI(`${prefix}${normalized}`);
+};
+
 const FileAttachment: React.FC<FileAttachmentProps> = ({
   fileName,
   fileSize,
@@ -38,7 +47,7 @@ const FileAttachment: React.FC<FileAttachmentProps> = ({
     return (
       <div className="file-attachment file-attachment-image">
         <img
-          src={`file://${localPath}`}
+          src={toFileUrl(localPath)}
           alt={fileName}
           className="file-attachment-preview"
           loading="lazy"

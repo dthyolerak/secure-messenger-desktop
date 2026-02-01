@@ -1,5 +1,5 @@
 // electron/ipc/events.ts
-import { ipcMain, webContents, Notification, BrowserWindow, dialog } from 'electron';
+import { app, ipcMain, webContents, Notification, BrowserWindow, dialog } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 import { z } from 'zod';
@@ -106,6 +106,10 @@ const ToggleReactionSchema = z.object({
   emoji: z.string().min(1),
 });
 
+const SelectAttachmentSchema = z.object({
+  currentUser: z.string().optional(),
+});
+
 const MIME_TYPE_OVERRIDES: Record<string, string> = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
@@ -116,6 +120,9 @@ const MIME_TYPE_OVERRIDES: Record<string, string> = {
   '.pdf': 'application/pdf',
 };
 
+const DEFAULT_CURRENT_USER = 'You';
+const INVALID_PATH_SEGMENT = /[<>:"/\\|?*\x00-\x1F]/g;
+
 function inferMimeType(filePath: string): string {
   const extension = path.extname(filePath).toLowerCase();
   return MIME_TYPE_OVERRIDES[extension] ?? 'application/octet-stream';
@@ -123,6 +130,15 @@ function inferMimeType(filePath: string): string {
 
 function inferAttachmentType(mimeType: string): 'image' | 'file' {
   return mimeType.startsWith('image/') ? 'image' : 'file';
+}
+
+function sanitizePathSegment(value: string, fallback: string): string {
+  const sanitized = value.replace(INVALID_PATH_SEGMENT, '_').trim();
+  return sanitized.length > 0 ? sanitized : fallback;
+}
+
+function resolveUploadsBasePath(): string {
+  return app.isPackaged ? app.getPath('userData') : app.getAppPath();
 }
 
 export const ChatUpdatedPayloadSchema = z.object({
@@ -289,7 +305,11 @@ export class SyncIPCEmitter {
   /**
    * Show desktop notification for new message
    */
-  static showDesktopNotification(message: unknown, chatName: string): void {
+  static showDesktopNotification(
+    message: unknown,
+    chatName: string,
+    currentUser: string = DEFAULT_CURRENT_USER,
+  ): void {
     try {
       const validated = MessageInsertedPayloadSchema.parse(message);
       const previewText =
@@ -301,7 +321,7 @@ export class SyncIPCEmitter {
             : '');
       
       // Only show notification for messages from other users to current user
-      if (validated.recipient === 'You' && validated.sender !== 'You') {
+      if (validated.recipient === currentUser && validated.sender !== currentUser) {
         const notification = new Notification({
           title: validated.sender,
           body: previewText,
@@ -538,8 +558,13 @@ export function registerSyncIPCHandlers(syncQueries: any): void {
     }
   });
 
-  ipcMain.handle(IPC_EVENTS.SELECT_ATTACHMENT, async () => {
+  ipcMain.handle(IPC_EVENTS.SELECT_ATTACHMENT, async (_event, rawPayload) => {
     try {
+      const parsed = SelectAttachmentSchema.safeParse(rawPayload ?? {});
+      if (!parsed.success) {
+        throw new Error('Invalid select attachment payload');
+      }
+      const currentUser = parsed.data.currentUser ?? DEFAULT_CURRENT_USER;
       const result = await dialog.showOpenDialog({
         properties: ['openFile'],
         filters: [
@@ -553,19 +578,32 @@ export function registerSyncIPCHandlers(syncQueries: any): void {
         return { success: false, error: 'No file selected' };
       }
 
-      const [filePath] = result.filePaths;
-      if (!filePath) {
+      const [sourcePath] = result.filePaths;
+      if (!sourcePath) {
         return { success: false, error: 'No file selected' };
       }
-      const fileName = path.basename(filePath);
-      const stats = fs.statSync(filePath);
-      const mimeType = inferMimeType(filePath);
+      const fileName = path.basename(sourcePath);
+      const stats = await fs.promises.stat(sourcePath);
+      const mimeType = inferMimeType(sourcePath);
       const type = inferAttachmentType(mimeType);
+
+      const safeUser = sanitizePathSegment(currentUser, DEFAULT_CURRENT_USER);
+      const uploadsBasePath = resolveUploadsBasePath();
+      const uploadDir = path.join(uploadsBasePath, 'public', 'uploads', safeUser);
+      await fs.promises.mkdir(uploadDir, { recursive: true });
+
+      let destinationPath = path.join(uploadDir, fileName);
+      if (fs.existsSync(destinationPath)) {
+        const { name, ext } = path.parse(fileName);
+        destinationPath = path.join(uploadDir, `${name}-${Date.now()}${ext}`);
+      }
+
+      await fs.promises.copyFile(sourcePath, destinationPath);
 
       return {
         success: true,
         data: {
-          filePath,
+          filePath: destinationPath,
           fileName,
           fileSize: stats.size,
           mimeType,

@@ -189,9 +189,11 @@ class SyncIpcClient {
   /**
    * Select a local file attachment
    */
-  async selectAttachment(): Promise<{ success: boolean; data?: MessageAttachmentPayload; error?: string }> {
+  async selectAttachment(
+    currentUser?: string,
+  ): Promise<{ success: boolean; data?: MessageAttachmentPayload; error?: string }> {
     try {
-      return await this.api.selectAttachment();
+      return await this.api.selectAttachment(currentUser);
     } catch (error) {
       console.error('Failed to select attachment:', error);
       throw error;
@@ -265,6 +267,13 @@ class SyncIpcClient {
    */
   onMessageReactionsUpdated(callback: (payload: { messageId: string; reactions: MessageReaction[] }) => void): void {
     this.api.onMessageReactionsUpdated(callback);
+  }
+
+  /**
+   * Subscribe to message insertion updates
+   */
+  onMessageInserted(callback: (message: any) => void): void {
+    this.api.onMessageInserted(callback);
   }
 
   /**

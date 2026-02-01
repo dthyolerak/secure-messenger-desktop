@@ -211,9 +211,9 @@ const syncApi = {
 
 
 
-  async selectAttachment() {
+  async selectAttachment(currentUser?: string) {
 
-    const raw = await ipcRenderer.invoke(IPC_EVENTS.SELECT_ATTACHMENT);
+    const raw = await ipcRenderer.invoke(IPC_EVENTS.SELECT_ATTACHMENT, { currentUser });
     const responseSchema = z.object({
       success: z.boolean(),
       data: z

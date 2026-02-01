@@ -391,14 +391,14 @@
   .h-full {
     height: 100%;
   }
-  .h-screen {
-    height: 100vh;
-  }
   .max-h-60 {
     max-height: calc(var(--spacing) * 60);
   }
   .max-h-\[100px\] {
     max-height: 100px;
+  }
+  .min-h-0 {
+    min-height: calc(var(--spacing) * 0);
   }
   .min-h-\[40px\] {
     min-height: 40px;
@@ -584,6 +584,9 @@
   }
   .overflow-hidden {
     overflow: hidden;
+  }
+  .overflow-x-visible {
+    overflow-x: visible;
   }
   .overflow-y-auto {
     overflow-y: auto;
@@ -1179,6 +1182,16 @@
   .disabled\:opacity-50 {
     &:disabled {
       opacity: 50%;
+    }
+  }
+  .sm\:items-center {
+    @media (width >= 40rem) {
+      align-items: center;
+    }
+  }
+  .sm\:p-8 {
+    @media (width >= 40rem) {
+      padding: calc(var(--spacing) * 8);
     }
   }
   .md\:grid-cols-2 {

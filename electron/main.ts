@@ -188,7 +188,7 @@ async function handleSyncEvent(event: any): Promise<void> {
             const chats = await syncQueries.getAllChats();
             const chat = chats.find((c: any) => c.id === event.payload.chat_id);
             if (chat) {
-              SyncIPCEmitter.showDesktopNotification(fullMessage, chat.name);
+              SyncIPCEmitter.showDesktopNotification(fullMessage, chat.name, currentUser);
             }
           }
           
@@ -238,6 +238,8 @@ function createMainWindow(): void {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
+      webSecurity: true,
     },
   });
 
@@ -250,6 +252,9 @@ function createMainWindow(): void {
 }
 
 app.whenReady().then(async () => {
+  if (process.platform === 'win32') {
+    app.setAppUserModelId(app.getName());
+  }
   // Initialize database first
   initializeDatabase();
   

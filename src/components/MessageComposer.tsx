@@ -1,14 +1,25 @@
 // src/components/MessageComposer.tsx
 import React, { useState, useEffect } from 'react';
 import { Send, Paperclip, Smile, X, FileText } from 'lucide-react';
+import { useSelector } from 'react-redux';
 import { syncIpcClient } from '../services/syncIpcClient';
 import type { MessageAttachmentPayload } from '../domains/messages/messages.types';
+import type { RootState } from '../app/store';
 
 export interface MessageComposerProps {
   onSendMessage: (content: string, attachment?: MessageAttachmentPayload) => void;
   placeholder?: string;
   disabled?: boolean;
 }
+
+const toFileUrl = (filePath: string): string => {
+  if (!filePath) return '';
+  if (filePath.startsWith('file://')) return filePath;
+  const normalized = filePath.replace(/\\/g, '/');
+  const isWindowsPath = /^[a-zA-Z]:\//.test(normalized);
+  const prefix = isWindowsPath ? 'file:///' : 'file://';
+  return encodeURI(`${prefix}${normalized}`);
+};
 
 /**
  * Message composer with Teams-style layout.
@@ -24,6 +35,7 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [rows, setRows] = useState(1);
   const emojiOptions = ['😀', '😂', '😍', '👍', '🎉', '🔥', '😢', '😮', '🤔', '🙏'];
+  const currentUser = useSelector((s: RootState) => s.auth.user?.username || 'You');
 
   // Auto-resize textarea based on content (row-based to avoid inline styles)
   useEffect(() => {
@@ -65,7 +77,7 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
   const handleFileSelect = async () => {
     if (disabled) return;
     try {
-      const result = await syncIpcClient.selectAttachment();
+      const result = await syncIpcClient.selectAttachment(currentUser);
       if (result.success && result.data) {
         setAttachment(result.data);
       }
@@ -93,12 +105,12 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
   };
 
   return (
-    <div className="border-t border-gray-200 bg-white p-4">
+    <div className="border-t border-gray-200 bg-white p-4 flex-shrink-0">
       {attachment && (
         <div className="mb-2 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
           {attachment.type === 'image' ? (
             <img
-              src={`file://${attachment.filePath}`}
+              src={toFileUrl(attachment.filePath)}
               alt={attachment.fileName}
               className="h-12 w-12 rounded object-cover"
             />

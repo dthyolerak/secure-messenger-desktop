@@ -4199,6 +4199,9 @@ var ToggleReactionSchema = external_exports.object({
   userId: external_exports.string(),
   emoji: external_exports.string().min(1)
 });
+var SelectAttachmentSchema = external_exports.object({
+  currentUser: external_exports.string().optional()
+});
 var ChatUpdatedPayloadSchema = external_exports.object({
   id: external_exports.string(),
   name: external_exports.string(),
@@ -4292,8 +4295,8 @@ var syncApi = {
       attachment
     });
   },
-  async selectAttachment() {
-    const raw = await import_electron2.ipcRenderer.invoke(IPC_EVENTS.SELECT_ATTACHMENT);
+  async selectAttachment(currentUser) {
+    const raw = await import_electron2.ipcRenderer.invoke(IPC_EVENTS.SELECT_ATTACHMENT, { currentUser });
     const responseSchema = external_exports.object({
       success: external_exports.boolean(),
       data: external_exports.object({

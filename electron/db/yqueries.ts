@@ -2,6 +2,8 @@
 import { Database } from 'better-sqlite3';
 import { z } from 'zod';
 
+const DEFAULT_CURRENT_USER = 'You';
+
 // Zod schemas for validation
 const MessageEventSchema = z.object({
   id: z.string(),
@@ -30,6 +32,12 @@ const ChatUpdateEventSchema = z.object({
 
 export class SyncQueries {
   constructor(private db: Database) {}
+
+  private resolveUserAliases(currentUser: string): [string, string] {
+    const primaryUser = currentUser?.trim() || DEFAULT_CURRENT_USER;
+    const fallbackUser = DEFAULT_CURRENT_USER;
+    return [primaryUser, fallbackUser];
+  }
 
   private getMessageReactions(messageIds: string[], currentUser: string): Record<string, any[]> {
     if (messageIds.length === 0) {
@@ -261,10 +269,10 @@ export class SyncQueries {
     try {
       const messages = this.db.prepare(`
         SELECT * FROM messages 
-        WHERE chat_id = ? AND (sender = ? OR recipient = ?)
+        WHERE chat_id = ?
         ORDER BY timestamp ASC 
         LIMIT ? OFFSET ?
-      `).all(chatId, currentUser, currentUser, limit, offset);
+      `).all(chatId, limit, offset);
 
       const messageIds = messages.map((msg: any) => msg.id);
       const reactions = this.getMessageReactions(messageIds, currentUser);
@@ -294,14 +302,13 @@ export class SyncQueries {
         SELECT m.*, c.name as chat_name
         FROM messages m
         INNER JOIN chats c ON m.chat_id = c.id
-        WHERE (m.sender = ? OR m.recipient = ?)
-          AND (
-            LOWER(m.content) LIKE ?
-            OR LOWER(COALESCE(m.file_name, '')) LIKE ?
-          )
+        WHERE (
+          LOWER(m.content) LIKE ?
+          OR LOWER(COALESCE(m.file_name, '')) LIKE ?
+        )
         ORDER BY m.timestamp DESC
         LIMIT ? OFFSET ?
-      `).all(currentUser, currentUser, searchPattern, searchPattern, limit, offset);
+      `).all(searchPattern, searchPattern, limit, offset);
 
       const messageIds = messages.map((msg: any) => msg.id);
       const reactions = this.getMessageReactions(messageIds, currentUser);
@@ -448,17 +455,18 @@ export class SyncQueries {
   async markMessagesAsRead(chatId: string, currentUser: string = 'You'): Promise<number> {
     try {
       const readAt = Date.now();
+      const [primaryUser, fallbackUser] = this.resolveUserAliases(currentUser);
       const result = this.db.prepare(`
         UPDATE messages 
         SET read_at = ? 
-        WHERE chat_id = ? AND recipient = ? AND read_at IS NULL
-      `).run(readAt, chatId, currentUser);
+        WHERE chat_id = ? AND recipient IN (?, ?) AND read_at IS NULL
+      `).run(readAt, chatId, primaryUser, fallbackUser);
 
       // Update chat unread count to reflect only unread messages for current user
       const unreadCount = this.db.prepare(`
         SELECT COUNT(*) as count FROM messages 
-        WHERE chat_id = ? AND recipient = ? AND read_at IS NULL
-      `).get(chatId, currentUser) as { count: number };
+        WHERE chat_id = ? AND recipient IN (?, ?) AND read_at IS NULL
+      `).get(chatId, primaryUser, fallbackUser) as { count: number };
 
       this.db.prepare(`
         UPDATE chats 
@@ -479,12 +487,13 @@ export class SyncQueries {
    */
   async getUnreadCounts(currentUser: string = 'You'): Promise<Record<string, number>> {
     try {
+      const [primaryUser, fallbackUser] = this.resolveUserAliases(currentUser);
       const unreadCounts = this.db.prepare(`
         SELECT chat_id, COUNT(*) as count
         FROM messages 
-        WHERE read_at IS NULL AND recipient = ?
+        WHERE read_at IS NULL AND recipient IN (?, ?)
         GROUP BY chat_id
-      `).all(currentUser);
+      `).all(primaryUser, fallbackUser);
 
       const result: Record<string, number> = {};
       unreadCounts.forEach((row: any) => {

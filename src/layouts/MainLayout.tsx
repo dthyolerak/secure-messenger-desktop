@@ -9,7 +9,6 @@ import type { RootState, AppDispatch } from '../app/store';
 import { selectChat } from '../app/slices/chatsSlice';
 import { sendMessage } from '../app/slices/messagesSlice';
 import type { MessageAttachmentPayload } from '../domains/messages/messages.types';
-import { selectUser } from '../app/slices/authSlice';
 import { syncIpcClient } from '../services/syncIpcClient';
 
 /**
@@ -23,7 +22,7 @@ const MainLayout: React.FC = () => {
   const selectedChatId = useSelector((s: RootState) => s.chats.selectedChatId);
   const chats = useSelector((s: RootState) => s.chats.items);
   const messagesByChat = useSelector((s: RootState) => s.messages.byChatId);
-  const user = useSelector(selectUser);
+  const user = useSelector((s: RootState) => s.auth.user);
 
   const handleSelectChat = React.useCallback(
     (chatId: string) => {
@@ -70,13 +69,13 @@ const MainLayout: React.FC = () => {
   );
 
   return (
-    <div className="flex h-screen bg-gray-light">
-      <div className="flex flex-1">
+    <div className="flex flex-1 min-h-0 bg-gray-light">
+      <div className="flex flex-1 min-h-0">
         {/* Left Sidebar - Fixed narrow column */}
         <Sidebar />
 
         {/* Chat List Panel - Scrollable, virtualized */}
-        <aside className="w-80 bg-white border-r border-gray-200 flex flex-col">
+        <aside className="w-80 bg-white border-r border-gray-200 flex flex-col min-h-0">
           <ChatList
             selectedChatId={selectedChatId}
             onSelectChat={handleSelectChat}
@@ -86,7 +85,7 @@ const MainLayout: React.FC = () => {
         </aside>
 
         {/* Message Thread Panel - Main content area */}
-        <section className="flex-1 flex flex-col bg-white">
+        <section className="flex-1 flex flex-col bg-white min-h-0">
           <MessageThread
             chatId={selectedChatId}
             chatName={selectedChat?.name}

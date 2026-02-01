@@ -4785,6 +4785,7 @@ var WebSocketClient = class extends import_events.EventEmitter {
 };
 
 // electron/db/yqueries.ts
+var DEFAULT_CURRENT_USER = "You";
 var MessageEventSchema = external_exports.object({
   id: external_exports.string(),
   chat_id: external_exports.string(),
@@ -4811,6 +4812,11 @@ var ChatUpdateEventSchema = external_exports.object({
 var SyncQueries = class {
   constructor(db2) {
     this.db = db2;
+  }
+  resolveUserAliases(currentUser) {
+    const primaryUser = currentUser?.trim() || DEFAULT_CURRENT_USER;
+    const fallbackUser = DEFAULT_CURRENT_USER;
+    return [primaryUser, fallbackUser];
   }
   getMessageReactions(messageIds, currentUser) {
     if (messageIds.length === 0) {
@@ -4985,10 +4991,10 @@ var SyncQueries = class {
     try {
       const messages = this.db.prepare(`
         SELECT * FROM messages 
-        WHERE chat_id = ? AND (sender = ? OR recipient = ?)
+        WHERE chat_id = ?
         ORDER BY timestamp ASC 
         LIMIT ? OFFSET ?
-      `).all(chatId, currentUser, currentUser, limit, offset);
+      `).all(chatId, limit, offset);
       const messageIds = messages.map((msg) => msg.id);
       const reactions = this.getMessageReactions(messageIds, currentUser);
       return messages.map((message) => ({
@@ -5010,14 +5016,13 @@ var SyncQueries = class {
         SELECT m.*, c.name as chat_name
         FROM messages m
         INNER JOIN chats c ON m.chat_id = c.id
-        WHERE (m.sender = ? OR m.recipient = ?)
-          AND (
-            LOWER(m.content) LIKE ?
-            OR LOWER(COALESCE(m.file_name, '')) LIKE ?
-          )
+        WHERE (
+          LOWER(m.content) LIKE ?
+          OR LOWER(COALESCE(m.file_name, '')) LIKE ?
+        )
         ORDER BY m.timestamp DESC
         LIMIT ? OFFSET ?
-      `).all(currentUser, currentUser, searchPattern, searchPattern, limit, offset);
+      `).all(searchPattern, searchPattern, limit, offset);
       const messageIds = messages.map((msg) => msg.id);
       const reactions = this.getMessageReactions(messageIds, currentUser);
       return messages.map((message) => ({
@@ -5140,15 +5145,16 @@ var SyncQueries = class {
   async markMessagesAsRead(chatId, currentUser = "You") {
     try {
       const readAt = Date.now();
+      const [primaryUser, fallbackUser] = this.resolveUserAliases(currentUser);
       const result = this.db.prepare(`
         UPDATE messages 
         SET read_at = ? 
-        WHERE chat_id = ? AND recipient = ? AND read_at IS NULL
-      `).run(readAt, chatId, currentUser);
+        WHERE chat_id = ? AND recipient IN (?, ?) AND read_at IS NULL
+      `).run(readAt, chatId, primaryUser, fallbackUser);
       const unreadCount = this.db.prepare(`
         SELECT COUNT(*) as count FROM messages 
-        WHERE chat_id = ? AND recipient = ? AND read_at IS NULL
-      `).get(chatId, currentUser);
+        WHERE chat_id = ? AND recipient IN (?, ?) AND read_at IS NULL
+      `).get(chatId, primaryUser, fallbackUser);
       this.db.prepare(`
         UPDATE chats 
         SET unread_count = ? 
@@ -5166,12 +5172,13 @@ var SyncQueries = class {
    */
   async getUnreadCounts(currentUser = "You") {
     try {
+      const [primaryUser, fallbackUser] = this.resolveUserAliases(currentUser);
       const unreadCounts = this.db.prepare(`
         SELECT chat_id, COUNT(*) as count
         FROM messages 
-        WHERE read_at IS NULL AND recipient = ?
+        WHERE read_at IS NULL AND recipient IN (?, ?)
         GROUP BY chat_id
-      `).all(currentUser);
+      `).all(primaryUser, fallbackUser);
       const result = {};
       unreadCounts.forEach((row) => {
         result[row.chat_id] = row.count;
@@ -5222,7 +5229,7 @@ var SyncQueries = class {
 };
 
 // electron/db/migrations.ts
-var DEFAULT_CURRENT_USER = "You";
+var DEFAULT_CURRENT_USER2 = "You";
 function ensureMessagesTable(db2) {
   db2.exec(`
     CREATE TABLE IF NOT EXISTS messages (
@@ -5269,7 +5276,7 @@ function getChatNamesById(db2) {
   const rows = db2.prepare("SELECT id, name FROM chats").all();
   return new Map(rows.map((row) => [row.id, row.name]));
 }
-function migrateMessagesSchema(db2, currentUser = DEFAULT_CURRENT_USER) {
+function migrateMessagesSchema(db2, currentUser = DEFAULT_CURRENT_USER2) {
   const columns = getMessagesColumns(db2);
   if (columns.length === 0) {
     ensureMessagesTable(db2);
@@ -5353,7 +5360,7 @@ function migrateMessagesSchema(db2, currentUser = DEFAULT_CURRENT_USER) {
   migrate();
   ensureMessageReactionsTable(db2);
 }
-function ensureMessageSchema(db2, currentUser = DEFAULT_CURRENT_USER) {
+function ensureMessageSchema(db2, currentUser = DEFAULT_CURRENT_USER2) {
   ensureMessagesTable(db2);
   migrateMessagesSchema(db2, currentUser);
   ensureMessageReactionsTable(db2);
@@ -5450,6 +5457,9 @@ var ToggleReactionSchema = external_exports.object({
   userId: external_exports.string(),
   emoji: external_exports.string().min(1)
 });
+var SelectAttachmentSchema = external_exports.object({
+  currentUser: external_exports.string().optional()
+});
 var MIME_TYPE_OVERRIDES = {
   ".png": "image/png",
   ".jpg": "image/jpeg",
@@ -5459,12 +5469,21 @@ var MIME_TYPE_OVERRIDES = {
   ".svg": "image/svg+xml",
   ".pdf": "application/pdf"
 };
+var DEFAULT_CURRENT_USER3 = "You";
+var INVALID_PATH_SEGMENT = /[<>:"/\\|?*\x00-\x1F]/g;
 function inferMimeType(filePath) {
   const extension = import_node_path2.default.extname(filePath).toLowerCase();
   return MIME_TYPE_OVERRIDES[extension] ?? "application/octet-stream";
 }
 function inferAttachmentType(mimeType) {
   return mimeType.startsWith("image/") ? "image" : "file";
+}
+function sanitizePathSegment(value, fallback) {
+  const sanitized = value.replace(INVALID_PATH_SEGMENT, "_").trim();
+  return sanitized.length > 0 ? sanitized : fallback;
+}
+function resolveUploadsBasePath() {
+  return import_electron5.app.isPackaged ? import_electron5.app.getPath("userData") : import_electron5.app.getAppPath();
 }
 var ChatUpdatedPayloadSchema = external_exports.object({
   id: external_exports.string(),
@@ -5598,11 +5617,11 @@ var SyncIPCEmitter = class {
   /**
    * Show desktop notification for new message
    */
-  static showDesktopNotification(message, chatName) {
+  static showDesktopNotification(message, chatName, currentUser = DEFAULT_CURRENT_USER3) {
     try {
       const validated = MessageInsertedPayloadSchema.parse(message);
       const previewText = validated.content?.trim() || (validated.type === "image" ? `\u{1F4F7} ${validated.file_name ?? "Image"}` : validated.type === "file" ? `\u{1F4CE} ${validated.file_name ?? "Attachment"}` : "");
-      if (validated.recipient === "You" && validated.sender !== "You") {
+      if (validated.recipient === currentUser && validated.sender !== currentUser) {
         const notification = new import_electron5.Notification({
           title: validated.sender,
           body: previewText,
@@ -5788,8 +5807,13 @@ function registerSyncIPCHandlers(syncQueries2) {
       return { success: false, error: "Failed to toggle reaction" };
     }
   });
-  import_electron5.ipcMain.handle(IPC_EVENTS.SELECT_ATTACHMENT, async () => {
+  import_electron5.ipcMain.handle(IPC_EVENTS.SELECT_ATTACHMENT, async (_event, rawPayload) => {
     try {
+      const parsed = SelectAttachmentSchema.safeParse(rawPayload ?? {});
+      if (!parsed.success) {
+        throw new Error("Invalid select attachment payload");
+      }
+      const currentUser = parsed.data.currentUser ?? DEFAULT_CURRENT_USER3;
       const result = await import_electron5.dialog.showOpenDialog({
         properties: ["openFile"],
         filters: [
@@ -5801,18 +5825,28 @@ function registerSyncIPCHandlers(syncQueries2) {
       if (result.canceled || result.filePaths.length === 0) {
         return { success: false, error: "No file selected" };
       }
-      const [filePath] = result.filePaths;
-      if (!filePath) {
+      const [sourcePath] = result.filePaths;
+      if (!sourcePath) {
         return { success: false, error: "No file selected" };
       }
-      const fileName = import_node_path2.default.basename(filePath);
-      const stats = import_node_fs.default.statSync(filePath);
-      const mimeType = inferMimeType(filePath);
+      const fileName = import_node_path2.default.basename(sourcePath);
+      const stats = await import_node_fs.default.promises.stat(sourcePath);
+      const mimeType = inferMimeType(sourcePath);
       const type = inferAttachmentType(mimeType);
+      const safeUser = sanitizePathSegment(currentUser, DEFAULT_CURRENT_USER3);
+      const uploadsBasePath = resolveUploadsBasePath();
+      const uploadDir = import_node_path2.default.join(uploadsBasePath, "public", "uploads", safeUser);
+      await import_node_fs.default.promises.mkdir(uploadDir, { recursive: true });
+      let destinationPath = import_node_path2.default.join(uploadDir, fileName);
+      if (import_node_fs.default.existsSync(destinationPath)) {
+        const { name, ext } = import_node_path2.default.parse(fileName);
+        destinationPath = import_node_path2.default.join(uploadDir, `${name}-${Date.now()}${ext}`);
+      }
+      await import_node_fs.default.promises.copyFile(sourcePath, destinationPath);
       return {
         success: true,
         data: {
-          filePath,
+          filePath: destinationPath,
           fileName,
           fileSize: stats.size,
           mimeType,
@@ -5958,7 +5992,7 @@ async function handleSyncEvent(event) {
             const chats = await syncQueries.getAllChats();
             const chat = chats.find((c) => c.id === event.payload.chat_id);
             if (chat) {
-              SyncIPCEmitter.showDesktopNotification(fullMessage, chat.name);
+              SyncIPCEmitter.showDesktopNotification(fullMessage, chat.name, currentUser);
             }
           }
           const updatedChats = await syncQueries.getAllChats();
@@ -5997,7 +6031,9 @@ function createMainWindow() {
     webPreferences: {
       preload: import_node_path3.default.join(__dirname, "preload.js"),
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      sandbox: true,
+      webSecurity: true
     }
   });
   mainWindow.loadFile(import_node_path3.default.join(__dirname, "..", "src", "index.html"));
@@ -6006,6 +6042,9 @@ function createMainWindow() {
   }
 }
 import_electron6.app.whenReady().then(async () => {
+  if (process.platform === "win32") {
+    import_electron6.app.setAppUserModelId(import_electron6.app.getName());
+  }
   initializeDatabase();
   await initializeWebSocketSync();
   registerAuthIpcHandlers(import_electron6.ipcMain);

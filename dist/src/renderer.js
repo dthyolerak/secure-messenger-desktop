@@ -1092,15 +1092,15 @@
             }
             return dispatcher.useContext(Context);
           }
-          function useState9(initialState7) {
+          function useState9(initialState6) {
             var dispatcher = resolveDispatcher();
-            return dispatcher.useState(initialState7);
+            return dispatcher.useState(initialState6);
           }
           function useReducer(reducer, initialArg, init) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useReducer(reducer, initialArg, init);
           }
-          function useRef5(initialValue) {
+          function useRef6(initialValue) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useRef(initialValue);
           }
@@ -1894,7 +1894,7 @@
           exports.useLayoutEffect = useLayoutEffect3;
           exports.useMemo = useMemo8;
           exports.useReducer = useReducer;
-          exports.useRef = useRef5;
+          exports.useRef = useRef6;
           exports.useState = useState9;
           exports.useSyncExternalStore = useSyncExternalStore2;
           exports.useTransition = useTransition;
@@ -13638,20 +13638,20 @@
           }
           function mountReducer(reducer, initialArg, init) {
             var hook = mountWorkInProgressHook();
-            var initialState7;
+            var initialState6;
             if (init !== void 0) {
-              initialState7 = init(initialArg);
+              initialState6 = init(initialArg);
             } else {
-              initialState7 = initialArg;
+              initialState6 = initialArg;
             }
-            hook.memoizedState = hook.baseState = initialState7;
+            hook.memoizedState = hook.baseState = initialState6;
             var queue = {
               pending: null,
               interleaved: null,
               lanes: NoLanes,
               dispatch: null,
               lastRenderedReducer: reducer,
-              lastRenderedState: initialState7
+              lastRenderedState: initialState6
             };
             hook.queue = queue;
             var dispatch = queue.dispatch = dispatchReducerAction.bind(null, currentlyRenderingFiber$1, queue);
@@ -13933,28 +13933,28 @@
               scheduleUpdateOnFiber(root3, fiber, SyncLane, NoTimestamp);
             }
           }
-          function mountState(initialState7) {
+          function mountState(initialState6) {
             var hook = mountWorkInProgressHook();
-            if (typeof initialState7 === "function") {
-              initialState7 = initialState7();
+            if (typeof initialState6 === "function") {
+              initialState6 = initialState6();
             }
-            hook.memoizedState = hook.baseState = initialState7;
+            hook.memoizedState = hook.baseState = initialState6;
             var queue = {
               pending: null,
               interleaved: null,
               lanes: NoLanes,
               dispatch: null,
               lastRenderedReducer: basicStateReducer,
-              lastRenderedState: initialState7
+              lastRenderedState: initialState6
             };
             hook.queue = queue;
             var dispatch = queue.dispatch = dispatchSetState.bind(null, currentlyRenderingFiber$1, queue);
             return [hook.memoizedState, dispatch];
           }
-          function updateState(initialState7) {
+          function updateState(initialState6) {
             return updateReducer(basicStateReducer);
           }
-          function rerenderState(initialState7) {
+          function rerenderState(initialState6) {
             return rerenderReducer(basicStateReducer);
           }
           function pushEffect(tag, create, destroy, deps) {
@@ -14470,13 +14470,13 @@
                 mountHookTypesDev();
                 return mountRef(initialValue);
               },
-              useState: function(initialState7) {
+              useState: function(initialState6) {
                 currentHookNameInDev = "useState";
                 mountHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnMountInDEV;
                 try {
-                  return mountState(initialState7);
+                  return mountState(initialState6);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -14574,13 +14574,13 @@
                 updateHookTypesDev();
                 return mountRef(initialValue);
               },
-              useState: function(initialState7) {
+              useState: function(initialState6) {
                 currentHookNameInDev = "useState";
                 updateHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnMountInDEV;
                 try {
-                  return mountState(initialState7);
+                  return mountState(initialState6);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -14678,13 +14678,13 @@
                 updateHookTypesDev();
                 return updateRef();
               },
-              useState: function(initialState7) {
+              useState: function(initialState6) {
                 currentHookNameInDev = "useState";
                 updateHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnUpdateInDEV;
                 try {
-                  return updateState(initialState7);
+                  return updateState(initialState6);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -14782,13 +14782,13 @@
                 updateHookTypesDev();
                 return updateRef();
               },
-              useState: function(initialState7) {
+              useState: function(initialState6) {
                 currentHookNameInDev = "useState";
                 updateHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnRerenderInDEV;
                 try {
-                  return rerenderState(initialState7);
+                  return rerenderState(initialState6);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -14896,14 +14896,14 @@
                 mountHookTypesDev();
                 return mountRef(initialValue);
               },
-              useState: function(initialState7) {
+              useState: function(initialState6) {
                 currentHookNameInDev = "useState";
                 warnInvalidHookAccess();
                 mountHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnMountInDEV;
                 try {
-                  return mountState(initialState7);
+                  return mountState(initialState6);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -15017,14 +15017,14 @@
                 updateHookTypesDev();
                 return updateRef();
               },
-              useState: function(initialState7) {
+              useState: function(initialState6) {
                 currentHookNameInDev = "useState";
                 warnInvalidHookAccess();
                 updateHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnUpdateInDEV;
                 try {
-                  return updateState(initialState7);
+                  return updateState(initialState6);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -15138,14 +15138,14 @@
                 updateHookTypesDev();
                 return updateRef();
               },
-              useState: function(initialState7) {
+              useState: function(initialState6) {
                 currentHookNameInDev = "useState";
                 warnInvalidHookAccess();
                 updateHookTypesDev();
                 var prevDispatcher = ReactCurrentDispatcher$1.current;
                 ReactCurrentDispatcher$1.current = InvalidNestedHooksDispatcherOnUpdateInDEV;
                 try {
-                  return rerenderState(initialState7);
+                  return rerenderState(initialState6);
                 } finally {
                   ReactCurrentDispatcher$1.current = prevDispatcher;
                 }
@@ -23569,9 +23569,9 @@
           return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React13 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React13.useSyncExternalStore, useRef5 = React13.useRef, useEffect11 = React13.useEffect, useMemo8 = React13.useMemo, useDebugValue2 = React13.useDebugValue;
+        var React13 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React13.useSyncExternalStore, useRef6 = React13.useRef, useEffect11 = React13.useEffect, useMemo8 = React13.useMemo, useDebugValue2 = React13.useDebugValue;
         exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
-          var instRef = useRef5(null);
+          var instRef = useRef6(null);
           if (null === instRef.current) {
             var inst = { hasValue: false, value: null };
             instRef.current = inst;
@@ -25147,10 +25147,10 @@
   function assertReducerShape(reducers) {
     Object.keys(reducers).forEach((key) => {
       const reducer = reducers[key];
-      const initialState7 = reducer(void 0, {
+      const initialState6 = reducer(void 0, {
         type: actionTypes_default.INIT
       });
-      if (typeof initialState7 === "undefined") {
+      if (typeof initialState6 === "undefined") {
         throw new Error(false ? formatProdErrorMessage(12) : `The slice reducer for key "${key}" returned undefined during initialization. If the state passed to the reducer is undefined, you must explicitly return the initial state. The initial state may not be undefined. If you don't want to set a value for this reducer, you can use null instead of undefined.`);
       }
       if (typeof reducer(void 0, {
@@ -26701,7 +26701,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   function isStateFunction(x) {
     return typeof x === "function";
   }
-  function createReducer(initialState7, mapOrBuilderCallback) {
+  function createReducer(initialState6, mapOrBuilderCallback) {
     if (true) {
       if (typeof mapOrBuilderCallback === "object") {
         throw new Error(false ? formatProdErrorMessage(8) : "The object notation for `createReducer` has been removed. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createReducer");
@@ -26709,10 +26709,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     }
     let [actionsMap, finalActionMatchers, finalDefaultCaseReducer] = executeReducerBuilderCallback(mapOrBuilderCallback);
     let getInitialState;
-    if (isStateFunction(initialState7)) {
-      getInitialState = () => freezeDraftable(initialState7());
+    if (isStateFunction(initialState6)) {
+      getInitialState = () => freezeDraftable(initialState6());
     } else {
-      const frozenInitialState = freezeDraftable(initialState7);
+      const frozenInitialState = freezeDraftable(initialState6);
       getInitialState = () => frozenInitialState;
     }
     function reducer(state = getInitialState(), action) {
@@ -27734,9 +27734,9 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     /**
      * Select a local file attachment
      */
-    async selectAttachment() {
+    async selectAttachment(currentUser) {
       try {
-        return await this.api.selectAttachment();
+        return await this.api.selectAttachment(currentUser);
       } catch (error) {
         console.error("Failed to select attachment:", error);
         throw error;
@@ -27799,6 +27799,12 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
      */
     onMessageReactionsUpdated(callback) {
       this.api.onMessageReactionsUpdated(callback);
+    }
+    /**
+     * Subscribe to message insertion updates
+     */
+    onMessageInserted(callback) {
+      this.api.onMessageInserted(callback);
     }
     /**
      * Subscribe to attachment upload progress
@@ -36606,7 +36612,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
       motion.div,
       {
-        className: "min-h-screen flex items-center justify-center bg-gray-light p-8",
+        className: "min-h-screen flex items-start sm:items-center justify-center bg-gray-light p-4 sm:p-8 overflow-y-auto",
         initial: { opacity: 0 },
         animate: { opacity: 1 },
         transition: { duration: 0.5 },
@@ -36627,13 +36633,13 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
                     children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(ArrowLeft, { className: "w-5 h-5" })
                   }
                 ),
-                /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4", children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(User, { className: "w-8 h-8 text-white" }) }),
-                /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("h1", { className: "text-3xl font-bold text-secondary mb-2", children: "Create Account" }),
+                /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-2", children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(User, { className: "w-8 h-8 text-white" }) }),
+                /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("h1", { className: "text-3xl font-bold text-secondary mb-1", children: "Create Account" }),
                 /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("p", { className: "text-gray-500 text-sm", children: "Join Secure Messenger to start chatting." })
               ] }),
               /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("form", { onSubmit: handleSubmit, noValidate: true, className: "space-y-6", children: [
                 /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("label", { htmlFor: "displayName", className: "block text-sm font-medium text-gray-700 mb-2", children: "Display Name" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("label", { htmlFor: "displayName", className: "block text-sm font-medium text-gray-700 mb-1", children: "Display Name" }),
                   /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { className: "relative", children: [
                     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(User, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" }),
                     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
@@ -36654,7 +36660,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
                   ] })
                 ] }),
                 /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("label", { htmlFor: "email", className: "block text-sm font-medium text-gray-700 mb-2", children: "Email" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("label", { htmlFor: "email", className: "block text-sm font-medium text-gray-700 mb-1", children: "Email" }),
                   /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { className: "relative", children: [
                     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Mail, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" }),
                     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
@@ -36674,7 +36680,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
                   ] })
                 ] }),
                 /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("label", { htmlFor: "password", className: "block text-sm font-medium text-gray-700 mb-2", children: "Password" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("label", { htmlFor: "password", className: "block text-sm font-medium text-gray-700 mb-1", children: "Password" }),
                   /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { className: "relative", children: [
                     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Lock, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" }),
                     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
@@ -36705,7 +36711,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
                   ] })
                 ] }),
                 /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("label", { htmlFor: "confirmPassword", className: "block text-sm font-medium text-gray-700 mb-2", children: "Confirm Password" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("label", { htmlFor: "confirmPassword", className: "block text-sm font-medium text-gray-700 mb-1", children: "Confirm Password" }),
                   /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { className: "relative", children: [
                     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Lock, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" }),
                     /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
@@ -37250,6 +37256,16 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   // src/components/MessageComposer.tsx
   var import_react26 = __toESM(require_react());
   var import_jsx_runtime10 = __toESM(require_jsx_runtime());
+  var toFileUrl = (filePath) => {
+    if (!filePath)
+      return "";
+    if (filePath.startsWith("file://"))
+      return filePath;
+    const normalized = filePath.replace(/\\/g, "/");
+    const isWindowsPath = /^[a-zA-Z]:\//.test(normalized);
+    const prefix = isWindowsPath ? "file:///" : "file://";
+    return encodeURI(`${prefix}${normalized}`);
+  };
   var MessageComposer = ({
     onSendMessage,
     placeholder = "Type a message...",
@@ -37260,6 +37276,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const [showEmojiPicker, setShowEmojiPicker] = (0, import_react26.useState)(false);
     const [rows, setRows] = (0, import_react26.useState)(1);
     const emojiOptions = ["\u{1F600}", "\u{1F602}", "\u{1F60D}", "\u{1F44D}", "\u{1F389}", "\u{1F525}", "\u{1F622}", "\u{1F62E}", "\u{1F914}", "\u{1F64F}"];
+    const currentUser = useSelector((s) => s.auth.user?.username || "You");
     (0, import_react26.useEffect)(() => {
       const maxRows = 4;
       const lineBreaks = message.split("\n");
@@ -37295,7 +37312,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       if (disabled)
         return;
       try {
-        const result = await syncIpcClient.selectAttachment();
+        const result = await syncIpcClient.selectAttachment(currentUser);
         if (result.success && result.data) {
           setAttachment(result.data);
         }
@@ -37320,12 +37337,12 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       const i = Math.floor(Math.log(bytes) / Math.log(k));
       return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "border-t border-gray-200 bg-white p-4", children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "border-t border-gray-200 bg-white p-4 flex-shrink-0", children: [
       attachment && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "mb-2 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2", children: [
         attachment.type === "image" ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           "img",
           {
-            src: `file://${attachment.filePath}`,
+            src: toFileUrl(attachment.filePath),
             alt: attachment.fileName,
             className: "h-12 w-12 rounded object-cover"
           }
@@ -37419,6 +37436,16 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
 
   // src/components/MessageThread.tsx
   var import_jsx_runtime12 = __toESM(require_jsx_runtime());
+  var toFileUrl2 = (filePath) => {
+    if (!filePath)
+      return "";
+    if (filePath.startsWith("file://"))
+      return filePath;
+    const normalized = filePath.replace(/\\/g, "/");
+    const isWindowsPath = /^[a-zA-Z]:\//.test(normalized);
+    const prefix = isWindowsPath ? "file:///" : "file://";
+    return encodeURI(`${prefix}${normalized}`);
+  };
   var MessageThread = ({
     chatId,
     chatName,
@@ -37437,6 +37464,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const [searchLoading, setSearchLoading] = (0, import_react27.useState)(false);
     const currentUser = useSelector((s) => s.auth.user?.username || "You");
     const reactionOptions = ["\u{1F44D}", "\u2764\uFE0F", "\u{1F602}", "\u{1F62E}", "\u{1F389}", "\u{1F622}"];
+    const activeChatIdRef = (0, import_react27.useRef)(chatId);
+    (0, import_react27.useEffect)(() => {
+      activeChatIdRef.current = chatId;
+    }, [chatId]);
     (0, import_react27.useEffect)(() => {
       if (chatId) {
         const loadMessages = async () => {
@@ -37489,7 +37520,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     }, [chatId, messages, currentUser]);
     (0, import_react27.useEffect)(() => {
       const handleMessageInserted = (message) => {
-        if (message.chat_id === chatId) {
+        if (message.chat_id === activeChatIdRef.current) {
           const readAt = message.read_at ?? (message.is_read ? message.timestamp : null);
           const newMessage = {
             id: message.id,
@@ -37517,12 +37548,8 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           });
         }
       };
-      if (window.secureMessenger && window.secureMessenger.sync) {
-        window.secureMessenger.sync.onMessageInserted(handleMessageInserted);
-      }
-      return () => {
-      };
-    }, [chatId, currentUser]);
+      syncIpcClient.onMessageInserted(handleMessageInserted);
+    }, []);
     (0, import_react27.useEffect)(() => {
       const handleReactionsUpdated = (payload) => {
         setLocalMessages(
@@ -37666,11 +37693,11 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
             "img",
             {
-              src: `file://${filePath}`,
+              src: toFileUrl2(filePath),
               alt: message.file_name ?? "Image",
               className: "max-w-full h-auto rounded cursor-pointer hover:opacity-90 transition-opacity",
               onClick: () => {
-                window.open(`file://${filePath}`, "_blank");
+                window.open(toFileUrl2(filePath), "_blank");
               }
             }
           ),
@@ -37686,7 +37713,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
             {
               onClick: () => {
                 const link = document.createElement("a");
-                link.href = `file://${filePath}`;
+                link.href = toFileUrl2(filePath);
                 link.download = message.file_name || "download";
                 link.click();
               },
@@ -37708,6 +37735,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     };
     const renderReactions = (message) => {
       const reactions = message.reactions ?? [];
+      const isOwn = message.sender === currentUser;
       return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "mt-2 flex flex-wrap items-center gap-1", children: [
         reactions.map((reaction) => /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)(
           "button",
@@ -37733,16 +37761,22 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
               children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Smile, { size: 12 })
             }
           ),
-          activeReactionMessageId === message.id && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "absolute right-0 top-7 z-10 flex gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm", children: reactionOptions.map((emoji) => /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-            "button",
+          activeReactionMessageId === message.id && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+            "div",
             {
-              type: "button",
-              onClick: () => handleToggleReaction(message.id, emoji),
-              className: "h-7 w-7 rounded hover:bg-gray-100",
-              children: emoji
-            },
-            emoji
-          )) })
+              className: `absolute top-7 z-10 flex gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm ${isOwn ? "right-0" : "left-0"}`,
+              children: reactionOptions.map((emoji) => /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+                "button",
+                {
+                  type: "button",
+                  onClick: () => handleToggleReaction(message.id, emoji),
+                  className: "h-7 w-7 rounded hover:bg-gray-100",
+                  children: emoji
+                },
+                emoji
+              ))
+            }
+          )
         ] })
       ] });
     };
@@ -37750,7 +37784,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     if (!chatId) {
       return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(EmptyState_default, {});
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("main", { className: "flex flex-col h-full bg-white", children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("main", { className: "flex flex-col h-full min-h-0 bg-white", children: [
       /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("header", { className: "px-6 py-4 border-b border-gray-200 bg-white", children: [
         /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center justify-between", children: [
           /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center space-x-3", children: [
@@ -37825,7 +37859,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("span", { className: "text-xs text-gray-500", children: searchLoading ? "Searching\u2026" : `${displayedMessages.length} results` })
         ] })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "flex-1 overflow-y-auto px-6 py-4 space-y-4", children: displayedMessages.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "flex items-center justify-center h-full text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "text-center", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "flex-1 min-h-0 overflow-y-auto overflow-x-visible px-6 py-4 space-y-4", children: displayedMessages.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "flex items-center justify-center h-full text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "text-center", children: [
         /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-sm", children: searchQuery.trim() ? "No messages match your search" : "No messages yet" }),
         /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs mt-1", children: searchQuery.trim() ? "Try another keyword" : "Start the conversation" })
       ] }) }) : displayedMessages.map((message) => /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
@@ -37979,78 +38013,6 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   };
   var ConnectionStatusBar_default = ConnectionStatusBar;
 
-  // src/services/ipcClient.ts
-  function requireApi() {
-    if (!window.secureMessenger) {
-      throw new Error("secureMessenger API is not available");
-    }
-    return window.secureMessenger;
-  }
-  var api = requireApi();
-  var ipcClient = {
-    auth: {
-      getSession: () => api.auth.getSession(),
-      startSession: (payload) => api.auth.startSession(payload)
-    },
-    users: {
-      searchUsers: (query, currentUserId) => api.users.searchUsers(query, currentUserId),
-      upsertUser: (email, displayName, username) => api.users.upsertUser(email, displayName, username),
-      getAllUsers: (currentUserId) => api.users.getAllUsers(currentUserId)
-    }
-  };
-
-  // src/app/slices/authSlice.ts
-  var initialState6 = {
-    status: "loading",
-    session: null
-  };
-  var selectUser = (state) => state.auth.session?.user || null;
-  var checkSession2 = createAsyncThunk(
-    "auth/checkSession",
-    async () => {
-      const session = await ipcClient.auth.getSession();
-      return { session };
-    }
-  );
-  var startSession = createAsyncThunk(
-    "auth/startSession",
-    async (payload) => {
-      const session = await ipcClient.auth.startSession(payload);
-      return { session };
-    }
-  );
-  var authSlice2 = createSlice({
-    name: "auth",
-    initialState: initialState6,
-    reducers: {},
-    extraReducers: (builder) => {
-      builder.addCase(checkSession2.pending, (state) => {
-        state.status = "loading";
-      }).addCase(checkSession2.fulfilled, (state, action) => {
-        const session = action.payload.session;
-        if (session) {
-          state.status = "authenticated";
-          state.session = session;
-        } else {
-          state.status = "unauthenticated";
-          state.session = null;
-        }
-      }).addCase(checkSession2.rejected, (state) => {
-        state.status = "unauthenticated";
-        state.session = null;
-      }).addCase(startSession.pending, (state) => {
-        state.status = "loading";
-      }).addCase(startSession.fulfilled, (state, action) => {
-        state.status = "authenticated";
-        state.session = action.payload.session;
-      }).addCase(startSession.rejected, (state) => {
-        state.status = "unauthenticated";
-        state.session = null;
-      });
-    }
-  });
-  var authReducer = authSlice2.reducer;
-
   // src/layouts/MainLayout.tsx
   var import_jsx_runtime14 = __toESM(require_jsx_runtime());
   var MainLayout = () => {
@@ -38058,7 +38020,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const selectedChatId = useSelector((s) => s.chats.selectedChatId);
     const chats = useSelector((s) => s.chats.items);
     const messagesByChat = useSelector((s) => s.messages.byChatId);
-    const user = useSelector(selectUser);
+    const user = useSelector((s) => s.auth.user);
     const handleSelectChat = import_react29.default.useCallback(
       (chatId) => {
         dispatch(selectChat(chatId));
@@ -38097,10 +38059,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       },
       [dispatch, user?.id]
     );
-    return /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "flex h-screen bg-gray-light", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "flex flex-1", children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "flex flex-1 min-h-0 bg-gray-light", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "flex flex-1 min-h-0", children: [
         /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(Sidebar_default, {}),
-        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("aside", { className: "w-80 bg-white border-r border-gray-200 flex flex-col", children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("aside", { className: "w-80 bg-white border-r border-gray-200 flex flex-col min-h-0", children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
           ChatList_default,
           {
             selectedChatId,
@@ -38109,7 +38071,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
             currentUserId: user?.id || "current_user"
           }
         ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("section", { className: "flex-1 flex flex-col bg-white", children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("section", { className: "flex-1 flex flex-col bg-white min-h-0", children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
           MessageThread_default,
           {
             chatId: selectedChatId,

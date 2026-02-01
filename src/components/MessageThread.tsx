@@ -1,5 +1,5 @@
 // src/components/MessageThread.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, MoreVertical, Phone, Video, Edit2, Trash2, Smile, X } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../app/store';
@@ -7,6 +7,15 @@ import type { MessageAttachmentPayload, MessageItem, MessageSearchResult } from 
 import MessageComposer from './MessageComposer';
 import EmptyState from './EmptyState';
 import { syncIpcClient } from '../services/syncIpcClient';
+
+const toFileUrl = (filePath: string): string => {
+  if (!filePath) return '';
+  if (filePath.startsWith('file://')) return filePath;
+  const normalized = filePath.replace(/\\/g, '/');
+  const isWindowsPath = /^[a-zA-Z]:\//.test(normalized);
+  const prefix = isWindowsPath ? 'file:///' : 'file://';
+  return encodeURI(`${prefix}${normalized}`);
+};
 
 export interface MessageThreadProps {
   chatId?: string | null;
@@ -38,6 +47,11 @@ const MessageThread: React.FC<MessageThreadProps> = ({
   const [searchLoading, setSearchLoading] = useState(false);
   const currentUser = useSelector((s: RootState) => s.auth.user?.username || 'You');
   const reactionOptions = ['👍', '❤️', '😂', '😮', '🎉', '😢'];
+  const activeChatIdRef = useRef<string | null | undefined>(chatId);
+
+  useEffect(() => {
+    activeChatIdRef.current = chatId;
+  }, [chatId]);
 
   // Load messages from SQLite when chat changes
   useEffect(() => {
@@ -101,7 +115,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
   // Listen for new messages via IPC events
   useEffect(() => {
     const handleMessageInserted = (message: any) => {
-      if (message.chat_id === chatId) {
+      if (message.chat_id === activeChatIdRef.current) {
         // Transform to MessageItem format
         const readAt = message.read_at ?? (message.is_read ? message.timestamp : null);
         const newMessage: MessageItem = {
@@ -121,10 +135,10 @@ const MessageThread: React.FC<MessageThreadProps> = ({
           mime_type: message.mime_type ?? null,
           reactions: message.reactions ?? [],
         };
-        
+
         // Add message if it doesn't already exist
-        setLocalMessages(prev => {
-          const exists = prev.some(msg => msg.id === newMessage.id);
+        setLocalMessages((prev) => {
+          const exists = prev.some((msg) => msg.id === newMessage.id);
           if (!exists) {
             return [...prev, newMessage].sort((a, b) => a.timestamp - b.timestamp);
           }
@@ -133,17 +147,8 @@ const MessageThread: React.FC<MessageThreadProps> = ({
       }
     };
 
-    // Subscribe to message events
-    if (window.secureMessenger && window.secureMessenger.sync) {
-      window.secureMessenger.sync.onMessageInserted(handleMessageInserted);
-    }
-
-    // Cleanup
-    return () => {
-      // Note: We can't easily remove listeners with current API design
-      // But this is fine since the component will unmount
-    };
-  }, [chatId, currentUser]);
+    syncIpcClient.onMessageInserted(handleMessageInserted);
+  }, []);
 
   useEffect(() => {
     const handleReactionsUpdated = (payload: { messageId: string; reactions: MessageItem['reactions'] }) => {
@@ -310,12 +315,12 @@ const MessageThread: React.FC<MessageThreadProps> = ({
         {message.type === 'image' ? (
           <div className="space-y-2">
             <img 
-              src={`file://${filePath}`} 
+              src={toFileUrl(filePath)} 
               alt={message.file_name ?? 'Image'}
               className="max-w-full h-auto rounded cursor-pointer hover:opacity-90 transition-opacity"
               onClick={() => {
                 // Open image in default viewer
-                window.open(`file://${filePath}`, '_blank');
+                window.open(toFileUrl(filePath), '_blank');
               }}
             />
             {message.file_name && (
@@ -339,7 +344,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
               onClick={() => {
                 // Download file
                 const link = document.createElement('a');
-                link.href = `file://${filePath}`;
+                link.href = toFileUrl(filePath);
                 link.download = message.file_name || 'download';
                 link.click();
               }}
@@ -365,6 +370,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
 
   const renderReactions = (message: MessageItem) => {
     const reactions = message.reactions ?? [];
+    const isOwn = message.sender === currentUser;
     return (
       <div className="mt-2 flex flex-wrap items-center gap-1">
         {reactions.map((reaction) => (
@@ -394,7 +400,11 @@ const MessageThread: React.FC<MessageThreadProps> = ({
             <Smile size={12} />
           </button>
           {activeReactionMessageId === message.id && (
-            <div className="absolute right-0 top-7 z-10 flex gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm">
+            <div
+              className={`absolute top-7 z-10 flex gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm ${
+                isOwn ? 'right-0' : 'left-0'
+              }`}
+            >
               {reactionOptions.map((emoji) => (
                 <button
                   key={emoji}
@@ -419,7 +429,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
   }
 
   return (
-    <main className="flex flex-col h-full bg-white">
+    <main className="flex flex-col h-full min-h-0 bg-white">
       {/* Header */}
       <header className="px-6 py-4 border-b border-gray-200 bg-white">
         <div className="flex items-center justify-between">
@@ -494,7 +504,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
       </header>
 
       {/* Message List */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-visible px-6 py-4 space-y-4">
         {displayedMessages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-500">
             <div className="text-center">
