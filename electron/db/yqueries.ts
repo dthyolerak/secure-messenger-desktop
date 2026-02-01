@@ -510,13 +510,50 @@ export class SyncQueries {
   /**
    * Delete message by ID
    */
-  async deleteMessage(messageId: string): Promise<boolean> {
+  async deleteMessage(messageId: string): Promise<{ success: boolean; chatId?: string }> {
     try {
+      const message = this.db.prepare(`
+        SELECT chat_id FROM messages WHERE id = ?
+      `).get(messageId) as { chat_id: string } | undefined;
+
+      if (!message) {
+        return { success: false };
+      }
+
       const result = this.db.prepare(`
         DELETE FROM messages WHERE id = ?
       `).run(messageId);
 
-      return result.changes > 0;
+      if (result.changes > 0) {
+        const latestMessage = this.db.prepare(`
+          SELECT content, type, file_name, timestamp
+          FROM messages
+          WHERE chat_id = ?
+          ORDER BY timestamp DESC
+          LIMIT 1
+        `).get(message.chat_id) as
+          | { content: string; type?: string | null; file_name?: string | null; timestamp: number }
+          | undefined;
+
+        const lastMessage = latestMessage
+          ? latestMessage.content?.trim() ||
+            (latestMessage.type === 'image'
+              ? `📷 ${latestMessage.file_name ?? 'Image'}`
+              : latestMessage.type === 'file'
+                ? `📎 ${latestMessage.file_name ?? 'Attachment'}`
+                : '')
+          : '';
+
+        const updatedAt = latestMessage ? latestMessage.timestamp : Date.now();
+
+        this.db.prepare(`
+          UPDATE chats
+          SET last_message = ?, updated_at = ?
+          WHERE id = ?
+        `).run(lastMessage, updatedAt, message.chat_id);
+      }
+
+      return { success: result.changes > 0, chatId: message.chat_id };
     } catch (error) {
       console.error('[DB] Failed to delete message:', error);
       throw error;
@@ -526,8 +563,16 @@ export class SyncQueries {
   /**
    * Update message content
    */
-  async updateMessage(messageId: string, content: string): Promise<boolean> {
+  async updateMessage(messageId: string, content: string): Promise<{ success: boolean; chatId?: string }> {
     try {
+      const message = this.db.prepare(`
+        SELECT chat_id FROM messages WHERE id = ?
+      `).get(messageId) as { chat_id: string } | undefined;
+
+      if (!message) {
+        return { success: false };
+      }
+
       const result = this.db.prepare(`
         UPDATE messages 
         SET content = ?, is_edited = 1 
@@ -539,11 +584,11 @@ export class SyncQueries {
         this.db.prepare(`
           UPDATE chats 
           SET last_message = ?, updated_at = ?
-          WHERE id = (SELECT chat_id FROM messages WHERE id = ?)
-        `).run(content, Date.now(), messageId);
+          WHERE id = ?
+        `).run(content, Date.now(), message.chat_id);
       }
 
-      return result.changes > 0;
+      return { success: result.changes > 0, chatId: message.chat_id };
     } catch (error) {
       console.error('[DB] Failed to update message:', error);
       throw error;

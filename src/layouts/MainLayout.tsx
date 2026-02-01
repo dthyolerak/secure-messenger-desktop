@@ -1,5 +1,6 @@
 // src/layouts/MainLayout.tsx
 import React from 'react';
+import { MessageSquare, Settings, User } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import ChatList from '../components/ChatList';
 import MessageThread from '../components/MessageThread';
@@ -10,6 +11,8 @@ import { selectChat } from '../app/slices/chatsSlice';
 import { sendMessage } from '../app/slices/messagesSlice';
 import type { MessageAttachmentPayload } from '../domains/messages/messages.types';
 import { syncIpcClient } from '../services/syncIpcClient';
+import Profile from '../pages/Profile';
+import AppSettings from '../pages/Settings';
 
 /**
  * Main 3-pane Teams-style layout:
@@ -17,16 +20,20 @@ import { syncIpcClient } from '../services/syncIpcClient';
  * - Center: Virtualized chat list
  * - Right: Message thread + composer
  */
+type ActiveView = 'chat' | 'profile' | 'settings';
+
 const MainLayout: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const selectedChatId = useSelector((s: RootState) => s.chats.selectedChatId);
   const chats = useSelector((s: RootState) => s.chats.items);
   const messagesByChat = useSelector((s: RootState) => s.messages.byChatId);
   const user = useSelector((s: RootState) => s.auth.user);
+  const [activeView, setActiveView] = React.useState<ActiveView>('chat');
 
   const handleSelectChat = React.useCallback(
     (chatId: string) => {
       dispatch(selectChat(chatId));
+      setActiveView('chat');
       
       // Mark messages as read when chat is opened
       const selectedChat = chats.find((c) => c.id === chatId);
@@ -68,30 +75,71 @@ const MainLayout: React.FC = () => {
     [dispatch, user?.id],
   );
 
+  const sidebarItems = React.useMemo(
+    () => [
+      {
+        id: 'chat',
+        icon: <MessageSquare size={20} />,
+        label: 'Chat',
+        active: activeView === 'chat',
+        onClick: () => setActiveView('chat'),
+      },
+      {
+        id: 'profile',
+        icon: <User size={20} />,
+        label: 'Profile',
+        active: activeView === 'profile',
+        onClick: () => setActiveView('profile'),
+      },
+      {
+        id: 'settings',
+        icon: <Settings size={20} />,
+        label: 'Settings',
+        active: activeView === 'settings',
+        onClick: () => setActiveView('settings'),
+      },
+    ],
+    [activeView],
+  );
+
+  const renderMainPanel = () => {
+    if (activeView === 'profile') {
+      return <Profile />;
+    }
+
+    if (activeView === 'settings') {
+      return <AppSettings />;
+    }
+
+    return (
+      <MessageThread
+        chatId={selectedChatId}
+        chatName={selectedChat?.name}
+        messages={selectedMessages}
+        onSendMessage={handleSendMessage}
+      />
+    );
+  };
+
   return (
     <div className="flex flex-1 min-h-0 bg-gray-light">
       <div className="flex flex-1 min-h-0">
         {/* Left Sidebar - Fixed narrow column */}
-        <Sidebar />
+        <Sidebar items={sidebarItems} />
 
-        {/* Chat List Panel - Scrollable, virtualized */}
-        <aside className="w-80 bg-white border-r border-gray-200 flex flex-col min-h-0">
-          <ChatList
-            selectedChatId={selectedChatId}
-            onSelectChat={handleSelectChat}
-            onCreateChat={handleCreateChat}
-            currentUserId={user?.id || 'current_user'}
-          />
-        </aside>
+        {activeView === 'chat' && (
+          <aside className="w-80 bg-white border-r border-gray-200 flex flex-col min-h-0">
+            <ChatList
+              selectedChatId={selectedChatId}
+              onSelectChat={handleSelectChat}
+              onCreateChat={handleCreateChat}
+              currentUserId={user?.id || 'current_user'}
+            />
+          </aside>
+        )}
 
-        {/* Message Thread Panel - Main content area */}
         <section className="flex-1 flex flex-col bg-white min-h-0">
-          <MessageThread
-            chatId={selectedChatId}
-            chatName={selectedChat?.name}
-            messages={selectedMessages}
-            onSendMessage={handleSendMessage}
-          />
+          {renderMainPanel()}
         </section>
       </div>
 

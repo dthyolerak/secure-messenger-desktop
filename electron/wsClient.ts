@@ -39,7 +39,7 @@ export class WebSocketClient extends EventEmitter {
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private reconnectTimeout: NodeJS.Timeout | null = null;
   private pongTimeout: NodeJS.Timeout | null = null;
-  
+
   private readonly config = {
     url: process.env.WS_URL || 'ws://localhost:8080',
     heartbeatInterval: 30000, // 30 seconds
@@ -67,11 +67,11 @@ export class WebSocketClient extends EventEmitter {
     if (this.isShuttingDown) return;
 
     console.log(`[WS] Connecting to ${this.config.url}`);
-    
+
     try {
       this.ws = new WebSocket(this.config.url);
       this.setupEventHandlers();
-      
+
       return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
           reject(new Error('Connection timeout'));
@@ -142,8 +142,11 @@ export class WebSocketClient extends EventEmitter {
    * Handle incoming sync events and emit for processing
    */
   private handleIncomingEvent(event: SyncEvent): void {
-    console.log(`[WS] Received ${event.type} event:`, event.payload);
-    
+    // Log event type and ID only - avoid logging sensitive content
+    const eventId = 'id' in event.payload ? event.payload.id :
+      'chat_id' in event.payload ? event.payload.chat_id : 'unknown';
+    console.log(`[WS] Received ${event.type} event (id: ${eventId})`);
+
     // Emit for main process to handle persistence and IPC
     this.emit('syncEvent', event);
   }
@@ -160,7 +163,7 @@ export class WebSocketClient extends EventEmitter {
       if (this.ws && this.ws.readyState === this.ws.OPEN) {
         console.log('[WS] Sending ping');
         this.ws.ping();
-        
+
         // Set pong timeout
         this.pongTimeout = setTimeout(() => {
           console.error('[WS] Pong timeout - connection unhealthy');
@@ -197,7 +200,7 @@ export class WebSocketClient extends EventEmitter {
       }
 
       this.updateStatus({ reconnectAttempts: (this.status.reconnectAttempts || 0) + 1 });
-      
+
       try {
         await this.connect();
       } catch (error) {
@@ -249,7 +252,7 @@ export class WebSocketClient extends EventEmitter {
   async disconnect(): Promise<void> {
     this.isShuttingDown = true;
     this.cleanup();
-    
+
     if (this.ws) {
       this.ws.close(1000, 'Client disconnecting');
       this.ws = null;

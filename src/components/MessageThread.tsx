@@ -1,5 +1,6 @@
 // src/components/MessageThread.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, CSSProperties } from 'react';
+import { List, useDynamicRowHeight } from 'react-window';
 import { Search, MoreVertical, Phone, Video, Edit2, Trash2, Smile, X } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../app/store';
@@ -25,9 +26,271 @@ export interface MessageThreadProps {
   onSendMessage?: (chatId: string, content: string, attachment?: MessageAttachmentPayload) => void;
 }
 
+const DEFAULT_ROW_HEIGHT = 80;
+
+type VirtualListRef = {
+  readonly element: HTMLDivElement | null;
+  scrollToRow: (options: {
+    index: number;
+    align?: 'auto' | 'start' | 'center' | 'end' | 'smart';
+    behavior?: ScrollBehavior | 'instant';
+  }) => void;
+};
+
+// Row props interface
+interface MessageRowProps {
+  messages: MessageItem[];
+  currentUser: string;
+  editingMessage: string | null;
+  editContent: string;
+  setEditContent: (content: string) => void;
+  handleSaveEdit: () => void;
+  setEditingMessage: (id: string | null) => void;
+  handleEditMessage: (id: string) => void;
+  handleDeleteMessage: (id: string) => void;
+  handleToggleReaction: (messageId: string, emoji: string) => void;
+  activeReactionMessageId: string | null;
+  setActiveReactionMessageId: (id: string | null) => void;
+  uploadProgressById: Record<string, number>;
+  reactionOptions: string[];
+}
+
+// Message row component
+const MessageRow = ({
+  index,
+  style,
+  messages,
+  currentUser,
+  editingMessage,
+  editContent,
+  setEditContent,
+  handleSaveEdit,
+  setEditingMessage,
+  handleEditMessage,
+  handleDeleteMessage,
+  handleToggleReaction,
+  activeReactionMessageId,
+  setActiveReactionMessageId,
+  uploadProgressById,
+  reactionOptions,
+}: {
+  index: number;
+  style: CSSProperties;
+  ariaAttributes: { 'aria-posinset': number; 'aria-setsize': number; role: 'listitem' };
+} & MessageRowProps) => {
+  const message = messages[index];
+  if (!message) return null;
+
+  const isOwn = message.sender === currentUser;
+
+  const formatTimestamp = (timestamp: number) => {
+    return new Date(timestamp).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const renderAttachment = () => {
+    if (!message.type || message.type === 'text') return null;
+    const progress = uploadProgressById[message.id];
+    const filePath = message.file_path ?? '';
+
+    if (!filePath) {
+      return (
+        <div className="mt-2 p-2 bg-white/10 rounded-lg">
+          <p className="text-xs text-gray-500">Attachment unavailable</p>
+          {message.file_name && (
+            <p className="text-xs opacity-75">{message.file_name}</p>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="mt-2 p-2 bg-white/10 rounded-lg">
+        {message.type === 'image' ? (
+          <div className="space-y-2">
+            <img
+              src={toFileUrl(filePath)}
+              alt={message.file_name ?? 'Image'}
+              className="max-w-full h-auto rounded cursor-pointer hover:opacity-90 transition-opacity"
+              style={{ maxHeight: 200 }}
+              onClick={() => window.open(toFileUrl(filePath), '_blank')}
+            />
+            {message.file_name && (
+              <p className="text-xs opacity-75">{message.file_name}</p>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{message.file_name ?? 'Attachment'}</p>
+              {message.file_size && (
+                <p className="text-xs opacity-75">{formatFileSize(message.file_size)}</p>
+              )}
+            </div>
+            <button
+              onClick={() => {
+                const link = document.createElement('a');
+                link.href = toFileUrl(filePath);
+                link.download = message.file_name || 'download';
+                link.click();
+              }}
+              className="p-1 hover:bg-white/20 rounded transition-colors"
+              title="Download file"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            </button>
+          </div>
+        )}
+        {progress !== undefined && progress < 100 && (
+          <progress
+            className="mt-2 h-1 w-full overflow-hidden rounded bg-white/20 accent-white"
+            max={100}
+            value={progress}
+          />
+        )}
+      </div>
+    );
+  };
+
+  const renderReactions = () => {
+    const reactions = message.reactions ?? [];
+    return (
+      <div className="mt-2 flex flex-wrap items-center gap-1">
+        {reactions.map((reaction) => (
+          <button
+            key={reaction.emoji}
+            type="button"
+            onClick={() => handleToggleReaction(message.id, reaction.emoji)}
+            className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors ${reaction.reactedByCurrentUser
+              ? 'border-primary/60 bg-primary/10 text-primary'
+              : 'border-gray-200 bg-white/60 text-gray-600'
+              }`}
+          >
+            <span>{reaction.emoji}</span>
+            <span>{reaction.count}</span>
+          </button>
+        ))}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() =>
+              setActiveReactionMessageId(activeReactionMessageId === message.id ? null : message.id)
+            }
+            className="flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white/70 text-gray-500 hover:text-gray-700"
+            title="Add reaction"
+          >
+            <Smile size={12} />
+          </button>
+          {activeReactionMessageId === message.id && (
+            <div
+              className={`absolute top-7 z-10 flex gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm ${isOwn ? 'right-0' : 'left-0'
+                }`}
+            >
+              {reactionOptions.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => handleToggleReaction(message.id, emoji)}
+                  className="h-7 w-7 rounded hover:bg-gray-100"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div style={style} className="px-6">
+      <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group py-2`}>
+        <div
+          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg relative ${isOwn ? 'bg-primary text-white' : 'bg-gray-100 text-gray-900'
+            }`}
+        >
+          {editingMessage === message.id ? (
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary text-gray-900"
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSaveEdit}
+                  className="text-xs px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => setEditingMessage(null)}
+                  className="text-xs px-2 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm">{message.content}</p>
+              {renderAttachment()}
+              {renderReactions()}
+              <div className="flex items-center justify-between mt-1">
+                <p className={`text-xs ${isOwn ? 'text-orange-100' : 'text-gray-500'}`}>
+                  {formatTimestamp(message.timestamp)}
+                  {message.is_edited && ' (edited)'}
+                </p>
+
+                {isOwn && (
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => handleEditMessage(message.id)}
+                      className="p-1 hover:bg-white/20 rounded"
+                      title="Edit message"
+                    >
+                      <Edit2 size={12} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteMessage(message.id)}
+                      className="p-1 hover:bg-white/20 rounded"
+                      title="Delete message"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /**
- * Message thread panel with Teams-style header, message list, and composer.
- * Features proper message alignment and editing capabilities.
+ * Message thread panel with Teams-style header, virtualized message list, and composer.
  */
 const MessageThread: React.FC<MessageThreadProps> = ({
   chatId,
@@ -48,6 +311,15 @@ const MessageThread: React.FC<MessageThreadProps> = ({
   const currentUser = useSelector((s: RootState) => s.auth.user?.username || 'You');
   const reactionOptions = ['👍', '❤️', '😂', '😮', '🎉', '😢'];
   const activeChatIdRef = useRef<string | null | undefined>(chatId);
+  const listRef = useRef<VirtualListRef | null>(null);
+  const lastScrollChatIdRef = useRef<string | null | undefined>(chatId);
+  const lastMessageCountRef = useRef(0);
+
+  // Use dynamic row height for variable message sizes
+  const dynamicRowHeight = useDynamicRowHeight({
+    defaultRowHeight: DEFAULT_ROW_HEIGHT,
+    key: chatId || 'default',
+  });
 
   useEffect(() => {
     activeChatIdRef.current = chatId;
@@ -60,7 +332,6 @@ const MessageThread: React.FC<MessageThreadProps> = ({
         try {
           const response = await syncIpcClient.getMessages(chatId, 50, 0, currentUser);
           if (response.success && response.data) {
-            // Transform to MessageItem format
             const transformedMessages: MessageItem[] = response.data.map((msg: any) => {
               const readAt = msg.read_at ?? (msg.is_read ? msg.timestamp : null);
               const isRead = readAt !== null && readAt !== undefined;
@@ -84,28 +355,25 @@ const MessageThread: React.FC<MessageThreadProps> = ({
               };
             });
 
-            const allMessages = [...transformedMessages, ...messages];
-            const dedupedMessages = Array.from(
-              new Map(allMessages.map((msg) => [msg.id, msg])).values(),
+            const sortedMessages = [...transformedMessages].sort(
+              (a, b) => a.timestamp - b.timestamp,
             );
 
-            setLocalMessages(dedupedMessages.sort((a, b) => a.timestamp - b.timestamp));
+            setLocalMessages(sortedMessages);
 
-            // Mark messages as read when chat is opened
             const unreadMessages = transformedMessages.filter(
               (msg) => msg.recipient === currentUser && !msg.is_read,
             );
             if (unreadMessages.length > 0) {
-              console.log(`Marking ${unreadMessages.length} messages as read`);
               await syncIpcClient.markMessagesRead(chatId, currentUser);
             }
           }
         } catch (error) {
           console.error('Failed to load messages:', error);
-          setLocalMessages(messages); // Fallback to props
+          setLocalMessages(messages);
         }
       };
-      
+
       loadMessages();
     } else {
       setLocalMessages([]);
@@ -116,7 +384,6 @@ const MessageThread: React.FC<MessageThreadProps> = ({
   useEffect(() => {
     const handleMessageInserted = (message: any) => {
       if (message.chat_id === activeChatIdRef.current) {
-        // Transform to MessageItem format
         const readAt = message.read_at ?? (message.is_read ? message.timestamp : null);
         const newMessage: MessageItem = {
           id: message.id,
@@ -136,7 +403,6 @@ const MessageThread: React.FC<MessageThreadProps> = ({
           reactions: message.reactions ?? [],
         };
 
-        // Add message if it doesn't already exist
         setLocalMessages((prev) => {
           const exists = prev.some((msg) => msg.id === newMessage.id);
           if (!exists) {
@@ -239,42 +505,43 @@ const MessageThread: React.FC<MessageThreadProps> = ({
     }
   };
 
-  const handleEditMessage = (messageId: string) => {
+  const handleEditMessage = useCallback((messageId: string) => {
     const message = localMessages.find(m => m.id === messageId);
     if (message) {
       setEditingMessage(messageId);
       setEditContent(message.content);
     }
-  };
+  }, [localMessages]);
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = useCallback(async () => {
     if (!editingMessage) return;
+    const trimmed = editContent.trim();
+    if (!trimmed) return;
 
-    setLocalMessages(prev => 
-      prev.map(msg => 
-        msg.id === editingMessage 
-          ? { ...msg, content: editContent, is_edited: true }
-          : msg
-      )
-    );
-    setEditingMessage(null);
-    setEditContent('');
-  };
+    try {
+      const response = await syncIpcClient.updateMessage(editingMessage, trimmed);
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to update message');
+      }
+      setEditingMessage(null);
+      setEditContent('');
+    } catch (error) {
+      console.error('Failed to update message:', error);
+    }
+  }, [editingMessage, editContent]);
 
-  const handleDeleteMessage = (messageId: string) => {
-    setLocalMessages(prev => prev.filter(msg => msg.id !== messageId));
-    // TODO: Implement actual deletion via IPC
-  };
+  const handleDeleteMessage = useCallback(async (messageId: string) => {
+    try {
+      const response = await syncIpcClient.deleteMessage(messageId);
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to delete message');
+      }
+    } catch (error) {
+      console.error('Failed to delete message:', error);
+    }
+  }, []);
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const handleToggleReaction = async (messageId: string, emoji: string) => {
+  const handleToggleReaction = useCallback(async (messageId: string, emoji: string) => {
     try {
       const reactions = await syncIpcClient.toggleReaction(messageId, currentUser, emoji);
       setLocalMessages((prev) =>
@@ -285,144 +552,74 @@ const MessageThread: React.FC<MessageThreadProps> = ({
     } finally {
       setActiveReactionMessageId(null);
     }
-  };
-
-  const formatTimestamp = (timestamp: number) => {
-    return new Date(timestamp).toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const renderAttachment = (message: MessageItem) => {
-    if (!message.type || message.type === 'text') return null;
-    const progress = uploadProgressById[message.id];
-    const filePath = message.file_path ?? '';
-
-    if (!filePath) {
-      return (
-        <div className="mt-2 p-2 bg-white/10 rounded-lg">
-          <p className="text-xs text-gray-500">Attachment unavailable</p>
-          {message.file_name && (
-            <p className="text-xs opacity-75">{message.file_name}</p>
-          )}
-        </div>
-      );
-    }
-
-    return (
-      <div className="mt-2 p-2 bg-white/10 rounded-lg">
-        {message.type === 'image' ? (
-          <div className="space-y-2">
-            <img 
-              src={toFileUrl(filePath)} 
-              alt={message.file_name ?? 'Image'}
-              className="max-w-full h-auto rounded cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => {
-                // Open image in default viewer
-                window.open(toFileUrl(filePath), '_blank');
-              }}
-            />
-            {message.file_name && (
-              <p className="text-xs opacity-75">{message.file_name}</p>
-            )}
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{message.file_name ?? 'Attachment'}</p>
-              {message.file_size && (
-                <p className="text-xs opacity-75">{formatFileSize(message.file_size)}</p>
-              )}
-            </div>
-            <button
-              onClick={() => {
-                // Download file
-                const link = document.createElement('a');
-                link.href = toFileUrl(filePath);
-                link.download = message.file_name || 'download';
-                link.click();
-              }}
-              className="p-1 hover:bg-white/20 rounded transition-colors"
-              title="Download file"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-            </button>
-          </div>
-        )}
-        {progress !== undefined && progress < 100 && (
-          <progress
-            className="mt-2 h-1 w-full overflow-hidden rounded bg-white/20 accent-white"
-            max={100}
-            value={progress}
-          />
-        )}
-      </div>
-    );
-  };
-
-  const renderReactions = (message: MessageItem) => {
-    const reactions = message.reactions ?? [];
-    const isOwn = message.sender === currentUser;
-    return (
-      <div className="mt-2 flex flex-wrap items-center gap-1">
-        {reactions.map((reaction) => (
-          <button
-            key={reaction.emoji}
-            type="button"
-            onClick={() => handleToggleReaction(message.id, reaction.emoji)}
-            className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors ${
-              reaction.reactedByCurrentUser
-                ? 'border-primary/60 bg-primary/10 text-primary'
-                : 'border-gray-200 bg-white/60 text-gray-600'
-            }`}
-          >
-            <span>{reaction.emoji}</span>
-            <span>{reaction.count}</span>
-          </button>
-        ))}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() =>
-              setActiveReactionMessageId((prev) => (prev === message.id ? null : message.id))
-            }
-            className="flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white/70 text-gray-500 hover:text-gray-700"
-            title="Add reaction"
-          >
-            <Smile size={12} />
-          </button>
-          {activeReactionMessageId === message.id && (
-            <div
-              className={`absolute top-7 z-10 flex gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm ${
-                isOwn ? 'right-0' : 'left-0'
-              }`}
-            >
-              {reactionOptions.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => handleToggleReaction(message.id, emoji)}
-                  className="h-7 w-7 rounded hover:bg-gray-100"
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
+  }, [currentUser]);
 
   const displayedMessages = searchQuery.trim() ? searchResults : localMessages;
+
+  const scrollToBottom = useCallback(
+    (behavior: ScrollBehavior = 'auto') => {
+      if (!listRef.current) return;
+      const lastIndex = displayedMessages.length - 1;
+      if (lastIndex < 0) return;
+      listRef.current.scrollToRow({ index: lastIndex, align: 'end', behavior });
+    },
+    [displayedMessages.length],
+  );
+
+  useEffect(() => {
+    const handleMessageUpdated = (payload: { messageId: string; content: string }) => {
+      setLocalMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === payload.messageId
+            ? { ...msg, content: payload.content, is_edited: true }
+            : msg,
+        ),
+      );
+      setSearchResults((prev) =>
+        prev.map((msg) =>
+          msg.id === payload.messageId
+            ? { ...msg, content: payload.content, is_edited: true }
+            : msg,
+        ),
+      );
+    };
+
+    const handleMessageDeleted = (payload: { messageId: string }) => {
+      setLocalMessages((prev) => prev.filter((msg) => msg.id !== payload.messageId));
+      setSearchResults((prev) => prev.filter((msg) => msg.id !== payload.messageId));
+    };
+
+    syncIpcClient.onMessageUpdated(handleMessageUpdated);
+    syncIpcClient.onMessageDeleted(handleMessageDeleted);
+  }, []);
+
+  useEffect(() => {
+    if (!chatId || searchQuery.trim()) {
+      lastScrollChatIdRef.current = chatId;
+      lastMessageCountRef.current = displayedMessages.length;
+      return;
+    }
+
+    if (displayedMessages.length === 0) {
+      lastScrollChatIdRef.current = chatId;
+      lastMessageCountRef.current = 0;
+      return;
+    }
+
+    if (displayedMessages.some((message) => message.chatId !== chatId)) {
+      return;
+    }
+
+    const isNewChat = chatId !== lastScrollChatIdRef.current;
+    const hasNewMessages = displayedMessages.length > lastMessageCountRef.current;
+
+    if (isNewChat || hasNewMessages) {
+      scrollToBottom(isNewChat ? 'auto' : 'smooth');
+    }
+
+    lastScrollChatIdRef.current = chatId;
+    lastMessageCountRef.current = displayedMessages.length;
+  }, [chatId, displayedMessages, scrollToBottom, searchQuery]);
 
   if (!chatId) {
     return <EmptyState />;
@@ -431,7 +628,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
   return (
     <main className="flex flex-col h-full min-h-0 bg-white">
       {/* Header */}
-      <header className="px-6 py-4 border-b border-gray-200 bg-white">
+      <header className="px-6 py-4 border-b border-gray-200 bg-white flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-white font-semibold">
@@ -503,8 +700,8 @@ const MessageThread: React.FC<MessageThreadProps> = ({
         )}
       </header>
 
-      {/* Message List */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-visible px-6 py-4 space-y-4">
+      {/* Virtualized Message List */}
+      <div className="flex-1 min-h-0">
         {displayedMessages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-500">
             <div className="text-center">
@@ -517,90 +714,35 @@ const MessageThread: React.FC<MessageThreadProps> = ({
             </div>
           </div>
         ) : (
-          displayedMessages.map((message: MessageItem) => (
-            <div
-              key={message.id}
-              className={`flex ${
-                message.sender === currentUser ? 'justify-end' : 'justify-start'
-              } group`}
-            >
-              <div
-                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg relative ${
-                  message.sender === currentUser
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-100 text-gray-900'
-                }`}
-              >
-                {/* Message content */}
-                {editingMessage === message.id ? (
-                  <div className="space-y-2">
-                    <input
-                      type="text"
-                      value={editContent}
-                      onChange={(e) => setEditContent(e.target.value)}
-                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
-                      autoFocus
-                    />
-                    <div className="flex gap-2">
-                      <button
-                        onClick={handleSaveEdit}
-                        className="text-xs px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={() => setEditingMessage(null)}
-                        className="text-xs px-2 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <p className="text-sm">{message.content}</p>
-                    {renderAttachment(message)}
-                    {renderReactions(message)}
-                    <div className="flex items-center justify-between mt-1">
-                      <p
-                        className={`text-xs ${
-                          message.sender === currentUser ? 'text-orange-100' : 'text-gray-500'
-                        }`}
-                      >
-                        {formatTimestamp(message.timestamp)}
-                        {message.is_edited && ' (edited)'}
-                      </p>
-                      
-                      {/* Action buttons for own messages */}
-                      {message.sender === currentUser && (
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => handleEditMessage(message.id)}
-                            className="p-1 hover:bg-white/20 rounded"
-                            title="Edit message"
-                          >
-                            <Edit2 size={12} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteMessage(message.id)}
-                            className="p-1 hover:bg-white/20 rounded"
-                            title="Delete message"
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          ))
+          <List
+            rowComponent={MessageRow}
+            listRef={listRef}
+            rowProps={{
+              messages: displayedMessages,
+              currentUser,
+              editingMessage,
+              editContent,
+              setEditContent,
+              handleSaveEdit,
+              setEditingMessage,
+              handleEditMessage,
+              handleDeleteMessage,
+              handleToggleReaction,
+              activeReactionMessageId,
+              setActiveReactionMessageId,
+              uploadProgressById,
+              reactionOptions,
+            }}
+            rowCount={displayedMessages.length}
+            rowHeight={dynamicRowHeight}
+            overscanCount={5}
+            style={{ height: '100%', width: '100%' }}
+          />
         )}
       </div>
 
       {/* Message Composer */}
-      <MessageComposer 
+      <MessageComposer
         onSendMessage={handleSendMessage}
         disabled={isLoading}
       />

@@ -1092,7 +1092,7 @@
             }
             return dispatcher.useContext(Context);
           }
-          function useState9(initialState6) {
+          function useState11(initialState6) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useState(initialState6);
           }
@@ -1100,11 +1100,11 @@
             var dispatcher = resolveDispatcher();
             return dispatcher.useReducer(reducer, initialArg, init);
           }
-          function useRef6(initialValue) {
+          function useRef7(initialValue) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useRef(initialValue);
           }
-          function useEffect11(create, deps) {
+          function useEffect13(create, deps) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useEffect(create, deps);
           }
@@ -1116,11 +1116,11 @@
             var dispatcher = resolveDispatcher();
             return dispatcher.useLayoutEffect(create, deps);
           }
-          function useCallback6(callback, deps) {
+          function useCallback7(callback, deps) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useCallback(callback, deps);
           }
-          function useMemo8(create, deps) {
+          function useMemo10(create, deps) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useMemo(create, deps);
           }
@@ -1883,19 +1883,19 @@
           exports.memo = memo3;
           exports.startTransition = startTransition;
           exports.unstable_act = act;
-          exports.useCallback = useCallback6;
+          exports.useCallback = useCallback7;
           exports.useContext = useContext8;
           exports.useDebugValue = useDebugValue2;
           exports.useDeferredValue = useDeferredValue;
-          exports.useEffect = useEffect11;
+          exports.useEffect = useEffect13;
           exports.useId = useId2;
           exports.useImperativeHandle = useImperativeHandle;
           exports.useInsertionEffect = useInsertionEffect3;
           exports.useLayoutEffect = useLayoutEffect3;
-          exports.useMemo = useMemo8;
+          exports.useMemo = useMemo10;
           exports.useReducer = useReducer;
-          exports.useRef = useRef6;
-          exports.useState = useState9;
+          exports.useRef = useRef7;
+          exports.useState = useState11;
           exports.useSyncExternalStore = useSyncExternalStore2;
           exports.useTransition = useTransition;
           exports.version = ReactVersion;
@@ -2391,9 +2391,9 @@
           if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === "function") {
             __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(new Error());
           }
-          var React13 = require_react();
+          var React15 = require_react();
           var Scheduler = require_scheduler();
-          var ReactSharedInternals = React13.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React15.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           var suppressWarning = false;
           function setSuppressWarning(newSuppressWarning) {
             {
@@ -3998,7 +3998,7 @@
             {
               if (props.value == null) {
                 if (typeof props.children === "object" && props.children !== null) {
-                  React13.Children.forEach(props.children, function(child) {
+                  React15.Children.forEach(props.children, function(child) {
                     if (child == null) {
                       return;
                     }
@@ -23569,15 +23569,15 @@
           return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React13 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React13.useSyncExternalStore, useRef6 = React13.useRef, useEffect11 = React13.useEffect, useMemo8 = React13.useMemo, useDebugValue2 = React13.useDebugValue;
+        var React15 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React15.useSyncExternalStore, useRef7 = React15.useRef, useEffect13 = React15.useEffect, useMemo10 = React15.useMemo, useDebugValue2 = React15.useDebugValue;
         exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
-          var instRef = useRef6(null);
+          var instRef = useRef7(null);
           if (null === instRef.current) {
             var inst = { hasValue: false, value: null };
             instRef.current = inst;
           } else
             inst = instRef.current;
-          instRef = useMemo8(
+          instRef = useMemo10(
             function() {
               function memoizedSelector(nextSnapshot) {
                 if (!hasMemo) {
@@ -23613,7 +23613,7 @@
             [getSnapshot, getServerSnapshot, selector, isEqual]
           );
           var value = useSyncExternalStore2(subscribe, instRef[0], instRef[1]);
-          useEffect11(
+          useEffect13(
             function() {
               inst.hasValue = true;
               inst.value = value;
@@ -23647,7 +23647,7 @@
       if (true) {
         (function() {
           "use strict";
-          var React13 = require_react();
+          var React15 = require_react();
           var REACT_ELEMENT_TYPE = Symbol.for("react.element");
           var REACT_PORTAL_TYPE = Symbol.for("react.portal");
           var REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
@@ -23673,7 +23673,7 @@
             }
             return null;
           }
-          var ReactSharedInternals = React13.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React15.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           function error(format) {
             {
               {
@@ -24523,11 +24523,11 @@
               return jsxWithValidation(type, props, key, false);
             }
           }
-          var jsx19 = jsxWithValidationDynamic;
-          var jsxs16 = jsxWithValidationStatic;
+          var jsx21 = jsxWithValidationDynamic;
+          var jsxs18 = jsxWithValidationStatic;
           exports.Fragment = REACT_FRAGMENT_TYPE;
-          exports.jsx = jsx19;
-          exports.jsxs = jsxs16;
+          exports.jsx = jsx21;
+          exports.jsxs = jsxs18;
         })();
       }
     }
@@ -24546,7 +24546,7 @@
   });
 
   // src/index.tsx
-  var import_react33 = __toESM(require_react());
+  var import_react36 = __toESM(require_react());
   var import_client = __toESM(require_client());
 
   // node_modules/react-redux/dist/react-redux.mjs
@@ -27375,6 +27375,29 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       clearSession();
     }
   );
+  var updateProfile = createAsyncThunk(
+    "auth/updateProfile",
+    async ({ displayName, email }, { getState, rejectWithValue }) => {
+      const currentUser = getState().auth.user;
+      if (!currentUser) {
+        return rejectWithValue("No active session");
+      }
+      const trimmedName = displayName.trim();
+      const validationError = validateUsername(trimmedName);
+      if (validationError) {
+        return rejectWithValue(validationError);
+      }
+      const trimmedEmail = email.trim();
+      const updatedUser = {
+        ...currentUser,
+        username: trimmedName,
+        displayName: trimmedName,
+        email: trimmedEmail || currentUser.email
+      };
+      storeSession(updatedUser);
+      return updatedUser;
+    }
+  );
   var authSlice = createSlice({
     name: "auth",
     initialState,
@@ -27427,6 +27450,16 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         state.status = "unauthenticated";
         state.user = null;
         state.error = "Logout failed";
+      }).addCase(updateProfile.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      }).addCase(updateProfile.fulfilled, (state, action) => {
+        state.status = "authenticated";
+        state.user = action.payload;
+        state.error = null;
+      }).addCase(updateProfile.rejected, (state, action) => {
+        state.status = "authenticated";
+        state.error = action.payload ?? "Profile update failed";
       });
     }
   });
@@ -27732,6 +27765,28 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     }
     /**
+     * Update message content
+     */
+    async updateMessage(messageId, content) {
+      try {
+        return await this.api.updateMessage(messageId, content);
+      } catch (error) {
+        console.error("Failed to update message:", error);
+        throw error;
+      }
+    }
+    /**
+     * Delete message
+     */
+    async deleteMessage(messageId) {
+      try {
+        return await this.api.deleteMessage(messageId);
+      } catch (error) {
+        console.error("Failed to delete message:", error);
+        throw error;
+      }
+    }
+    /**
      * Select a local file attachment
      */
     async selectAttachment(currentUser) {
@@ -27805,6 +27860,18 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
      */
     onMessageInserted(callback) {
       this.api.onMessageInserted(callback);
+    }
+    /**
+     * Subscribe to message update events
+     */
+    onMessageUpdated(callback) {
+      this.api.onMessageUpdated(callback);
+    }
+    /**
+     * Subscribe to message delete events
+     */
+    onMessageDeleted(callback) {
+      this.api.onMessageDeleted(callback);
     }
     /**
      * Subscribe to attachment upload progress
@@ -28001,7 +28068,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   });
 
   // src/App.tsx
-  var import_react32 = __toESM(require_react());
+  var import_react35 = __toESM(require_react());
 
   // src/pages/Login.tsx
   var import_react22 = __toESM(require_react());
@@ -28670,17 +28737,17 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   };
 
   // node_modules/motion-dom/dist/es/value/types/color/hsla-to-rgba.mjs
-  function hueToRgb(p, q, t) {
+  function hueToRgb(p, q2, t) {
     if (t < 0)
       t += 1;
     if (t > 1)
       t -= 1;
     if (t < 1 / 6)
-      return p + (q - p) * 6 * t;
+      return p + (q2 - p) * 6 * t;
     if (t < 1 / 2)
-      return q;
+      return q2;
     if (t < 2 / 3)
-      return p + (q - p) * (2 / 3 - t) * 6;
+      return p + (q2 - p) * (2 / 3 - t) * 6;
     return p;
   }
   function hslaToRgba({ hue, saturation, lightness, alpha: alpha2 }) {
@@ -28693,11 +28760,11 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     if (!saturation) {
       red = green = blue = lightness;
     } else {
-      const q = lightness < 0.5 ? lightness * (1 + saturation) : lightness + saturation - lightness * saturation;
-      const p = 2 * lightness - q;
-      red = hueToRgb(p, q, hue + 1 / 3);
-      green = hueToRgb(p, q, hue);
-      blue = hueToRgb(p, q, hue - 1 / 3);
+      const q2 = lightness < 0.5 ? lightness * (1 + saturation) : lightness + saturation - lightness * saturation;
+      const p = 2 * lightness - q2;
+      red = hueToRgb(p, q2, hue + 1 / 3);
+      green = hueToRgb(p, q2, hue);
+      blue = hueToRgb(p, q2, hue - 1 / 3);
     }
     return {
       red: Math.round(red * 255),
@@ -36121,35 +36188,55 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   ];
   var ArrowLeft = createLucideIcon("arrow-left", __iconNode);
 
+  // node_modules/lucide-react/dist/esm/icons/bell.js
+  var __iconNode2 = [
+    ["path", { d: "M10.268 21a2 2 0 0 0 3.464 0", key: "vwvbt9" }],
+    [
+      "path",
+      {
+        d: "M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326",
+        key: "11g9vi"
+      }
+    ]
+  ];
+  var Bell = createLucideIcon("bell", __iconNode2);
+
   // node_modules/lucide-react/dist/esm/icons/chevron-down.js
-  var __iconNode2 = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
-  var ChevronDown = createLucideIcon("chevron-down", __iconNode2);
+  var __iconNode3 = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
+  var ChevronDown = createLucideIcon("chevron-down", __iconNode3);
 
   // node_modules/lucide-react/dist/esm/icons/circle-alert.js
-  var __iconNode3 = [
+  var __iconNode4 = [
     ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
     ["line", { x1: "12", x2: "12", y1: "8", y2: "12", key: "1pkeuh" }],
     ["line", { x1: "12", x2: "12.01", y1: "16", y2: "16", key: "4dfq90" }]
   ];
-  var CircleAlert = createLucideIcon("circle-alert", __iconNode3);
+  var CircleAlert = createLucideIcon("circle-alert", __iconNode4);
 
   // node_modules/lucide-react/dist/esm/icons/circle-check-big.js
-  var __iconNode4 = [
+  var __iconNode5 = [
     ["path", { d: "M21.801 10A10 10 0 1 1 17 3.335", key: "yps3ct" }],
     ["path", { d: "m9 11 3 3L22 4", key: "1pflzl" }]
   ];
-  var CircleCheckBig = createLucideIcon("circle-check-big", __iconNode4);
+  var CircleCheckBig = createLucideIcon("circle-check-big", __iconNode5);
+
+  // node_modules/lucide-react/dist/esm/icons/clock.js
+  var __iconNode6 = [
+    ["path", { d: "M12 6v6l4 2", key: "mmk7yg" }],
+    ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }]
+  ];
+  var Clock = createLucideIcon("clock", __iconNode6);
 
   // node_modules/lucide-react/dist/esm/icons/ellipsis-vertical.js
-  var __iconNode5 = [
+  var __iconNode7 = [
     ["circle", { cx: "12", cy: "12", r: "1", key: "41hilf" }],
     ["circle", { cx: "12", cy: "5", r: "1", key: "gxeob9" }],
     ["circle", { cx: "12", cy: "19", r: "1", key: "lyex9k" }]
   ];
-  var EllipsisVertical = createLucideIcon("ellipsis-vertical", __iconNode5);
+  var EllipsisVertical = createLucideIcon("ellipsis-vertical", __iconNode7);
 
   // node_modules/lucide-react/dist/esm/icons/eye-off.js
-  var __iconNode6 = [
+  var __iconNode8 = [
     [
       "path",
       {
@@ -36167,10 +36254,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["path", { d: "m2 2 20 20", key: "1ooewy" }]
   ];
-  var EyeOff = createLucideIcon("eye-off", __iconNode6);
+  var EyeOff = createLucideIcon("eye-off", __iconNode8);
 
   // node_modules/lucide-react/dist/esm/icons/eye.js
-  var __iconNode7 = [
+  var __iconNode9 = [
     [
       "path",
       {
@@ -36180,10 +36267,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
   ];
-  var Eye = createLucideIcon("eye", __iconNode7);
+  var Eye = createLucideIcon("eye", __iconNode9);
 
   // node_modules/lucide-react/dist/esm/icons/file-text.js
-  var __iconNode8 = [
+  var __iconNode10 = [
     [
       "path",
       {
@@ -36196,36 +36283,65 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ["path", { d: "M16 13H8", key: "t4e002" }],
     ["path", { d: "M16 17H8", key: "z1uh3a" }]
   ];
-  var FileText = createLucideIcon("file-text", __iconNode8);
+  var FileText = createLucideIcon("file-text", __iconNode10);
+
+  // node_modules/lucide-react/dist/esm/icons/hard-drive.js
+  var __iconNode11 = [
+    ["line", { x1: "22", x2: "2", y1: "12", y2: "12", key: "1y58io" }],
+    [
+      "path",
+      {
+        d: "M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z",
+        key: "oot6mr"
+      }
+    ],
+    ["line", { x1: "6", x2: "6.01", y1: "16", y2: "16", key: "sgf278" }],
+    ["line", { x1: "10", x2: "10.01", y1: "16", y2: "16", key: "1l4acy" }]
+  ];
+  var HardDrive = createLucideIcon("hard-drive", __iconNode11);
+
+  // node_modules/lucide-react/dist/esm/icons/keyboard.js
+  var __iconNode12 = [
+    ["path", { d: "M10 8h.01", key: "1r9ogq" }],
+    ["path", { d: "M12 12h.01", key: "1mp3jc" }],
+    ["path", { d: "M14 8h.01", key: "1primd" }],
+    ["path", { d: "M16 12h.01", key: "1l6xoz" }],
+    ["path", { d: "M18 8h.01", key: "emo2bl" }],
+    ["path", { d: "M6 8h.01", key: "x9i8wu" }],
+    ["path", { d: "M7 16h10", key: "wp8him" }],
+    ["path", { d: "M8 12h.01", key: "czm47f" }],
+    ["rect", { width: "20", height: "16", x: "2", y: "4", rx: "2", key: "18n3k1" }]
+  ];
+  var Keyboard = createLucideIcon("keyboard", __iconNode12);
 
   // node_modules/lucide-react/dist/esm/icons/loader-circle.js
-  var __iconNode9 = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
-  var LoaderCircle = createLucideIcon("loader-circle", __iconNode9);
+  var __iconNode13 = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
+  var LoaderCircle = createLucideIcon("loader-circle", __iconNode13);
 
   // node_modules/lucide-react/dist/esm/icons/lock.js
-  var __iconNode10 = [
+  var __iconNode14 = [
     ["rect", { width: "18", height: "11", x: "3", y: "11", rx: "2", ry: "2", key: "1w4ew1" }],
     ["path", { d: "M7 11V7a5 5 0 0 1 10 0v4", key: "fwvmzm" }]
   ];
-  var Lock = createLucideIcon("lock", __iconNode10);
+  var Lock = createLucideIcon("lock", __iconNode14);
 
   // node_modules/lucide-react/dist/esm/icons/log-out.js
-  var __iconNode11 = [
+  var __iconNode15 = [
     ["path", { d: "m16 17 5-5-5-5", key: "1bji2h" }],
     ["path", { d: "M21 12H9", key: "dn1m92" }],
     ["path", { d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4", key: "1uf3rs" }]
   ];
-  var LogOut = createLucideIcon("log-out", __iconNode11);
+  var LogOut = createLucideIcon("log-out", __iconNode15);
 
   // node_modules/lucide-react/dist/esm/icons/mail.js
-  var __iconNode12 = [
+  var __iconNode16 = [
     ["path", { d: "m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7", key: "132q7q" }],
     ["rect", { x: "2", y: "4", width: "20", height: "16", rx: "2", key: "izxlao" }]
   ];
-  var Mail = createLucideIcon("mail", __iconNode12);
+  var Mail = createLucideIcon("mail", __iconNode16);
 
   // node_modules/lucide-react/dist/esm/icons/message-circle.js
-  var __iconNode13 = [
+  var __iconNode17 = [
     [
       "path",
       {
@@ -36234,10 +36350,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var MessageCircle = createLucideIcon("message-circle", __iconNode13);
+  var MessageCircle = createLucideIcon("message-circle", __iconNode17);
 
   // node_modules/lucide-react/dist/esm/icons/message-square.js
-  var __iconNode14 = [
+  var __iconNode18 = [
     [
       "path",
       {
@@ -36246,10 +36362,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var MessageSquare = createLucideIcon("message-square", __iconNode14);
+  var MessageSquare = createLucideIcon("message-square", __iconNode18);
 
   // node_modules/lucide-react/dist/esm/icons/paperclip.js
-  var __iconNode15 = [
+  var __iconNode19 = [
     [
       "path",
       {
@@ -36258,10 +36374,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var Paperclip = createLucideIcon("paperclip", __iconNode15);
+  var Paperclip = createLucideIcon("paperclip", __iconNode19);
 
   // node_modules/lucide-react/dist/esm/icons/pen.js
-  var __iconNode16 = [
+  var __iconNode20 = [
     [
       "path",
       {
@@ -36270,10 +36386,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var Pen = createLucideIcon("pen", __iconNode16);
+  var Pen = createLucideIcon("pen", __iconNode20);
 
   // node_modules/lucide-react/dist/esm/icons/phone.js
-  var __iconNode17 = [
+  var __iconNode21 = [
     [
       "path",
       {
@@ -36282,26 +36398,26 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var Phone = createLucideIcon("phone", __iconNode17);
+  var Phone = createLucideIcon("phone", __iconNode21);
 
   // node_modules/lucide-react/dist/esm/icons/refresh-cw.js
-  var __iconNode18 = [
+  var __iconNode22 = [
     ["path", { d: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8", key: "v9h5vc" }],
     ["path", { d: "M21 3v5h-5", key: "1q7to0" }],
     ["path", { d: "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16", key: "3uifl3" }],
     ["path", { d: "M8 16H3v5", key: "1cv678" }]
   ];
-  var RefreshCw = createLucideIcon("refresh-cw", __iconNode18);
+  var RefreshCw = createLucideIcon("refresh-cw", __iconNode22);
 
   // node_modules/lucide-react/dist/esm/icons/search.js
-  var __iconNode19 = [
+  var __iconNode23 = [
     ["path", { d: "m21 21-4.34-4.34", key: "14j7rj" }],
     ["circle", { cx: "11", cy: "11", r: "8", key: "4ej97u" }]
   ];
-  var Search = createLucideIcon("search", __iconNode19);
+  var Search = createLucideIcon("search", __iconNode23);
 
   // node_modules/lucide-react/dist/esm/icons/send.js
-  var __iconNode20 = [
+  var __iconNode24 = [
     [
       "path",
       {
@@ -36311,10 +36427,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["path", { d: "m21.854 2.147-10.94 10.939", key: "12cjpa" }]
   ];
-  var Send = createLucideIcon("send", __iconNode20);
+  var Send = createLucideIcon("send", __iconNode24);
 
   // node_modules/lucide-react/dist/esm/icons/settings.js
-  var __iconNode21 = [
+  var __iconNode25 = [
     [
       "path",
       {
@@ -36324,36 +36440,49 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
   ];
-  var Settings = createLucideIcon("settings", __iconNode21);
+  var Settings = createLucideIcon("settings", __iconNode25);
+
+  // node_modules/lucide-react/dist/esm/icons/shield-check.js
+  var __iconNode26 = [
+    [
+      "path",
+      {
+        d: "M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z",
+        key: "oel41y"
+      }
+    ],
+    ["path", { d: "m9 12 2 2 4-4", key: "dzmm74" }]
+  ];
+  var ShieldCheck = createLucideIcon("shield-check", __iconNode26);
 
   // node_modules/lucide-react/dist/esm/icons/smile.js
-  var __iconNode22 = [
+  var __iconNode27 = [
     ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
     ["path", { d: "M8 14s1.5 2 4 2 4-2 4-2", key: "1y1vjs" }],
     ["line", { x1: "9", x2: "9.01", y1: "9", y2: "9", key: "yxxnd0" }],
     ["line", { x1: "15", x2: "15.01", y1: "9", y2: "9", key: "1p4y9e" }]
   ];
-  var Smile = createLucideIcon("smile", __iconNode22);
+  var Smile = createLucideIcon("smile", __iconNode27);
 
   // node_modules/lucide-react/dist/esm/icons/trash-2.js
-  var __iconNode23 = [
+  var __iconNode28 = [
     ["path", { d: "M10 11v6", key: "nco0om" }],
     ["path", { d: "M14 11v6", key: "outv1u" }],
     ["path", { d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", key: "miytrc" }],
     ["path", { d: "M3 6h18", key: "d0wm0j" }],
     ["path", { d: "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", key: "e791ji" }]
   ];
-  var Trash2 = createLucideIcon("trash-2", __iconNode23);
+  var Trash2 = createLucideIcon("trash-2", __iconNode28);
 
   // node_modules/lucide-react/dist/esm/icons/user.js
-  var __iconNode24 = [
+  var __iconNode29 = [
     ["path", { d: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2", key: "975kel" }],
     ["circle", { cx: "12", cy: "7", r: "4", key: "17ys0d" }]
   ];
-  var User = createLucideIcon("user", __iconNode24);
+  var User = createLucideIcon("user", __iconNode29);
 
   // node_modules/lucide-react/dist/esm/icons/video.js
-  var __iconNode25 = [
+  var __iconNode30 = [
     [
       "path",
       {
@@ -36363,10 +36492,24 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["rect", { x: "2", y: "6", width: "14", height: "12", rx: "2", key: "158x01" }]
   ];
-  var Video = createLucideIcon("video", __iconNode25);
+  var Video = createLucideIcon("video", __iconNode30);
+
+  // node_modules/lucide-react/dist/esm/icons/volume-2.js
+  var __iconNode31 = [
+    [
+      "path",
+      {
+        d: "M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z",
+        key: "uqj9uw"
+      }
+    ],
+    ["path", { d: "M16 9a5 5 0 0 1 0 6", key: "1q6k2b" }],
+    ["path", { d: "M19.364 18.364a9 9 0 0 0 0-12.728", key: "ijwkga" }]
+  ];
+  var Volume2 = createLucideIcon("volume-2", __iconNode31);
 
   // node_modules/lucide-react/dist/esm/icons/wifi-off.js
-  var __iconNode26 = [
+  var __iconNode32 = [
     ["path", { d: "M12 20h.01", key: "zekei9" }],
     ["path", { d: "M8.5 16.429a5 5 0 0 1 7 0", key: "1bycff" }],
     ["path", { d: "M5 12.859a10 10 0 0 1 5.17-2.69", key: "1dl1wf" }],
@@ -36375,23 +36518,23 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ["path", { d: "M22 8.82a15 15 0 0 0-11.288-3.764", key: "z3jwby" }],
     ["path", { d: "m2 2 20 20", key: "1ooewy" }]
   ];
-  var WifiOff = createLucideIcon("wifi-off", __iconNode26);
+  var WifiOff = createLucideIcon("wifi-off", __iconNode32);
 
   // node_modules/lucide-react/dist/esm/icons/wifi.js
-  var __iconNode27 = [
+  var __iconNode33 = [
     ["path", { d: "M12 20h.01", key: "zekei9" }],
     ["path", { d: "M2 8.82a15 15 0 0 1 20 0", key: "dnpr2z" }],
     ["path", { d: "M5 12.859a10 10 0 0 1 14 0", key: "1x1e6c" }],
     ["path", { d: "M8.5 16.429a5 5 0 0 1 7 0", key: "1bycff" }]
   ];
-  var Wifi = createLucideIcon("wifi", __iconNode27);
+  var Wifi = createLucideIcon("wifi", __iconNode33);
 
   // node_modules/lucide-react/dist/esm/icons/x.js
-  var __iconNode28 = [
+  var __iconNode34 = [
     ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
     ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
   ];
-  var X = createLucideIcon("x", __iconNode28);
+  var X = createLucideIcon("x", __iconNode34);
 
   // src/pages/Login.tsx
   var import_jsx_runtime3 = __toESM(require_jsx_runtime());
@@ -37015,7 +37158,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var Welcome_default = Welcome;
 
   // src/layouts/MainLayout.tsx
-  var import_react29 = __toESM(require_react());
+  var import_react32 = __toESM(require_react());
 
   // src/components/Sidebar.tsx
   var import_jsx_runtime7 = __toESM(require_jsx_runtime());
@@ -37073,10 +37216,703 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var Sidebar_default = Sidebar;
 
   // src/components/ChatList.tsx
-  var import_react25 = __toESM(require_react());
+  var import_react26 = __toESM(require_react());
+
+  // node_modules/react-window/dist/react-window.js
+  var import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
+  var import_react25 = __toESM(require_react(), 1);
+  var q = typeof window < "u" ? import_react25.useLayoutEffect : import_react25.useEffect;
+  function ie(e) {
+    if (e !== void 0)
+      switch (typeof e) {
+        case "number":
+          return e;
+        case "string": {
+          if (e.endsWith("px"))
+            return parseFloat(e);
+          break;
+        }
+      }
+  }
+  function be({
+    box: e,
+    defaultHeight: t,
+    defaultWidth: s,
+    disabled: r,
+    element: n,
+    mode: o,
+    style: i
+  }) {
+    const { styleHeight: f, styleWidth: l } = (0, import_react25.useMemo)(
+      () => ({
+        styleHeight: ie(i?.height),
+        styleWidth: ie(i?.width)
+      }),
+      [i?.height, i?.width]
+    ), [a, d] = (0, import_react25.useState)({
+      height: t,
+      width: s
+    }), c = r || o === "only-height" && f !== void 0 || o === "only-width" && l !== void 0 || f !== void 0 && l !== void 0;
+    return q(() => {
+      if (n === null || c)
+        return;
+      const h = new ResizeObserver((p) => {
+        for (const I of p) {
+          const { contentRect: u, target: w } = I;
+          n === w && d((m) => m.height === u.height && m.width === u.width ? m : {
+            height: u.height,
+            width: u.width
+          });
+        }
+      });
+      return h.observe(n, { box: e }), () => {
+        h?.unobserve(n);
+      };
+    }, [e, c, n, f, l]), (0, import_react25.useMemo)(
+      () => ({
+        height: f ?? a.height,
+        width: l ?? a.width
+      }),
+      [a, f, l]
+    );
+  }
+  function ae(e) {
+    const t = (0, import_react25.useRef)(() => {
+      throw new Error("Cannot call during render.");
+    });
+    return q(() => {
+      t.current = e;
+    }, [e]), (0, import_react25.useCallback)((s) => t.current?.(s), [t]);
+  }
+  var U = null;
+  function Ie(e = false) {
+    if (U === null || e) {
+      const t = document.createElement("div"), s = t.style;
+      s.width = "50px", s.height = "50px", s.overflow = "scroll", s.direction = "rtl";
+      const r = document.createElement("div"), n = r.style;
+      return n.width = "100px", n.height = "100px", t.appendChild(r), document.body.appendChild(t), t.scrollLeft > 0 ? U = "positive-descending" : (t.scrollLeft = 1, t.scrollLeft === 0 ? U = "negative" : U = "positive-ascending"), document.body.removeChild(t), U;
+    }
+    return U;
+  }
+  function Z({
+    containerElement: e,
+    direction: t,
+    isRtl: s,
+    scrollOffset: r
+  }) {
+    if (t === "horizontal" && s)
+      switch (Ie()) {
+        case "negative":
+          return -r;
+        case "positive-descending": {
+          if (e) {
+            const { clientWidth: n, scrollLeft: o, scrollWidth: i } = e;
+            return i - n - o;
+          }
+          break;
+        }
+      }
+    return r;
+  }
+  function L(e, t = "Assertion error") {
+    if (!e)
+      throw console.error(t), Error(t);
+  }
+  function Y(e, t) {
+    if (e === t)
+      return true;
+    if (!!e != !!t || (L(e !== void 0), L(t !== void 0), Object.keys(e).length !== Object.keys(t).length))
+      return false;
+    for (const s in e)
+      if (!Object.is(t[s], e[s]))
+        return false;
+    return true;
+  }
+  function fe({
+    cachedBounds: e,
+    itemCount: t,
+    itemSize: s
+  }) {
+    if (t === 0)
+      return 0;
+    if (typeof s == "number")
+      return t * s;
+    {
+      const r = e.get(
+        e.size === 0 ? 0 : e.size - 1
+      );
+      L(r !== void 0, "Unexpected bounds cache miss");
+      const n = (r.scrollOffset + r.size) / e.size;
+      return t * n;
+    }
+  }
+  function we({
+    align: e,
+    cachedBounds: t,
+    index: s,
+    itemCount: r,
+    itemSize: n,
+    containerScrollOffset: o,
+    containerSize: i
+  }) {
+    if (s < 0 || s >= r)
+      throw RangeError(`Invalid index specified: ${s}`, {
+        cause: `Index ${s} is not within the range of 0 - ${r - 1}`
+      });
+    const f = fe({
+      cachedBounds: t,
+      itemCount: r,
+      itemSize: n
+    }), l = t.get(s), a = Math.max(
+      0,
+      Math.min(f - i, l.scrollOffset)
+    ), d = Math.max(
+      0,
+      l.scrollOffset - i + l.size
+    );
+    switch (e === "smart" && (o >= d && o <= a ? e = "auto" : e = "center"), e) {
+      case "start":
+        return a;
+      case "end":
+        return d;
+      case "center":
+        return l.scrollOffset <= i / 2 ? 0 : l.scrollOffset + l.size / 2 >= f - i / 2 ? f - i : l.scrollOffset + l.size / 2 - i / 2;
+      case "auto":
+      default:
+        return o >= d && o <= a ? o : o < d ? d : a;
+    }
+  }
+  function P({
+    cachedBounds: e,
+    containerScrollOffset: t,
+    containerSize: s,
+    itemCount: r,
+    overscanCount: n
+  }) {
+    const o = r - 1;
+    let i = 0, f = -1, l = 0, a = -1, d = 0;
+    for (; d < o; ) {
+      const c = e.get(d);
+      if (c.scrollOffset + c.size > t)
+        break;
+      d++;
+    }
+    for (i = d, l = Math.max(0, i - n); d < o; ) {
+      const c = e.get(d);
+      if (c.scrollOffset + c.size >= t + s)
+        break;
+      d++;
+    }
+    return f = Math.min(o, d), a = Math.min(r - 1, f + n), i < 0 && (i = 0, f = -1, l = 0, a = -1), {
+      startIndexVisible: i,
+      stopIndexVisible: f,
+      startIndexOverscan: l,
+      stopIndexOverscan: a
+    };
+  }
+  function me({
+    itemCount: e,
+    itemProps: t,
+    itemSize: s
+  }) {
+    const r = /* @__PURE__ */ new Map();
+    return {
+      get(n) {
+        for (L(n < e, `Invalid index ${n}`); r.size - 1 < n; ) {
+          const i = r.size;
+          let f;
+          switch (typeof s) {
+            case "function": {
+              f = s(i, t);
+              break;
+            }
+            case "number": {
+              f = s;
+              break;
+            }
+          }
+          if (i === 0)
+            r.set(i, {
+              size: f,
+              scrollOffset: 0
+            });
+          else {
+            const l = r.get(i - 1);
+            L(
+              l !== void 0,
+              `Unexpected bounds cache miss for index ${n}`
+            ), r.set(i, {
+              scrollOffset: l.scrollOffset + l.size,
+              size: f
+            });
+          }
+        }
+        const o = r.get(n);
+        return L(
+          o !== void 0,
+          `Unexpected bounds cache miss for index ${n}`
+        ), o;
+      },
+      set(n, o) {
+        r.set(n, o);
+      },
+      get size() {
+        return r.size;
+      }
+    };
+  }
+  function Oe({
+    itemCount: e,
+    itemProps: t,
+    itemSize: s
+  }) {
+    return (0, import_react25.useMemo)(
+      () => me({
+        itemCount: e,
+        itemProps: t,
+        itemSize: s
+      }),
+      [e, t, s]
+    );
+  }
+  function ye({
+    containerSize: e,
+    itemSize: t
+  }) {
+    let s;
+    switch (typeof t) {
+      case "string": {
+        L(
+          t.endsWith("%"),
+          `Invalid item size: "${t}"; string values must be percentages (e.g. "100%")`
+        ), L(
+          e !== void 0,
+          "Container size must be defined if a percentage item size is specified"
+        ), s = e * parseInt(t) / 100;
+        break;
+      }
+      default: {
+        s = t;
+        break;
+      }
+    }
+    return s;
+  }
+  function te({
+    containerElement: e,
+    containerStyle: t,
+    defaultContainerSize: s = 0,
+    direction: r,
+    isRtl: n = false,
+    itemCount: o,
+    itemProps: i,
+    itemSize: f,
+    onResize: l,
+    overscanCount: a
+  }) {
+    const { height: d = s, width: c = s } = be({
+      defaultHeight: r === "vertical" ? s : void 0,
+      defaultWidth: r === "horizontal" ? s : void 0,
+      element: e,
+      mode: r === "vertical" ? "only-height" : "only-width",
+      style: t
+    }), h = (0, import_react25.useRef)({
+      height: 0,
+      width: 0
+    }), p = r === "vertical" ? d : c, I = ye({ containerSize: p, itemSize: f });
+    (0, import_react25.useLayoutEffect)(() => {
+      if (typeof l == "function") {
+        const g = h.current;
+        (g.height !== d || g.width !== c) && (l({ height: d, width: c }, { ...g }), g.height = d, g.width = c);
+      }
+    }, [d, l, c]);
+    const u = Oe({
+      itemCount: o,
+      itemProps: i,
+      itemSize: I
+    }), w = (0, import_react25.useCallback)(
+      (g) => u.get(g),
+      [u]
+    ), [m, O2] = (0, import_react25.useState)(
+      () => P({
+        cachedBounds: u,
+        // TODO Potentially support a defaultScrollOffset prop?
+        containerScrollOffset: 0,
+        containerSize: p,
+        itemCount: o,
+        overscanCount: a
+      })
+    ), {
+      startIndexVisible: G,
+      startIndexOverscan: x,
+      stopIndexVisible: F,
+      stopIndexOverscan: V
+    } = {
+      startIndexVisible: Math.min(o - 1, m.startIndexVisible),
+      startIndexOverscan: Math.min(o - 1, m.startIndexOverscan),
+      stopIndexVisible: Math.min(o - 1, m.stopIndexVisible),
+      stopIndexOverscan: Math.min(o - 1, m.stopIndexOverscan)
+    }, z = (0, import_react25.useCallback)(
+      () => fe({
+        cachedBounds: u,
+        itemCount: o,
+        itemSize: I
+      }),
+      [u, o, I]
+    ), $ = (0, import_react25.useCallback)(
+      (g) => {
+        const S = Z({
+          containerElement: e,
+          direction: r,
+          isRtl: n,
+          scrollOffset: g
+        });
+        return P({
+          cachedBounds: u,
+          containerScrollOffset: S,
+          containerSize: p,
+          itemCount: o,
+          overscanCount: a
+        });
+      },
+      [
+        u,
+        e,
+        p,
+        r,
+        n,
+        o,
+        a
+      ]
+    );
+    q(() => {
+      const g = (r === "vertical" ? e?.scrollTop : e?.scrollLeft) ?? 0;
+      O2($(g));
+    }, [e, r, $]), q(() => {
+      if (!e)
+        return;
+      const g = () => {
+        O2((S) => {
+          const { scrollLeft: E, scrollTop: b } = e, v = Z({
+            containerElement: e,
+            direction: r,
+            isRtl: n,
+            scrollOffset: r === "vertical" ? b : E
+          }), R = P({
+            cachedBounds: u,
+            containerScrollOffset: v,
+            containerSize: p,
+            itemCount: o,
+            overscanCount: a
+          });
+          return Y(R, S) ? S : R;
+        });
+      };
+      return e.addEventListener("scroll", g), () => {
+        e.removeEventListener("scroll", g);
+      };
+    }, [
+      u,
+      e,
+      p,
+      r,
+      o,
+      a
+    ]);
+    const y = ae(
+      ({
+        align: g = "auto",
+        containerScrollOffset: S,
+        index: E
+      }) => {
+        let b = we({
+          align: g,
+          cachedBounds: u,
+          containerScrollOffset: S,
+          containerSize: p,
+          index: E,
+          itemCount: o,
+          itemSize: I
+        });
+        if (e) {
+          if (b = Z({
+            containerElement: e,
+            direction: r,
+            isRtl: n,
+            scrollOffset: b
+          }), typeof e.scrollTo != "function") {
+            const v = $(b);
+            Y(m, v) || O2(v);
+          }
+          return b;
+        }
+      }
+    );
+    return {
+      getCellBounds: w,
+      getEstimatedSize: z,
+      scrollToIndex: y,
+      startIndexOverscan: x,
+      startIndexVisible: G,
+      stopIndexOverscan: V,
+      stopIndexVisible: F
+    };
+  }
+  function de(e) {
+    return (0, import_react25.useMemo)(() => e, Object.values(e));
+  }
+  function ue(e, t) {
+    const {
+      ariaAttributes: s,
+      style: r,
+      ...n
+    } = e, {
+      ariaAttributes: o,
+      style: i,
+      ...f
+    } = t;
+    return Y(s, o) && Y(r, i) && Y(n, f);
+  }
+  function ze(e) {
+    return e != null && typeof e == "object" && "getAverageRowHeight" in e && typeof e.getAverageRowHeight == "function";
+  }
+  var se = "data-react-window-index";
+  function Ae({
+    children: e,
+    className: t,
+    defaultHeight: s = 0,
+    listRef: r,
+    onResize: n,
+    onRowsRendered: o,
+    overscanCount: i = 3,
+    rowComponent: f,
+    rowCount: l,
+    rowHeight: a,
+    rowProps: d,
+    tagName: c = "div",
+    style: h,
+    ...p
+  }) {
+    const I = de(d), u = (0, import_react25.useMemo)(
+      () => (0, import_react25.memo)(f, ue),
+      [f]
+    ), [w, m] = (0, import_react25.useState)(null), O2 = ze(a), G = (0, import_react25.useMemo)(() => O2 ? (b) => a.getRowHeight(b) ?? a.getAverageRowHeight() : a, [O2, a]), {
+      getCellBounds: x,
+      getEstimatedSize: F,
+      scrollToIndex: V,
+      startIndexOverscan: z,
+      startIndexVisible: $,
+      stopIndexOverscan: y,
+      stopIndexVisible: g
+    } = te({
+      containerElement: w,
+      containerStyle: h,
+      defaultContainerSize: s,
+      direction: "vertical",
+      itemCount: l,
+      itemProps: I,
+      itemSize: G,
+      onResize: n,
+      overscanCount: i
+    });
+    (0, import_react25.useImperativeHandle)(
+      r,
+      () => ({
+        get element() {
+          return w;
+        },
+        scrollToRow({
+          align: b = "auto",
+          behavior: v = "auto",
+          index: R
+        }) {
+          const k = V({
+            align: b,
+            containerScrollOffset: w?.scrollTop ?? 0,
+            index: R
+          });
+          typeof w?.scrollTo == "function" && w.scrollTo({
+            behavior: v,
+            top: k
+          });
+        }
+      }),
+      [w, V]
+    ), q(() => {
+      if (!w)
+        return;
+      const b = Array.from(w.children).filter((v, R) => {
+        if (v.hasAttribute("aria-hidden"))
+          return false;
+        const k = `${z + R}`;
+        return v.setAttribute(se, k), true;
+      });
+      if (O2)
+        return a.observeRowElements(b);
+    }, [
+      w,
+      O2,
+      a,
+      z,
+      y
+    ]), (0, import_react25.useEffect)(() => {
+      z >= 0 && y >= 0 && o && o(
+        {
+          startIndex: $,
+          stopIndex: g
+        },
+        {
+          startIndex: z,
+          stopIndex: y
+        }
+      );
+    }, [
+      o,
+      z,
+      $,
+      y,
+      g
+    ]);
+    const S = (0, import_react25.useMemo)(() => {
+      const b = [];
+      if (l > 0)
+        for (let v = z; v <= y; v++) {
+          const R = x(v);
+          b.push(
+            /* @__PURE__ */ (0, import_react25.createElement)(
+              u,
+              {
+                ...I,
+                ariaAttributes: {
+                  "aria-posinset": v + 1,
+                  "aria-setsize": l,
+                  role: "listitem"
+                },
+                key: v,
+                index: v,
+                style: {
+                  position: "absolute",
+                  left: 0,
+                  transform: `translateY(${R.scrollOffset}px)`,
+                  // In case of dynamic row heights, don't specify a height style
+                  // otherwise a default/estimated height would mask the actual height
+                  height: O2 ? void 0 : R.size,
+                  width: "100%"
+                }
+              }
+            )
+          );
+        }
+      return b;
+    }, [
+      u,
+      x,
+      O2,
+      l,
+      I,
+      z,
+      y
+    ]), E = /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+      "div",
+      {
+        "aria-hidden": true,
+        style: {
+          height: F(),
+          width: "100%",
+          zIndex: -1
+        }
+      }
+    );
+    return (0, import_react25.createElement)(
+      c,
+      {
+        role: "list",
+        ...p,
+        className: t,
+        ref: m,
+        style: {
+          position: "relative",
+          maxHeight: "100%",
+          flexGrow: 1,
+          overflowY: "auto",
+          ...h
+        }
+      },
+      S,
+      e,
+      E
+    );
+  }
+  function ke({
+    defaultRowHeight: e,
+    key: t
+  }) {
+    const [s, r] = (0, import_react25.useState)({
+      key: t,
+      map: /* @__PURE__ */ new Map()
+    });
+    s.key !== t && r({
+      key: t,
+      map: /* @__PURE__ */ new Map()
+    });
+    const { map: n } = s, o = (0, import_react25.useCallback)(() => {
+      let c = 0;
+      return n.forEach((h) => {
+        c += h;
+      }), c === 0 ? e : c / n.size;
+    }, [e, n]), i = (0, import_react25.useCallback)(
+      (c) => {
+        const h = n.get(c);
+        return h !== void 0 ? h : (n.set(c, e), e);
+      },
+      [e, n]
+    ), f = (0, import_react25.useCallback)((c, h) => {
+      r((p) => {
+        if (p.map.get(c) === h)
+          return p;
+        const I = new Map(p.map);
+        return I.set(c, h), {
+          ...p,
+          map: I
+        };
+      });
+    }, []), l = ae(
+      (c) => {
+        c.length !== 0 && c.forEach((h) => {
+          const { borderBoxSize: p, target: I } = h, u = I.getAttribute(se);
+          L(
+            u !== null,
+            `Invalid ${se} attribute value`
+          );
+          const w = parseInt(u), { blockSize: m } = p[0];
+          m && f(w, m);
+        });
+      }
+    ), [a] = (0, import_react25.useState)(
+      () => new ResizeObserver(l)
+    );
+    (0, import_react25.useEffect)(() => () => {
+      a.disconnect();
+    }, [a]);
+    const d = (0, import_react25.useCallback)(
+      (c) => (c.forEach((h) => a.observe(h)), () => {
+        c.forEach((h) => a.unobserve(h));
+      }),
+      [a]
+    );
+    return (0, import_react25.useMemo)(
+      () => ({
+        getAverageRowHeight: o,
+        getRowHeight: i,
+        setRowHeight: f,
+        observeRowElements: d
+      }),
+      [o, i, f, d]
+    );
+  }
 
   // src/components/ChatItem.tsx
-  var import_jsx_runtime8 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime9 = __toESM(require_jsx_runtime());
   var ChatItem = ({ chat, isSelected = false, onClick }) => {
     const formatTime = (timestamp) => {
       const date = new Date(timestamp);
@@ -37093,7 +37929,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         return date.toLocaleDateString([], { month: "short", day: "numeric" });
       }
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(
       "button",
       {
         type: "button",
@@ -37101,15 +37937,15 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         className: `w-full px-4 py-3 flex items-start space-x-3 transition-colors ${isSelected ? "bg-gray-light border-l-4 border-primary" : "hover:bg-gray-50 border-l-4 border-transparent"}`,
         "aria-selected": isSelected,
         children: [
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "flex-shrink-0", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-white font-semibold", children: chat.name.charAt(0).toUpperCase() }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "flex-1 min-w-0 text-left", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "flex items-center justify-between mb-1", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("h3", { className: `text-sm font-medium truncate ${isSelected ? "text-secondary" : "text-gray-900"}`, children: chat.name }),
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { className: `text-xs ${isSelected ? "text-primary" : "text-gray-500"}`, children: formatTime(chat.updatedAt) })
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "flex-shrink-0", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-white font-semibold", children: chat.name.charAt(0).toUpperCase() }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex-1 min-w-0 text-left", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex items-center justify-between mb-1", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("h3", { className: `text-sm font-medium truncate ${isSelected ? "text-secondary" : "text-gray-900"}`, children: chat.name }),
+              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: `text-xs ${isSelected ? "text-primary" : "text-gray-500"}`, children: formatTime(chat.updatedAt) })
             ] }),
-            chat.lastMessage && /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("p", { className: `text-sm truncate ${isSelected ? "text-gray-700" : "text-gray-600"}`, children: chat.lastMessage })
+            chat.lastMessage && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: `text-sm truncate ${isSelected ? "text-gray-700" : "text-gray-600"}`, children: chat.lastMessage })
           ] }),
-          chat.unreadCount && chat.unreadCount > 0 && /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "flex-shrink-0", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { className: "inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-primary rounded-full", children: chat.unreadCount > 99 ? "99+" : chat.unreadCount }) })
+          chat.unreadCount && chat.unreadCount > 0 && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "flex-shrink-0", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-primary rounded-full", children: chat.unreadCount > 99 ? "99+" : chat.unreadCount }) })
         ]
       }
     );
@@ -37127,7 +37963,27 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   }
 
   // src/components/ChatList.tsx
-  var import_jsx_runtime9 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime10 = __toESM(require_jsx_runtime());
+  var CHAT_ITEM_HEIGHT = 72;
+  var ChatRow = ({
+    index,
+    style,
+    chats,
+    selectedChatId,
+    onSelectChat
+  }) => {
+    const chat = chats[index];
+    if (!chat)
+      return null;
+    return /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { style, children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+      ChatItem_default,
+      {
+        chat,
+        isSelected: selectedChatId === chat.id,
+        onClick: () => onSelectChat?.(chat.id)
+      }
+    ) });
+  };
   var ChatList = ({
     selectedChatId,
     onSelectChat,
@@ -37141,14 +37997,15 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       error,
       pagination
     } = useSelector((s) => s.chats);
-    const [searchQuery, setSearchQuery] = (0, import_react25.useState)("");
-    const [searchResults, setSearchResults] = (0, import_react25.useState)([]);
-    const [searchTotal, setSearchTotal] = (0, import_react25.useState)(0);
-    const [searchLoading, setSearchLoading] = (0, import_react25.useState)(false);
-    (0, import_react25.useEffect)(() => {
+    const [searchQuery, setSearchQuery] = (0, import_react26.useState)("");
+    const [searchResults, setSearchResults] = (0, import_react26.useState)([]);
+    const [searchTotal, setSearchTotal] = (0, import_react26.useState)(0);
+    const [searchLoading, setSearchLoading] = (0, import_react26.useState)(false);
+    const containerRef = (0, import_react26.useRef)(null);
+    (0, import_react26.useEffect)(() => {
       dispatch(fetchChats({ offset: 0, limit: 50 }));
     }, [dispatch]);
-    (0, import_react25.useEffect)(() => {
+    (0, import_react26.useEffect)(() => {
       const trimmed = searchQuery.trim();
       if (!trimmed) {
         setSearchResults([]);
@@ -37181,43 +38038,40 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         window.clearTimeout(timer);
       };
     }, [searchQuery]);
-    const sortedChats = (0, import_react25.useMemo)(
+    const sortedChats = (0, import_react26.useMemo)(
       () => [...items].sort((a, b) => b.updatedAt - a.updatedAt),
       [items]
     );
     const displayedChats = searchQuery.trim() ? searchResults : sortedChats;
     const displayTotal = searchQuery.trim() ? searchTotal : pagination.total;
-    const handleScroll = (0, import_react25.useCallback)((event) => {
+    const handleRowsRendered = (0, import_react26.useCallback)((visibleRows, allRows) => {
       if (searchQuery.trim())
         return;
       if (loading || !pagination.hasMore)
         return;
-      const element = event.currentTarget;
-      const { scrollTop, scrollHeight, clientHeight } = element;
-      const threshold = 200;
-      if (scrollTop + clientHeight >= scrollHeight - threshold) {
+      if (allRows.stopIndex >= displayedChats.length - 5) {
         dispatch(fetchChats({
           offset: pagination.offset,
           limit: 50
         }));
       }
-    }, [dispatch, loading, pagination.hasMore, pagination.offset, searchQuery]);
+    }, [dispatch, loading, pagination.hasMore, pagination.offset, searchQuery, displayedChats.length]);
     if (error) {
-      return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex flex-col h-full", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("header", { className: "px-4 py-3 border-b border-gray-200 bg-white", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("h2", { className: "text-lg font-semibold text-secondary", children: "Chats" }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "flex-1 flex items-center justify-center text-red-500", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "text-center", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "text-sm", children: "Failed to load chats" }),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "text-xs mt-1", children: error })
+      return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "flex flex-col h-full", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("header", { className: "px-4 py-3 border-b border-gray-200 bg-white", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("h2", { className: "text-lg font-semibold text-secondary", children: "Chats" }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "flex-1 flex items-center justify-center text-red-500", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "text-center", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-sm", children: "Failed to load chats" }),
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-xs mt-1", children: error })
         ] }) })
       ] });
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex flex-col h-full", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("header", { className: "px-4 py-3 border-b border-gray-200 bg-white space-y-2", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("h2", { className: "text-lg font-semibold text-secondary", children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "flex flex-col h-full", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("header", { className: "px-4 py-3 border-b border-gray-200 bg-white space-y-2", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("h2", { className: "text-lg font-semibold text-secondary", children: [
           "Chats ",
           displayTotal > 0 && `(${displayTotal})`
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
           "input",
           {
             value: searchQuery,
@@ -37227,35 +38081,36 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           }
         )
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
-        "div",
+      /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { ref: containerRef, className: "flex-1 overflow-hidden", children: displayedChats.length === 0 && !loading && !searchLoading ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "flex items-center justify-center h-full text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "text-center", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-sm", children: searchQuery.trim() ? "No chats match your search" : "No chats yet" }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-xs mt-1", children: searchQuery.trim() ? "Try a different name or keyword" : "Start a conversation to see it here" })
+      ] }) }) : /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+        Ae,
         {
-          className: "flex-1 overflow-y-auto",
-          onScroll: handleScroll,
-          children: displayedChats.length === 0 && !loading && !searchLoading ? /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "flex items-center justify-center h-full text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "text-center", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "text-sm", children: searchQuery.trim() ? "No chats match your search" : "No chats yet" }),
-            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "text-xs mt-1", children: searchQuery.trim() ? "Try a different name or keyword" : "Start a conversation to see it here" })
-          ] }) }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("ul", { className: "divide-y divide-gray-100", children: displayedChats.map((chat) => /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("li", { children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
-            ChatItem_default,
-            {
-              chat,
-              isSelected: selectedChatId === chat.id,
-              onClick: () => onSelectChat?.(chat.id)
-            }
-          ) }, chat.id)) })
+          rowComponent: ChatRow,
+          rowProps: {
+            chats: displayedChats,
+            selectedChatId,
+            onSelectChat
+          },
+          rowCount: displayedChats.length,
+          rowHeight: CHAT_ITEM_HEIGHT,
+          onRowsRendered: handleRowsRendered,
+          overscanCount: 5,
+          style: { height: "100%", width: "100%" }
         }
-      ),
-      (loading || searchLoading) && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "px-4 py-2 text-center text-sm text-gray-500 bg-gray-50", children: searchQuery.trim() ? "Searching chats..." : "Loading more chats..." })
+      ) }),
+      (loading || searchLoading) && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "px-4 py-2 text-center text-sm text-gray-500 bg-gray-50", children: searchQuery.trim() ? "Searching chats..." : "Loading more chats..." })
     ] });
   };
   var ChatList_default = ChatList;
 
   // src/components/MessageThread.tsx
-  var import_react27 = __toESM(require_react());
+  var import_react28 = __toESM(require_react());
 
   // src/components/MessageComposer.tsx
-  var import_react26 = __toESM(require_react());
-  var import_jsx_runtime10 = __toESM(require_jsx_runtime());
+  var import_react27 = __toESM(require_react());
+  var import_jsx_runtime11 = __toESM(require_jsx_runtime());
   var toFileUrl = (filePath) => {
     if (!filePath)
       return "";
@@ -37271,13 +38126,13 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     placeholder = "Type a message...",
     disabled = false
   }) => {
-    const [message, setMessage] = (0, import_react26.useState)("");
-    const [attachment, setAttachment] = (0, import_react26.useState)(null);
-    const [showEmojiPicker, setShowEmojiPicker] = (0, import_react26.useState)(false);
-    const [rows, setRows] = (0, import_react26.useState)(1);
+    const [message, setMessage] = (0, import_react27.useState)("");
+    const [attachment, setAttachment] = (0, import_react27.useState)(null);
+    const [showEmojiPicker, setShowEmojiPicker] = (0, import_react27.useState)(false);
+    const [rows, setRows] = (0, import_react27.useState)(1);
     const emojiOptions = ["\u{1F600}", "\u{1F602}", "\u{1F60D}", "\u{1F44D}", "\u{1F389}", "\u{1F525}", "\u{1F622}", "\u{1F62E}", "\u{1F914}", "\u{1F64F}"];
     const currentUser = useSelector((s) => s.auth.user?.username || "You");
-    (0, import_react26.useEffect)(() => {
+    (0, import_react27.useEffect)(() => {
       const maxRows = 4;
       const lineBreaks = message.split("\n");
       const estimatedRows = lineBreaks.reduce((count, line) => {
@@ -37337,32 +38192,32 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       const i = Math.floor(Math.log(bytes) / Math.log(k));
       return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "border-t border-gray-200 bg-white p-4 flex-shrink-0", children: [
-      attachment && /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "mb-2 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2", children: [
-        attachment.type === "image" ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "border-t border-gray-200 bg-white p-4 flex-shrink-0", children: [
+      attachment && /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "mb-2 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2", children: [
+        attachment.type === "image" ? /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
           "img",
           {
             src: toFileUrl(attachment.filePath),
             alt: attachment.fileName,
             className: "h-12 w-12 rounded object-cover"
           }
-        ) : /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "flex h-12 w-12 items-center justify-center rounded bg-white text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(FileText, { size: 20 }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "flex-1 min-w-0", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-sm font-medium truncate text-gray-800", children: attachment.fileName }),
-          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-xs text-gray-500", children: formatFileSize(attachment.fileSize) })
+        ) : /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "flex h-12 w-12 items-center justify-center rounded bg-white text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(FileText, { size: 20 }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "flex-1 min-w-0", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("p", { className: "text-sm font-medium truncate text-gray-800", children: attachment.fileName }),
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("p", { className: "text-xs text-gray-500", children: formatFileSize(attachment.fileSize) })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
           "button",
           {
             type: "button",
             onClick: () => setAttachment(null),
             className: "rounded p-1 text-gray-500 hover:bg-white hover:text-gray-700",
             "aria-label": "Remove attachment",
-            children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(X, { size: 14 })
+            children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(X, { size: 14 })
           }
         )
       ] }),
-      showEmojiPicker && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "mb-2 flex flex-wrap gap-1 rounded-lg border border-gray-200 bg-white p-2 shadow-sm", children: emojiOptions.map((emoji) => /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+      showEmojiPicker && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "mb-2 flex flex-wrap gap-1 rounded-lg border border-gray-200 bg-white p-2 shadow-sm", children: emojiOptions.map((emoji) => /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
         "button",
         {
           type: "button",
@@ -37372,30 +38227,30 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         },
         emoji
       )) }),
-      /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "flex items-end gap-2", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "flex items-center gap-1", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "flex items-end gap-2", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "flex items-center gap-1", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
             "button",
             {
               onClick: handleFileSelect,
               className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
               title: "Attach file",
               disabled,
-              children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Paperclip, { size: 20 })
+              children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(Paperclip, { size: 20 })
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
             "button",
             {
               onClick: handleEmojiPicker,
               className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
               title: "Add emoji",
               disabled,
-              children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Smile, { size: 20 })
+              children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(Smile, { size: 20 })
             }
           )
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("div", { className: "flex-1 relative", children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "flex-1 relative", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
           "textarea",
           {
             value: message,
@@ -37407,7 +38262,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
             className: "w-full min-h-[40px] max-h-[100px] px-4 py-2 bg-gray-light border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           }
         ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
           "button",
           {
             onClick: handleSend,
@@ -37415,7 +38270,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
             className: "p-2 bg-primary text-white rounded-lg hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all",
             "aria-label": "Send message",
             title: "Send message (Enter)",
-            children: /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Send, { size: 20 })
+            children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(Send, { size: 20 })
           }
         )
       ] })
@@ -37424,18 +38279,18 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var MessageComposer_default = MessageComposer;
 
   // src/components/EmptyState.tsx
-  var import_jsx_runtime11 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime12 = __toESM(require_jsx_runtime());
   var EmptyState = () => {
-    return /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "empty-state", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(MessageCircle, { size: 48, className: "empty-state-icon" }),
-      /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("h2", { className: "empty-state-title", children: "Select a chat to start messaging" }),
-      /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("p", { className: "empty-state-subtitle", children: "Choose a conversation from the list to view and send messages." })
+    return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "empty-state", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(MessageCircle, { size: 48, className: "empty-state-icon" }),
+      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("h2", { className: "empty-state-title", children: "Select a chat to start messaging" }),
+      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "empty-state-subtitle", children: "Choose a conversation from the list to view and send messages." })
     ] });
   };
   var EmptyState_default = EmptyState;
 
   // src/components/MessageThread.tsx
-  var import_jsx_runtime12 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime13 = __toESM(require_jsx_runtime());
   var toFileUrl2 = (filePath) => {
     if (!filePath)
       return "";
@@ -37446,6 +38301,211 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const prefix = isWindowsPath ? "file:///" : "file://";
     return encodeURI(`${prefix}${normalized}`);
   };
+  var DEFAULT_ROW_HEIGHT = 80;
+  var MessageRow = ({
+    index,
+    style,
+    messages,
+    currentUser,
+    editingMessage,
+    editContent,
+    setEditContent,
+    handleSaveEdit,
+    setEditingMessage,
+    handleEditMessage,
+    handleDeleteMessage,
+    handleToggleReaction,
+    activeReactionMessageId,
+    setActiveReactionMessageId,
+    uploadProgressById,
+    reactionOptions
+  }) => {
+    const message = messages[index];
+    if (!message)
+      return null;
+    const isOwn = message.sender === currentUser;
+    const formatTimestamp = (timestamp) => {
+      return new Date(timestamp).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    };
+    const formatFileSize = (bytes) => {
+      if (bytes === 0)
+        return "0 Bytes";
+      const k = 1024;
+      const sizes = ["Bytes", "KB", "MB", "GB"];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    };
+    const renderAttachment = () => {
+      if (!message.type || message.type === "text")
+        return null;
+      const progress2 = uploadProgressById[message.id];
+      const filePath = message.file_path ?? "";
+      if (!filePath) {
+        return /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "mt-2 p-2 bg-white/10 rounded-lg", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { className: "text-xs text-gray-500", children: "Attachment unavailable" }),
+          message.file_name && /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { className: "text-xs opacity-75", children: message.file_name })
+        ] });
+      }
+      return /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "mt-2 p-2 bg-white/10 rounded-lg", children: [
+        message.type === "image" ? /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+            "img",
+            {
+              src: toFileUrl2(filePath),
+              alt: message.file_name ?? "Image",
+              className: "max-w-full h-auto rounded cursor-pointer hover:opacity-90 transition-opacity",
+              style: { maxHeight: 200 },
+              onClick: () => window.open(toFileUrl2(filePath), "_blank")
+            }
+          ),
+          message.file_name && /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { className: "text-xs opacity-75", children: message.file_name })
+        ] }) : /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex items-center gap-2", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "w-8 h-8 bg-white/20 rounded flex items-center justify-center", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("svg", { className: "w-4 h-4", fill: "currentColor", viewBox: "0 0 20 20", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("path", { fillRule: "evenodd", d: "M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z", clipRule: "evenodd" }) }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex-1 min-w-0", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { className: "text-sm font-medium truncate", children: message.file_name ?? "Attachment" }),
+            message.file_size && /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { className: "text-xs opacity-75", children: formatFileSize(message.file_size) })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+            "button",
+            {
+              onClick: () => {
+                const link = document.createElement("a");
+                link.href = toFileUrl2(filePath);
+                link.download = message.file_name || "download";
+                link.click();
+              },
+              className: "p-1 hover:bg-white/20 rounded transition-colors",
+              title: "Download file",
+              children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("svg", { className: "w-4 h-4", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" }) })
+            }
+          )
+        ] }),
+        progress2 !== void 0 && progress2 < 100 && /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+          "progress",
+          {
+            className: "mt-2 h-1 w-full overflow-hidden rounded bg-white/20 accent-white",
+            max: 100,
+            value: progress2
+          }
+        )
+      ] });
+    };
+    const renderReactions = () => {
+      const reactions = message.reactions ?? [];
+      return /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "mt-2 flex flex-wrap items-center gap-1", children: [
+        reactions.map((reaction) => /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)(
+          "button",
+          {
+            type: "button",
+            onClick: () => handleToggleReaction(message.id, reaction.emoji),
+            className: `flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors ${reaction.reactedByCurrentUser ? "border-primary/60 bg-primary/10 text-primary" : "border-gray-200 bg-white/60 text-gray-600"}`,
+            children: [
+              /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("span", { children: reaction.emoji }),
+              /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("span", { children: reaction.count })
+            ]
+          },
+          reaction.emoji
+        )),
+        /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "relative", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+            "button",
+            {
+              type: "button",
+              onClick: () => setActiveReactionMessageId(activeReactionMessageId === message.id ? null : message.id),
+              className: "flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white/70 text-gray-500 hover:text-gray-700",
+              title: "Add reaction",
+              children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Smile, { size: 12 })
+            }
+          ),
+          activeReactionMessageId === message.id && /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+            "div",
+            {
+              className: `absolute top-7 z-10 flex gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm ${isOwn ? "right-0" : "left-0"}`,
+              children: reactionOptions.map((emoji) => /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+                "button",
+                {
+                  type: "button",
+                  onClick: () => handleToggleReaction(message.id, emoji),
+                  className: "h-7 w-7 rounded hover:bg-gray-100",
+                  children: emoji
+                },
+                emoji
+              ))
+            }
+          )
+        ] })
+      ] });
+    };
+    return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { style, className: "px-6", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: `flex ${isOwn ? "justify-end" : "justify-start"} group py-2`, children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+      "div",
+      {
+        className: `max-w-xs lg:max-w-md px-4 py-2 rounded-lg relative ${isOwn ? "bg-primary text-white" : "bg-gray-100 text-gray-900"}`,
+        children: editingMessage === message.id ? /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+            "input",
+            {
+              type: "text",
+              value: editContent,
+              onChange: (e) => setEditContent(e.target.value),
+              className: "w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary text-gray-900",
+              autoFocus: true
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex gap-2", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+              "button",
+              {
+                onClick: handleSaveEdit,
+                className: "text-xs px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600",
+                children: "Save"
+              }
+            ),
+            /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+              "button",
+              {
+                onClick: () => setEditingMessage(null),
+                className: "text-xs px-2 py-1 bg-gray-500 text-white rounded hover:bg-gray-600",
+                children: "Cancel"
+              }
+            )
+          ] })
+        ] }) : /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)(import_jsx_runtime13.Fragment, { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { className: "text-sm", children: message.content }),
+          renderAttachment(),
+          renderReactions(),
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex items-center justify-between mt-1", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("p", { className: `text-xs ${isOwn ? "text-orange-100" : "text-gray-500"}`, children: [
+              formatTimestamp(message.timestamp),
+              message.is_edited && " (edited)"
+            ] }),
+            isOwn && /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+                "button",
+                {
+                  onClick: () => handleEditMessage(message.id),
+                  className: "p-1 hover:bg-white/20 rounded",
+                  title: "Edit message",
+                  children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Pen, { size: 12 })
+                }
+              ),
+              /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+                "button",
+                {
+                  onClick: () => handleDeleteMessage(message.id),
+                  className: "p-1 hover:bg-white/20 rounded",
+                  title: "Delete message",
+                  children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Trash2, { size: 12 })
+                }
+              )
+            ] })
+          ] })
+        ] })
+      }
+    ) }) });
+  };
   var MessageThread = ({
     chatId,
     chatName,
@@ -37453,22 +38513,29 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     isLoading = false,
     onSendMessage
   }) => {
-    const [localMessages, setLocalMessages] = (0, import_react27.useState)([]);
-    const [editingMessage, setEditingMessage] = (0, import_react27.useState)(null);
-    const [editContent, setEditContent] = (0, import_react27.useState)("");
-    const [activeReactionMessageId, setActiveReactionMessageId] = (0, import_react27.useState)(null);
-    const [uploadProgressById, setUploadProgressById] = (0, import_react27.useState)({});
-    const [showSearch, setShowSearch] = (0, import_react27.useState)(false);
-    const [searchQuery, setSearchQuery] = (0, import_react27.useState)("");
-    const [searchResults, setSearchResults] = (0, import_react27.useState)([]);
-    const [searchLoading, setSearchLoading] = (0, import_react27.useState)(false);
+    const [localMessages, setLocalMessages] = (0, import_react28.useState)([]);
+    const [editingMessage, setEditingMessage] = (0, import_react28.useState)(null);
+    const [editContent, setEditContent] = (0, import_react28.useState)("");
+    const [activeReactionMessageId, setActiveReactionMessageId] = (0, import_react28.useState)(null);
+    const [uploadProgressById, setUploadProgressById] = (0, import_react28.useState)({});
+    const [showSearch, setShowSearch] = (0, import_react28.useState)(false);
+    const [searchQuery, setSearchQuery] = (0, import_react28.useState)("");
+    const [searchResults, setSearchResults] = (0, import_react28.useState)([]);
+    const [searchLoading, setSearchLoading] = (0, import_react28.useState)(false);
     const currentUser = useSelector((s) => s.auth.user?.username || "You");
     const reactionOptions = ["\u{1F44D}", "\u2764\uFE0F", "\u{1F602}", "\u{1F62E}", "\u{1F389}", "\u{1F622}"];
-    const activeChatIdRef = (0, import_react27.useRef)(chatId);
-    (0, import_react27.useEffect)(() => {
+    const activeChatIdRef = (0, import_react28.useRef)(chatId);
+    const listRef = (0, import_react28.useRef)(null);
+    const lastScrollChatIdRef = (0, import_react28.useRef)(chatId);
+    const lastMessageCountRef = (0, import_react28.useRef)(0);
+    const dynamicRowHeight = ke({
+      defaultRowHeight: DEFAULT_ROW_HEIGHT,
+      key: chatId || "default"
+    });
+    (0, import_react28.useEffect)(() => {
       activeChatIdRef.current = chatId;
     }, [chatId]);
-    (0, import_react27.useEffect)(() => {
+    (0, import_react28.useEffect)(() => {
       if (chatId) {
         const loadMessages = async () => {
           try {
@@ -37495,16 +38562,14 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
                   reactions: msg.reactions ?? []
                 };
               });
-              const allMessages = [...transformedMessages, ...messages];
-              const dedupedMessages = Array.from(
-                new Map(allMessages.map((msg) => [msg.id, msg])).values()
+              const sortedMessages = [...transformedMessages].sort(
+                (a, b) => a.timestamp - b.timestamp
               );
-              setLocalMessages(dedupedMessages.sort((a, b) => a.timestamp - b.timestamp));
+              setLocalMessages(sortedMessages);
               const unreadMessages = transformedMessages.filter(
                 (msg) => msg.recipient === currentUser && !msg.is_read
               );
               if (unreadMessages.length > 0) {
-                console.log(`Marking ${unreadMessages.length} messages as read`);
                 await syncIpcClient.markMessagesRead(chatId, currentUser);
               }
             }
@@ -37518,7 +38583,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         setLocalMessages([]);
       }
     }, [chatId, messages, currentUser]);
-    (0, import_react27.useEffect)(() => {
+    (0, import_react28.useEffect)(() => {
       const handleMessageInserted = (message) => {
         if (message.chat_id === activeChatIdRef.current) {
           const readAt = message.read_at ?? (message.is_read ? message.timestamp : null);
@@ -37550,7 +38615,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       };
       syncIpcClient.onMessageInserted(handleMessageInserted);
     }, []);
-    (0, import_react27.useEffect)(() => {
+    (0, import_react28.useEffect)(() => {
       const handleReactionsUpdated = (payload) => {
         setLocalMessages(
           (prev) => prev.map(
@@ -37560,13 +38625,13 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       };
       syncIpcClient.onMessageReactionsUpdated(handleReactionsUpdated);
     }, []);
-    (0, import_react27.useEffect)(() => {
+    (0, import_react28.useEffect)(() => {
       const handleProgress = (payload) => {
         setUploadProgressById((prev) => ({ ...prev, [payload.messageId]: payload.progress }));
       };
       syncIpcClient.onAttachmentUploadProgress(handleProgress);
     }, []);
-    (0, import_react27.useEffect)(() => {
+    (0, import_react28.useEffect)(() => {
       if (!chatId)
         return;
       const trimmed = searchQuery.trim();
@@ -37630,36 +38695,41 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         console.error("Failed to send message:", error);
       }
     };
-    const handleEditMessage = (messageId) => {
+    const handleEditMessage = (0, import_react28.useCallback)((messageId) => {
       const message = localMessages.find((m) => m.id === messageId);
       if (message) {
         setEditingMessage(messageId);
         setEditContent(message.content);
       }
-    };
-    const handleSaveEdit = () => {
+    }, [localMessages]);
+    const handleSaveEdit = (0, import_react28.useCallback)(async () => {
       if (!editingMessage)
         return;
-      setLocalMessages(
-        (prev) => prev.map(
-          (msg) => msg.id === editingMessage ? { ...msg, content: editContent, is_edited: true } : msg
-        )
-      );
-      setEditingMessage(null);
-      setEditContent("");
-    };
-    const handleDeleteMessage = (messageId) => {
-      setLocalMessages((prev) => prev.filter((msg) => msg.id !== messageId));
-    };
-    const formatFileSize = (bytes) => {
-      if (bytes === 0)
-        return "0 Bytes";
-      const k = 1024;
-      const sizes = ["Bytes", "KB", "MB", "GB"];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-    };
-    const handleToggleReaction = async (messageId, emoji) => {
+      const trimmed = editContent.trim();
+      if (!trimmed)
+        return;
+      try {
+        const response = await syncIpcClient.updateMessage(editingMessage, trimmed);
+        if (!response.success) {
+          throw new Error(response.error || "Failed to update message");
+        }
+        setEditingMessage(null);
+        setEditContent("");
+      } catch (error) {
+        console.error("Failed to update message:", error);
+      }
+    }, [editingMessage, editContent]);
+    const handleDeleteMessage = (0, import_react28.useCallback)(async (messageId) => {
+      try {
+        const response = await syncIpcClient.deleteMessage(messageId);
+        if (!response.success) {
+          throw new Error(response.error || "Failed to delete message");
+        }
+      } catch (error) {
+        console.error("Failed to delete message:", error);
+      }
+    }, []);
+    const handleToggleReaction = (0, import_react28.useCallback)(async (messageId, emoji) => {
       try {
         const reactions = await syncIpcClient.toggleReaction(messageId, currentUser, emoji);
         setLocalMessages(
@@ -37670,173 +38740,117 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       } finally {
         setActiveReactionMessageId(null);
       }
-    };
-    const formatTimestamp = (timestamp) => {
-      return new Date(timestamp).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-    };
-    const renderAttachment = (message) => {
-      if (!message.type || message.type === "text")
-        return null;
-      const progress2 = uploadProgressById[message.id];
-      const filePath = message.file_path ?? "";
-      if (!filePath) {
-        return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "mt-2 p-2 bg-white/10 rounded-lg", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs text-gray-500", children: "Attachment unavailable" }),
-          message.file_name && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs opacity-75", children: message.file_name })
-        ] });
-      }
-      return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "mt-2 p-2 bg-white/10 rounded-lg", children: [
-        message.type === "image" ? /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "space-y-2", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-            "img",
-            {
-              src: toFileUrl2(filePath),
-              alt: message.file_name ?? "Image",
-              className: "max-w-full h-auto rounded cursor-pointer hover:opacity-90 transition-opacity",
-              onClick: () => {
-                window.open(toFileUrl2(filePath), "_blank");
-              }
-            }
-          ),
-          message.file_name && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs opacity-75", children: message.file_name })
-        ] }) : /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center gap-2", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "w-8 h-8 bg-white/20 rounded flex items-center justify-center", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("svg", { className: "w-4 h-4", fill: "currentColor", viewBox: "0 0 20 20", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("path", { fillRule: "evenodd", d: "M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z", clipRule: "evenodd" }) }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex-1 min-w-0", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-sm font-medium truncate", children: message.file_name ?? "Attachment" }),
-            message.file_size && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs opacity-75", children: formatFileSize(message.file_size) })
-          ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-            "button",
-            {
-              onClick: () => {
-                const link = document.createElement("a");
-                link.href = toFileUrl2(filePath);
-                link.download = message.file_name || "download";
-                link.click();
-              },
-              className: "p-1 hover:bg-white/20 rounded transition-colors",
-              title: "Download file",
-              children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("svg", { className: "w-4 h-4", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" }) })
-            }
-          )
-        ] }),
-        progress2 !== void 0 && progress2 < 100 && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-          "progress",
-          {
-            className: "mt-2 h-1 w-full overflow-hidden rounded bg-white/20 accent-white",
-            max: 100,
-            value: progress2
-          }
-        )
-      ] });
-    };
-    const renderReactions = (message) => {
-      const reactions = message.reactions ?? [];
-      const isOwn = message.sender === currentUser;
-      return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "mt-2 flex flex-wrap items-center gap-1", children: [
-        reactions.map((reaction) => /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)(
-          "button",
-          {
-            type: "button",
-            onClick: () => handleToggleReaction(message.id, reaction.emoji),
-            className: `flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors ${reaction.reactedByCurrentUser ? "border-primary/60 bg-primary/10 text-primary" : "border-gray-200 bg-white/60 text-gray-600"}`,
-            children: [
-              /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("span", { children: reaction.emoji }),
-              /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("span", { children: reaction.count })
-            ]
-          },
-          reaction.emoji
-        )),
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "relative", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-            "button",
-            {
-              type: "button",
-              onClick: () => setActiveReactionMessageId((prev) => prev === message.id ? null : message.id),
-              className: "flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white/70 text-gray-500 hover:text-gray-700",
-              title: "Add reaction",
-              children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Smile, { size: 12 })
-            }
-          ),
-          activeReactionMessageId === message.id && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-            "div",
-            {
-              className: `absolute top-7 z-10 flex gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm ${isOwn ? "right-0" : "left-0"}`,
-              children: reactionOptions.map((emoji) => /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-                "button",
-                {
-                  type: "button",
-                  onClick: () => handleToggleReaction(message.id, emoji),
-                  className: "h-7 w-7 rounded hover:bg-gray-100",
-                  children: emoji
-                },
-                emoji
-              ))
-            }
-          )
-        ] })
-      ] });
-    };
+    }, [currentUser]);
     const displayedMessages = searchQuery.trim() ? searchResults : localMessages;
+    const scrollToBottom = (0, import_react28.useCallback)(
+      (behavior = "auto") => {
+        if (!listRef.current)
+          return;
+        const lastIndex = displayedMessages.length - 1;
+        if (lastIndex < 0)
+          return;
+        listRef.current.scrollToRow({ index: lastIndex, align: "end", behavior });
+      },
+      [displayedMessages.length]
+    );
+    (0, import_react28.useEffect)(() => {
+      const handleMessageUpdated = (payload) => {
+        setLocalMessages(
+          (prev) => prev.map(
+            (msg) => msg.id === payload.messageId ? { ...msg, content: payload.content, is_edited: true } : msg
+          )
+        );
+        setSearchResults(
+          (prev) => prev.map(
+            (msg) => msg.id === payload.messageId ? { ...msg, content: payload.content, is_edited: true } : msg
+          )
+        );
+      };
+      const handleMessageDeleted = (payload) => {
+        setLocalMessages((prev) => prev.filter((msg) => msg.id !== payload.messageId));
+        setSearchResults((prev) => prev.filter((msg) => msg.id !== payload.messageId));
+      };
+      syncIpcClient.onMessageUpdated(handleMessageUpdated);
+      syncIpcClient.onMessageDeleted(handleMessageDeleted);
+    }, []);
+    (0, import_react28.useEffect)(() => {
+      if (!chatId || searchQuery.trim()) {
+        lastScrollChatIdRef.current = chatId;
+        lastMessageCountRef.current = displayedMessages.length;
+        return;
+      }
+      if (displayedMessages.length === 0) {
+        lastScrollChatIdRef.current = chatId;
+        lastMessageCountRef.current = 0;
+        return;
+      }
+      if (displayedMessages.some((message) => message.chatId !== chatId)) {
+        return;
+      }
+      const isNewChat = chatId !== lastScrollChatIdRef.current;
+      const hasNewMessages = displayedMessages.length > lastMessageCountRef.current;
+      if (isNewChat || hasNewMessages) {
+        scrollToBottom(isNewChat ? "auto" : "smooth");
+      }
+      lastScrollChatIdRef.current = chatId;
+      lastMessageCountRef.current = displayedMessages.length;
+    }, [chatId, displayedMessages, scrollToBottom, searchQuery]);
     if (!chatId) {
-      return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(EmptyState_default, {});
+      return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(EmptyState_default, {});
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("main", { className: "flex flex-col h-full min-h-0 bg-white", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("header", { className: "px-6 py-4 border-b border-gray-200 bg-white", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center justify-between", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center space-x-3", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-white font-semibold", children: chatName?.charAt(0).toUpperCase() }),
-            /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { children: [
-              /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("h2", { className: "text-lg font-semibold text-secondary", children: chatName || "Chat" }),
-              /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs text-gray-500", children: "Active now" })
+    return /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("main", { className: "flex flex-col h-full min-h-0 bg-white", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("header", { className: "px-6 py-4 border-b border-gray-200 bg-white flex-shrink-0", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex items-center justify-between", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex items-center space-x-3", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-white font-semibold", children: chatName?.charAt(0).toUpperCase() }),
+            /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("h2", { className: "text-lg font-semibold text-secondary", children: chatName || "Chat" }),
+              /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { className: "text-xs text-gray-500", children: "Active now" })
             ] })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center space-x-2", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex items-center space-x-2", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
               "button",
               {
                 className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
                 "aria-label": "Voice call",
                 title: "Voice call",
-                children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Phone, { size: 18 })
+                children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Phone, { size: 18 })
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
               "button",
               {
                 className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
                 "aria-label": "Video call",
                 title: "Video call",
-                children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Video, { size: 18 })
+                children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Video, { size: 18 })
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
               "button",
               {
                 className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
                 "aria-label": "Search",
                 title: "Search",
                 onClick: () => setShowSearch((prev) => !prev),
-                children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Search, { size: 18 })
+                children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Search, { size: 18 })
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
               "button",
               {
                 className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
                 "aria-label": "More options",
                 title: "More options",
-                children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(EllipsisVertical, { size: 18 })
+                children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(EllipsisVertical, { size: 18 })
               }
             )
           ] })
         ] }),
-        (showSearch || searchQuery.trim()) && /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "mt-3 flex items-center gap-2", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "relative flex-1", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+        (showSearch || searchQuery.trim()) && /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "mt-3 flex items-center gap-2", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "relative flex-1", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
               "input",
               {
                 value: searchQuery,
@@ -37845,103 +38859,51 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
                 className: "w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               }
             ),
-            searchQuery && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+            searchQuery && /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
               "button",
               {
                 type: "button",
                 onClick: () => setSearchQuery(""),
                 className: "absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600",
                 "aria-label": "Clear search",
-                children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(X, { size: 14 })
+                children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(X, { size: 14 })
               }
             )
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("span", { className: "text-xs text-gray-500", children: searchLoading ? "Searching\u2026" : `${displayedMessages.length} results` })
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("span", { className: "text-xs text-gray-500", children: searchLoading ? "Searching\u2026" : `${displayedMessages.length} results` })
         ] })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "flex-1 min-h-0 overflow-y-auto overflow-x-visible px-6 py-4 space-y-4", children: displayedMessages.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "flex items-center justify-center h-full text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "text-center", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-sm", children: searchQuery.trim() ? "No messages match your search" : "No messages yet" }),
-        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-xs mt-1", children: searchQuery.trim() ? "Try another keyword" : "Start the conversation" })
-      ] }) }) : displayedMessages.map((message) => /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-        "div",
+      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "flex-1 min-h-0", children: displayedMessages.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "flex items-center justify-center h-full text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "text-center", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { className: "text-sm", children: searchQuery.trim() ? "No messages match your search" : "No messages yet" }),
+        /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { className: "text-xs mt-1", children: searchQuery.trim() ? "Try another keyword" : "Start the conversation" })
+      ] }) }) : /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+        Ae,
         {
-          className: `flex ${message.sender === currentUser ? "justify-end" : "justify-start"} group`,
-          children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-            "div",
-            {
-              className: `max-w-xs lg:max-w-md px-4 py-2 rounded-lg relative ${message.sender === currentUser ? "bg-primary text-white" : "bg-gray-100 text-gray-900"}`,
-              children: editingMessage === message.id ? /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "space-y-2", children: [
-                /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-                  "input",
-                  {
-                    type: "text",
-                    value: editContent,
-                    onChange: (e) => setEditContent(e.target.value),
-                    className: "w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary",
-                    autoFocus: true
-                  }
-                ),
-                /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex gap-2", children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-                    "button",
-                    {
-                      onClick: handleSaveEdit,
-                      className: "text-xs px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600",
-                      children: "Save"
-                    }
-                  ),
-                  /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-                    "button",
-                    {
-                      onClick: () => setEditingMessage(null),
-                      className: "text-xs px-2 py-1 bg-gray-500 text-white rounded hover:bg-gray-600",
-                      children: "Cancel"
-                    }
-                  )
-                ] })
-              ] }) : /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)(import_jsx_runtime12.Fragment, { children: [
-                /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "text-sm", children: message.content }),
-                renderAttachment(message),
-                renderReactions(message),
-                /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center justify-between mt-1", children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)(
-                    "p",
-                    {
-                      className: `text-xs ${message.sender === currentUser ? "text-orange-100" : "text-gray-500"}`,
-                      children: [
-                        formatTimestamp(message.timestamp),
-                        message.is_edited && " (edited)"
-                      ]
-                    }
-                  ),
-                  message.sender === currentUser && /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity", children: [
-                    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-                      "button",
-                      {
-                        onClick: () => handleEditMessage(message.id),
-                        className: "p-1 hover:bg-white/20 rounded",
-                        title: "Edit message",
-                        children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Pen, { size: 12 })
-                      }
-                    ),
-                    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
-                      "button",
-                      {
-                        onClick: () => handleDeleteMessage(message.id),
-                        className: "p-1 hover:bg-white/20 rounded",
-                        title: "Delete message",
-                        children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Trash2, { size: 12 })
-                      }
-                    )
-                  ] })
-                ] })
-              ] })
-            }
-          )
-        },
-        message.id
-      )) }),
-      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
+          rowComponent: MessageRow,
+          listRef,
+          rowProps: {
+            messages: displayedMessages,
+            currentUser,
+            editingMessage,
+            editContent,
+            setEditContent,
+            handleSaveEdit,
+            setEditingMessage,
+            handleEditMessage,
+            handleDeleteMessage,
+            handleToggleReaction,
+            activeReactionMessageId,
+            setActiveReactionMessageId,
+            uploadProgressById,
+            reactionOptions
+          },
+          rowCount: displayedMessages.length,
+          rowHeight: dynamicRowHeight,
+          overscanCount: 5,
+          style: { height: "100%", width: "100%" }
+        }
+      ) }),
+      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
         MessageComposer_default,
         {
           onSendMessage: handleSendMessage,
@@ -37953,14 +38915,14 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var MessageThread_default = MessageThread;
 
   // src/components/ConnectionStatusBar.tsx
-  var import_react28 = __toESM(require_react());
-  var import_jsx_runtime13 = __toESM(require_jsx_runtime());
+  var import_react29 = __toESM(require_react());
+  var import_jsx_runtime14 = __toESM(require_jsx_runtime());
   var ConnectionStatusBar = () => {
     const dispatch = useDispatch();
     const { status, showNotification, notificationMessage } = useSelector(
       (state) => state.connection
     );
-    (0, import_react28.useEffect)(() => {
+    (0, import_react29.useEffect)(() => {
       if (status === "reconnecting" && showNotification) {
         const timeout = setTimeout(() => {
           dispatch(hideNotification());
@@ -37974,11 +38936,11 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const getStatusIcon = () => {
       switch (status) {
         case "connected":
-          return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Wifi, { size: 16, className: "text-green-500" });
+          return /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(Wifi, { size: 16, className: "text-green-500" });
         case "reconnecting":
-          return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(RefreshCw, { size: 16, className: "text-yellow-500 animate-spin" });
+          return /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(RefreshCw, { size: 16, className: "text-yellow-500 animate-spin" });
         case "offline":
-          return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(WifiOff, { size: 16, className: "text-red-500" });
+          return /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(WifiOff, { size: 16, className: "text-red-500" });
         default:
           return null;
       }
@@ -37995,35 +38957,378 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           return "bg-gray-50 border-gray-200 text-gray-800";
       }
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "fixed top-4 right-4 z-50 max-w-sm", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: `flex items-center justify-between p-3 rounded-lg border shadow-sm ${getStatusColor()}`, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex items-center space-x-2", children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("div", { className: "fixed top-4 right-4 z-50 max-w-sm", children: /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: `flex items-center justify-between p-3 rounded-lg border shadow-sm ${getStatusColor()}`, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "flex items-center space-x-2", children: [
         getStatusIcon(),
-        /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("span", { className: "text-sm font-medium", children: notificationMessage || "Connection status changed" })
+        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("span", { className: "text-sm font-medium", children: notificationMessage || "Connection status changed" })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
         "button",
         {
           onClick: () => dispatch(hideNotification()),
           className: "ml-2 p-1 rounded hover:bg-black/10 transition-colors",
           "aria-label": "Dismiss notification",
-          children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(X, { size: 14 })
+          children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(X, { size: 14 })
         }
       )
     ] }) });
   };
   var ConnectionStatusBar_default = ConnectionStatusBar;
 
+  // src/pages/Profile.tsx
+  var import_react30 = __toESM(require_react());
+  var import_jsx_runtime15 = __toESM(require_jsx_runtime());
+  var formatDateTime = (value) => {
+    if (!value)
+      return "N/A";
+    return new Date(value).toLocaleString();
+  };
+  var Profile = () => {
+    const dispatch = useDispatch();
+    const user = useSelector((s) => s.auth.user);
+    const authStatus = useSelector((s) => s.auth.status);
+    const authError = useSelector((s) => s.auth.error);
+    const [displayName, setDisplayName] = (0, import_react30.useState)(user?.displayName ?? user?.username ?? "");
+    const [email, setEmail] = (0, import_react30.useState)(user?.email ?? "");
+    const [successMessage, setSuccessMessage] = (0, import_react30.useState)(null);
+    const [formError, setFormError] = (0, import_react30.useState)(null);
+    const initials = (0, import_react30.useMemo)(() => {
+      const source = user?.displayName || user?.username || "User";
+      return source.charAt(0).toUpperCase();
+    }, [user?.displayName, user?.username]);
+    (0, import_react30.useEffect)(() => {
+      setDisplayName(user?.displayName ?? user?.username ?? "");
+      setEmail(user?.email ?? "");
+    }, [user?.displayName, user?.email, user?.username]);
+    (0, import_react30.useEffect)(() => {
+      if (!successMessage)
+        return;
+      const timer = window.setTimeout(() => setSuccessMessage(null), 2500);
+      return () => window.clearTimeout(timer);
+    }, [successMessage]);
+    if (!user) {
+      return /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("div", { className: "flex-1 flex items-center justify-center bg-gray-light", children: /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("p", { className: "text-sm text-gray-500", children: "Sign in to manage your profile." }) });
+    }
+    const handleReset = () => {
+      setDisplayName(user.displayName ?? user.username);
+      setEmail(user.email ?? "");
+      setFormError(null);
+      setSuccessMessage(null);
+    };
+    const handleSubmit = async (event) => {
+      event.preventDefault();
+      setFormError(null);
+      setSuccessMessage(null);
+      const result = await dispatch(updateProfile({ displayName, email }));
+      if (updateProfile.fulfilled.match(result)) {
+        setSuccessMessage("Profile updated successfully.");
+      } else {
+        const message = result.payload ?? authError ?? "Profile update failed.";
+        setFormError(message);
+      }
+    };
+    const isSaving = authStatus === "loading";
+    return /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("div", { className: "flex-1 min-h-0 bg-gray-light", children: /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "max-w-5xl mx-auto px-8 py-8 space-y-6", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("header", { className: "space-y-2", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("p", { className: "text-xs uppercase tracking-[0.2em] text-gray-400", children: "Profile" }),
+        /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("h2", { className: "text-2xl font-semibold text-secondary", children: "Your account details" }),
+        /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("p", { className: "text-sm text-gray-500", children: "Update how your name and email appear across the Secure Messenger desktop client." })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)(
+          "form",
+          {
+            className: "rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-5",
+            onSubmit: handleSubmit,
+            children: [
+              /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { children: [
+                /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("label", { className: "text-sm font-medium text-gray-700", children: "Display name" }),
+                /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(
+                  "input",
+                  {
+                    className: "mt-2 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary",
+                    value: displayName,
+                    onChange: (event) => setDisplayName(event.target.value),
+                    placeholder: "Your name"
+                  }
+                )
+              ] }),
+              /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { children: [
+                /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("label", { className: "text-sm font-medium text-gray-700", children: "Email address" }),
+                /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "mt-2 flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2", children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(Mail, { size: 16, className: "text-gray-400" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(
+                    "input",
+                    {
+                      className: "flex-1 bg-transparent text-sm focus:outline-none",
+                      value: email,
+                      onChange: (event) => setEmail(event.target.value),
+                      placeholder: "you@example.com",
+                      type: "email"
+                    }
+                  )
+                ] })
+              ] }),
+              /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "flex flex-wrap items-center justify-between gap-3 pt-2", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "text-sm", children: [
+                  formError && /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("p", { className: "text-red-500", children: formError }),
+                  !formError && successMessage && /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("p", { className: "text-green-600", children: successMessage })
+                ] }),
+                /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "flex items-center gap-3", children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(
+                    "button",
+                    {
+                      type: "button",
+                      onClick: handleReset,
+                      className: "rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50",
+                      children: "Reset"
+                    }
+                  ),
+                  /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(
+                    "button",
+                    {
+                      type: "submit",
+                      disabled: isSaving,
+                      className: "rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70",
+                      children: isSaving ? "Saving..." : "Save changes"
+                    }
+                  )
+                ] })
+              ] })
+            ]
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("aside", { className: "space-y-4", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "rounded-2xl border border-gray-200 bg-white p-5 shadow-sm", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "flex items-center gap-3", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("div", { className: "h-12 w-12 rounded-full bg-secondary text-white flex items-center justify-center text-lg font-semibold", children: initials }),
+              /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { children: [
+                /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("p", { className: "text-xs uppercase tracking-widest text-gray-400", children: "Signed in as" }),
+                /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("p", { className: "text-base font-semibold text-secondary", children: user.username })
+              ] })
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "mt-4 space-y-3 text-sm text-gray-600", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "flex items-center gap-2", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(Mail, { size: 14, className: "text-gray-400" }),
+                /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("span", { children: user.email || "No email on file" })
+              ] }),
+              /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "flex items-center gap-2", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(Clock, { size: 14, className: "text-gray-400" }),
+                /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("span", { children: [
+                  "Last sign-in: ",
+                  formatDateTime(user.loggedInAt)
+                ] })
+              ] })
+            ] })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "rounded-2xl border border-primary/10 bg-gradient-to-br from-secondary/5 to-primary/10 p-5", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "flex items-center gap-2 text-sm font-semibold text-secondary", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(ShieldCheck, { size: 16 }),
+              /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("span", { children: "Security checklist" })
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("ul", { className: "mt-3 space-y-2 text-sm text-gray-600", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("li", { children: "- Keep your profile name consistent with your team identity." }),
+              /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("li", { children: "- Use a recoverable email address for future sync updates." }),
+              /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("li", { children: "- Sign out when stepping away from shared devices." })
+            ] })
+          ] })
+        ] })
+      ] })
+    ] }) });
+  };
+  var Profile_default = Profile;
+
+  // src/pages/Settings.tsx
+  var import_react31 = __toESM(require_react());
+  var import_jsx_runtime16 = __toESM(require_jsx_runtime());
+  var SETTINGS_KEY = "smd.userSettings";
+  var defaultSettings = {
+    notificationsEnabled: true,
+    soundEnabled: true,
+    autoDownloadAttachments: false,
+    enterToSend: true,
+    showTypingIndicators: true
+  };
+  var isSettingsState = (value) => {
+    if (!value || typeof value !== "object")
+      return false;
+    const candidate = value;
+    return [
+      typeof candidate.notificationsEnabled === "boolean",
+      typeof candidate.soundEnabled === "boolean",
+      typeof candidate.autoDownloadAttachments === "boolean",
+      typeof candidate.enterToSend === "boolean",
+      typeof candidate.showTypingIndicators === "boolean"
+    ].every(Boolean);
+  };
+  var Settings2 = () => {
+    const [settings, setSettings] = (0, import_react31.useState)(defaultSettings);
+    const [isLoaded, setIsLoaded] = (0, import_react31.useState)(false);
+    const [savedAt, setSavedAt] = (0, import_react31.useState)(null);
+    (0, import_react31.useEffect)(() => {
+      try {
+        const raw = window.localStorage.getItem(SETTINGS_KEY);
+        if (!raw)
+          return;
+        const parsed = JSON.parse(raw);
+        if (isSettingsState(parsed)) {
+          setSettings(parsed);
+        }
+      } catch {
+      } finally {
+        setIsLoaded(true);
+      }
+    }, []);
+    (0, import_react31.useEffect)(() => {
+      if (!isLoaded)
+        return;
+      try {
+        window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        setSavedAt(Date.now());
+      } catch {
+      }
+    }, [isLoaded, settings]);
+    const lastSavedLabel = (0, import_react31.useMemo)(() => {
+      if (!savedAt)
+        return "Not saved yet";
+      return `Saved ${new Date(savedAt).toLocaleTimeString()}`;
+    }, [savedAt]);
+    const updateSetting = (key) => {
+      setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+    };
+    const resetSettings = () => {
+      setSettings(defaultSettings);
+    };
+    const SettingRow = ({
+      title,
+      description,
+      checked,
+      onToggle,
+      icon
+    }) => /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "flex items-start gap-3", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("div", { className: "mt-0.5 text-secondary", children: icon }),
+        /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("p", { className: "text-sm font-semibold text-secondary", children: title }),
+          /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("p", { className: "text-xs text-gray-500", children: description })
+        ] })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(
+        "button",
+        {
+          type: "button",
+          onClick: onToggle,
+          className: `relative inline-flex h-6 w-11 items-center rounded-full transition ${checked ? "bg-primary" : "bg-gray-300"}`,
+          "aria-pressed": checked,
+          children: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(
+            "span",
+            {
+              className: `inline-block h-4 w-4 transform rounded-full bg-white transition ${checked ? "translate-x-6" : "translate-x-1"}`
+            }
+          )
+        }
+      )
+    ] });
+    return /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("div", { className: "flex-1 min-h-0 bg-gray-light", children: /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "max-w-5xl mx-auto px-8 py-8 space-y-6", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("header", { className: "space-y-2", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("p", { className: "text-xs uppercase tracking-[0.2em] text-gray-400", children: "Settings" }),
+        /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("h2", { className: "text-2xl font-semibold text-secondary", children: "Preferences and privacy" }),
+        /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("p", { className: "text-sm text-gray-500", children: "Tune how Secure Messenger behaves on this device. Changes save automatically." })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("section", { className: "space-y-4", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(
+            SettingRow,
+            {
+              title: "Desktop notifications",
+              description: "Show alerts for incoming messages when the app is running.",
+              checked: settings.notificationsEnabled,
+              onToggle: () => updateSetting("notificationsEnabled"),
+              icon: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Bell, { size: 18 })
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(
+            SettingRow,
+            {
+              title: "Sound effects",
+              description: "Play notification sounds for new messages and mentions.",
+              checked: settings.soundEnabled,
+              onToggle: () => updateSetting("soundEnabled"),
+              icon: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Volume2, { size: 18 })
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(
+            SettingRow,
+            {
+              title: "Auto-download attachments",
+              description: "Automatically download files from trusted chats.",
+              checked: settings.autoDownloadAttachments,
+              onToggle: () => updateSetting("autoDownloadAttachments"),
+              icon: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(HardDrive, { size: 18 })
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(
+            SettingRow,
+            {
+              title: "Enter to send",
+              description: "Send messages with Enter and use Shift+Enter for new lines.",
+              checked: settings.enterToSend,
+              onToggle: () => updateSetting("enterToSend"),
+              icon: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Keyboard, { size: 18 })
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(
+            SettingRow,
+            {
+              title: "Typing indicators",
+              description: "Show when contacts are typing in the active conversation.",
+              checked: settings.showTypingIndicators,
+              onToggle: () => updateSetting("showTypingIndicators"),
+              icon: /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(ShieldCheck, { size: 18 })
+            }
+          )
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("aside", { className: "space-y-4", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-3", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("p", { className: "text-xs uppercase tracking-widest text-gray-400", children: "Status" }),
+            /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("p", { className: "text-sm text-gray-600", children: lastSavedLabel }),
+            /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(
+              "button",
+              {
+                type: "button",
+                onClick: resetSettings,
+                className: "w-full rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-secondary hover:bg-gray-50",
+                children: "Reset to defaults"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "rounded-2xl border border-primary/10 bg-gradient-to-br from-secondary/5 to-primary/10 p-5", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("p", { className: "text-sm font-semibold text-secondary", children: "Privacy checklist" }),
+            /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("ul", { className: "mt-3 space-y-2 text-xs text-gray-600", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("li", { children: "- Review notification visibility on shared screens." }),
+              /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("li", { children: "- Disable auto-download when on public networks." }),
+              /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("li", { children: "- Keep typing indicators on to improve team clarity." })
+            ] })
+          ] })
+        ] })
+      ] })
+    ] }) });
+  };
+  var Settings_default = Settings2;
+
   // src/layouts/MainLayout.tsx
-  var import_jsx_runtime14 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime17 = __toESM(require_jsx_runtime());
   var MainLayout = () => {
     const dispatch = useDispatch();
     const selectedChatId = useSelector((s) => s.chats.selectedChatId);
     const chats = useSelector((s) => s.chats.items);
     const messagesByChat = useSelector((s) => s.messages.byChatId);
     const user = useSelector((s) => s.auth.user);
-    const handleSelectChat = import_react29.default.useCallback(
+    const [activeView, setActiveView] = import_react32.default.useState("chat");
+    const handleSelectChat = import_react32.default.useCallback(
       (chatId) => {
         dispatch(selectChat(chatId));
+        setActiveView("chat");
         const selectedChat2 = chats.find((c) => c.id === chatId);
         if (selectedChat2 && selectedChat2.unreadCount > 0) {
           syncIpcClient.markMessagesRead(chatId, user?.username || "You").catch((error) => {
@@ -38035,7 +39340,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     );
     const selectedChat = chats.find((c) => c.id === selectedChatId);
     const selectedMessages = selectedChatId ? messagesByChat[selectedChatId] ?? [] : [];
-    const handleSendMessage = import_react29.default.useCallback(
+    const handleSendMessage = import_react32.default.useCallback(
       async (chatId, content, attachment) => {
         if (!user?.username)
           return;
@@ -38045,7 +39350,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       },
       [dispatch, user?.username, selectedChat?.userId, selectedChat?.name]
     );
-    const handleCreateChat = import_react29.default.useCallback(
+    const handleCreateChat = import_react32.default.useCallback(
       async (userId) => {
         try {
           const currentUserId = user?.id || "current_user";
@@ -38059,10 +39364,53 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       },
       [dispatch, user?.id]
     );
-    return /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "flex flex-1 min-h-0 bg-gray-light", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime14.jsxs)("div", { className: "flex flex-1 min-h-0", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(Sidebar_default, {}),
-        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("aside", { className: "w-80 bg-white border-r border-gray-200 flex flex-col min-h-0", children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+    const sidebarItems = import_react32.default.useMemo(
+      () => [
+        {
+          id: "chat",
+          icon: /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(MessageSquare, { size: 20 }),
+          label: "Chat",
+          active: activeView === "chat",
+          onClick: () => setActiveView("chat")
+        },
+        {
+          id: "profile",
+          icon: /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(User, { size: 20 }),
+          label: "Profile",
+          active: activeView === "profile",
+          onClick: () => setActiveView("profile")
+        },
+        {
+          id: "settings",
+          icon: /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(Settings, { size: 20 }),
+          label: "Settings",
+          active: activeView === "settings",
+          onClick: () => setActiveView("settings")
+        }
+      ],
+      [activeView]
+    );
+    const renderMainPanel = () => {
+      if (activeView === "profile") {
+        return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(Profile_default, {});
+      }
+      if (activeView === "settings") {
+        return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(Settings_default, {});
+      }
+      return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(
+        MessageThread_default,
+        {
+          chatId: selectedChatId,
+          chatName: selectedChat?.name,
+          messages: selectedMessages,
+          onSendMessage: handleSendMessage
+        }
+      );
+    };
+    return /* @__PURE__ */ (0, import_jsx_runtime17.jsxs)("div", { className: "flex flex-1 min-h-0 bg-gray-light", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime17.jsxs)("div", { className: "flex flex-1 min-h-0", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(Sidebar_default, { items: sidebarItems }),
+        activeView === "chat" && /* @__PURE__ */ (0, import_jsx_runtime17.jsx)("aside", { className: "w-80 bg-white border-r border-gray-200 flex flex-col min-h-0", children: /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(
           ChatList_default,
           {
             selectedChatId,
@@ -38071,36 +39419,28 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
             currentUserId: user?.id || "current_user"
           }
         ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime14.jsx)("section", { className: "flex-1 flex flex-col bg-white min-h-0", children: /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
-          MessageThread_default,
-          {
-            chatId: selectedChatId,
-            chatName: selectedChat?.name,
-            messages: selectedMessages,
-            onSendMessage: handleSendMessage
-          }
-        ) })
+        /* @__PURE__ */ (0, import_jsx_runtime17.jsx)("section", { className: "flex-1 flex flex-col bg-white min-h-0", children: renderMainPanel() })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(ConnectionStatusBar_default, {})
+      /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(ConnectionStatusBar_default, {})
     ] });
   };
   var MainLayout_default = MainLayout;
 
   // src/components/TopNavbar.tsx
-  var import_react30 = __toESM(require_react());
-  var import_jsx_runtime15 = __toESM(require_jsx_runtime());
+  var import_react33 = __toESM(require_react());
+  var import_jsx_runtime18 = __toESM(require_jsx_runtime());
   var TopNavbar = () => {
     const dispatch = useDispatch();
     const user = useSelector((s) => s.auth.user);
-    const [dropdownOpen, setDropdownOpen] = (0, import_react30.useState)(false);
+    const [dropdownOpen, setDropdownOpen] = (0, import_react33.useState)(false);
     const handleLogout = () => {
       setDropdownOpen(false);
       void dispatch(logout());
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("header", { className: "top-navbar", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("div", { className: "top-navbar-left", children: /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("h1", { className: "top-navbar-title", children: "Secure Messenger" }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "top-navbar-right", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime18.jsxs)("header", { className: "top-navbar", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime18.jsx)("div", { className: "top-navbar-left", children: /* @__PURE__ */ (0, import_jsx_runtime18.jsx)("h1", { className: "top-navbar-title", children: "Secure Messenger" }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime18.jsxs)("div", { className: "top-navbar-right", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime18.jsxs)(
           "button",
           {
             type: "button",
@@ -38110,18 +39450,18 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
             "aria-expanded": dropdownOpen,
             "aria-haspopup": "menu",
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(User, { size: 20 }),
-              /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("span", { className: "top-navbar-username", children: user?.username }),
-              /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(ChevronDown, { size: 16, className: dropdownOpen ? "rotate" : "" })
+              /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(User, { size: 20 }),
+              /* @__PURE__ */ (0, import_jsx_runtime18.jsx)("span", { className: "top-navbar-username", children: user?.username }),
+              /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(ChevronDown, { size: 16, className: dropdownOpen ? "rotate" : "" })
             ]
           }
         ),
-        dropdownOpen && /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "top-navbar-dropdown", role: "menu", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)("div", { className: "top-navbar-dropdown-item", role: "menuitem", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(User, { size: 16 }),
-            /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("span", { children: user?.username })
+        dropdownOpen && /* @__PURE__ */ (0, import_jsx_runtime18.jsxs)("div", { className: "top-navbar-dropdown", role: "menu", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime18.jsxs)("div", { className: "top-navbar-dropdown-item", role: "menuitem", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(User, { size: 16 }),
+            /* @__PURE__ */ (0, import_jsx_runtime18.jsx)("span", { children: user?.username })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime15.jsxs)(
+          /* @__PURE__ */ (0, import_jsx_runtime18.jsxs)(
             "button",
             {
               type: "button",
@@ -38129,8 +39469,8 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
               onClick: handleLogout,
               role: "menuitem",
               children: [
-                /* @__PURE__ */ (0, import_jsx_runtime15.jsx)(LogOut, { size: 16 }),
-                /* @__PURE__ */ (0, import_jsx_runtime15.jsx)("span", { children: "Logout" })
+                /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(LogOut, { size: 16 }),
+                /* @__PURE__ */ (0, import_jsx_runtime18.jsx)("span", { children: "Logout" })
               ]
             }
           )
@@ -38141,10 +39481,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var TopNavbar_default = TopNavbar;
 
   // src/hooks/useKeyboardShortcuts.ts
-  var import_react31 = __toESM(require_react());
+  var import_react34 = __toESM(require_react());
   function useKeyboardShortcuts(shortcuts) {
     const dispatch = useDispatch();
-    (0, import_react31.useEffect)(() => {
+    (0, import_react34.useEffect)(() => {
       const handleKeyDown = (event) => {
         for (const shortcut of shortcuts) {
           const {
@@ -38190,7 +39530,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   ];
 
   // src/pages/Home.tsx
-  var import_jsx_runtime16 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime19 = __toESM(require_jsx_runtime());
   var Home = () => {
     const dispatch = useDispatch();
     const user = useSelector((s) => s.auth.user);
@@ -38198,48 +39538,48 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       void dispatch(logout());
     };
     useKeyboardShortcuts(createAppShortcuts(dispatch));
-    return /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "home-container", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(TopNavbar_default, {}),
-      /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(MainLayout_default, {})
+    return /* @__PURE__ */ (0, import_jsx_runtime19.jsxs)("div", { className: "home-container", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime19.jsx)(TopNavbar_default, {}),
+      /* @__PURE__ */ (0, import_jsx_runtime19.jsx)(MainLayout_default, {})
     ] });
   };
   var Home_default = Home;
 
   // src/App.tsx
-  var import_jsx_runtime17 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime20 = __toESM(require_jsx_runtime());
   var FIRST_LAUNCH_KEY = "smd.hasCompletedWelcome";
   var App = () => {
     const dispatch = useDispatch();
     const authStatus = useSelector((s) => s.auth.status);
     const authError = useSelector((s) => s.auth.error);
-    const initialFlag = (0, import_react32.useMemo)(
+    const initialFlag = (0, import_react35.useMemo)(
       () => typeof window !== "undefined" && window.localStorage.getItem(FIRST_LAUNCH_KEY) === "true",
       []
     );
-    const [hasCompletedWelcome, setHasCompletedWelcome] = (0, import_react32.useState)(initialFlag);
-    const [authView, setAuthView] = (0, import_react32.useState)("login");
-    (0, import_react32.useEffect)(() => {
+    const [hasCompletedWelcome, setHasCompletedWelcome] = (0, import_react35.useState)(initialFlag);
+    const [authView, setAuthView] = (0, import_react35.useState)("login");
+    (0, import_react35.useEffect)(() => {
       void dispatch(checkSession());
     }, [dispatch]);
-    const handleLogin = (0, import_react32.useCallback)(
+    const handleLogin = (0, import_react35.useCallback)(
       async (username, password) => {
         void dispatch(login({ username }));
       },
       [dispatch]
     );
-    const handleRegister = (0, import_react32.useCallback)(
+    const handleRegister = (0, import_react35.useCallback)(
       async (email, displayName, password) => {
         void dispatch(register({ email, displayName, password }));
       },
       [dispatch]
     );
-    const handleForgotPassword = (0, import_react32.useCallback)(
+    const handleForgotPassword = (0, import_react35.useCallback)(
       async (email) => {
         console.log("Password reset requested for:", email);
       },
       []
     );
-    const handleWelcomeContinue = (0, import_react32.useCallback)(() => {
+    const handleWelcomeContinue = (0, import_react35.useCallback)(() => {
       try {
         window.localStorage.setItem(FIRST_LAUNCH_KEY, "true");
         setHasCompletedWelcome(true);
@@ -38248,16 +39588,16 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     }, []);
     if (authStatus === "authenticated") {
       if (!hasCompletedWelcome) {
-        return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(Welcome_default, { isLoading: false, onContinue: handleWelcomeContinue });
+        return /* @__PURE__ */ (0, import_jsx_runtime20.jsx)(Welcome_default, { isLoading: false, onContinue: handleWelcomeContinue });
       }
-      return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(Home_default, {});
+      return /* @__PURE__ */ (0, import_jsx_runtime20.jsx)(Home_default, {});
     }
     if (authStatus === "idle") {
-      return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)("div", { className: "p-6 text-sm text-gray-500", children: "Loading\u2026" });
+      return /* @__PURE__ */ (0, import_jsx_runtime20.jsx)("div", { className: "p-6 text-sm text-gray-500", children: "Loading\u2026" });
     }
     switch (authView) {
       case "register":
-        return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(
+        return /* @__PURE__ */ (0, import_jsx_runtime20.jsx)(
           Register_default,
           {
             isLoading: false,
@@ -38267,7 +39607,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           }
         );
       case "forgot":
-        return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(
+        return /* @__PURE__ */ (0, import_jsx_runtime20.jsx)(
           ForgotPassword_default,
           {
             isLoading: false,
@@ -38278,7 +39618,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         );
       case "login":
       default:
-        return /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(
+        return /* @__PURE__ */ (0, import_jsx_runtime20.jsx)(
           Login_default,
           {
             isLoading: false,
@@ -38293,14 +39633,14 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var App_default = App;
 
   // src/index.tsx
-  var import_jsx_runtime18 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime21 = __toESM(require_jsx_runtime());
   var container = document.getElementById("root");
   if (!container) {
     throw new Error("Root element #root not found");
   }
   var root = (0, import_client.createRoot)(container);
   root.render(
-    /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(import_react33.default.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(Provider_default, { store, children: /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(App_default, {}) }) })
+    /* @__PURE__ */ (0, import_jsx_runtime21.jsx)(import_react36.default.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_runtime21.jsx)(Provider_default, { store, children: /* @__PURE__ */ (0, import_jsx_runtime21.jsx)(App_default, {}) }) })
   );
 })();
 /*! Bundled license information:
@@ -38445,6 +39785,14 @@ lucide-react/dist/esm/icons/arrow-left.js:
    * See the LICENSE file in the root directory of this source tree.
    *)
 
+lucide-react/dist/esm/icons/bell.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
 lucide-react/dist/esm/icons/chevron-down.js:
   (**
    * @license lucide-react v0.563.0 - ISC
@@ -38462,6 +39810,14 @@ lucide-react/dist/esm/icons/circle-alert.js:
    *)
 
 lucide-react/dist/esm/icons/circle-check-big.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/clock.js:
   (**
    * @license lucide-react v0.563.0 - ISC
    *
@@ -38494,6 +39850,22 @@ lucide-react/dist/esm/icons/eye.js:
    *)
 
 lucide-react/dist/esm/icons/file-text.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/hard-drive.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/keyboard.js:
   (**
    * @license lucide-react v0.563.0 - ISC
    *
@@ -38605,6 +39977,14 @@ lucide-react/dist/esm/icons/settings.js:
    * See the LICENSE file in the root directory of this source tree.
    *)
 
+lucide-react/dist/esm/icons/shield-check.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
 lucide-react/dist/esm/icons/smile.js:
   (**
    * @license lucide-react v0.563.0 - ISC
@@ -38630,6 +40010,14 @@ lucide-react/dist/esm/icons/user.js:
    *)
 
 lucide-react/dist/esm/icons/video.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/volume-2.js:
   (**
    * @license lucide-react v0.563.0 - ISC
    *

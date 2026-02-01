@@ -1,5 +1,6 @@
 // src/auth/authSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import type { RootState } from '../app/store';
 import type { AuthState, AuthUser, LoginPayload } from './authTypes';
 import { validateUsername, createSession, storeSession, loadStoredSession, clearSession } from './authService';
 
@@ -63,6 +64,38 @@ export const logout = createAsyncThunk<void, void>(
   'auth/logout',
   async () => {
     clearSession();
+  },
+);
+
+export const updateProfile = createAsyncThunk<
+  AuthUser,
+  { displayName: string; email: string },
+  { state: RootState; rejectValue: string }
+>(
+  'auth/updateProfile',
+  async ({ displayName, email }, { getState, rejectWithValue }) => {
+    const currentUser = getState().auth.user;
+    if (!currentUser) {
+      return rejectWithValue('No active session');
+    }
+
+    const trimmedName = displayName.trim();
+    const validationError = validateUsername(trimmedName);
+    if (validationError) {
+      return rejectWithValue(validationError);
+    }
+
+    const trimmedEmail = email.trim();
+
+    const updatedUser: AuthUser = {
+      ...currentUser,
+      username: trimmedName,
+      displayName: trimmedName,
+      email: trimmedEmail || currentUser.email,
+    };
+
+    storeSession(updatedUser);
+    return updatedUser;
   },
 );
 
@@ -134,6 +167,20 @@ const authSlice = createSlice({
         state.status = 'unauthenticated';
         state.user = null;
         state.error = 'Logout failed';
+      })
+      // update profile
+      .addCase(updateProfile.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.status = 'authenticated';
+        state.user = action.payload;
+        state.error = null;
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.status = 'authenticated';
+        state.error = action.payload ?? 'Profile update failed';
       });
   },
 });

@@ -4687,7 +4687,8 @@ var WebSocketClient = class extends import_events.EventEmitter {
    * Handle incoming sync events and emit for processing
    */
   handleIncomingEvent(event) {
-    console.log(`[WS] Received ${event.type} event:`, event.payload);
+    const eventId = "id" in event.payload ? event.payload.id : "chat_id" in event.payload ? event.payload.chat_id : "unknown";
+    console.log(`[WS] Received ${event.type} event (id: ${eventId})`);
     this.emit("syncEvent", event);
   }
   /**
@@ -5194,10 +5195,32 @@ var SyncQueries = class {
    */
   async deleteMessage(messageId) {
     try {
+      const message = this.db.prepare(`
+        SELECT chat_id FROM messages WHERE id = ?
+      `).get(messageId);
+      if (!message) {
+        return { success: false };
+      }
       const result = this.db.prepare(`
         DELETE FROM messages WHERE id = ?
       `).run(messageId);
-      return result.changes > 0;
+      if (result.changes > 0) {
+        const latestMessage = this.db.prepare(`
+          SELECT content, type, file_name, timestamp
+          FROM messages
+          WHERE chat_id = ?
+          ORDER BY timestamp DESC
+          LIMIT 1
+        `).get(message.chat_id);
+        const lastMessage = latestMessage ? latestMessage.content?.trim() || (latestMessage.type === "image" ? `\u{1F4F7} ${latestMessage.file_name ?? "Image"}` : latestMessage.type === "file" ? `\u{1F4CE} ${latestMessage.file_name ?? "Attachment"}` : "") : "";
+        const updatedAt = latestMessage ? latestMessage.timestamp : Date.now();
+        this.db.prepare(`
+          UPDATE chats
+          SET last_message = ?, updated_at = ?
+          WHERE id = ?
+        `).run(lastMessage, updatedAt, message.chat_id);
+      }
+      return { success: result.changes > 0, chatId: message.chat_id };
     } catch (error) {
       console.error("[DB] Failed to delete message:", error);
       throw error;
@@ -5208,6 +5231,12 @@ var SyncQueries = class {
    */
   async updateMessage(messageId, content) {
     try {
+      const message = this.db.prepare(`
+        SELECT chat_id FROM messages WHERE id = ?
+      `).get(messageId);
+      if (!message) {
+        return { success: false };
+      }
       const result = this.db.prepare(`
         UPDATE messages 
         SET content = ?, is_edited = 1 
@@ -5217,10 +5246,10 @@ var SyncQueries = class {
         this.db.prepare(`
           UPDATE chats 
           SET last_message = ?, updated_at = ?
-          WHERE id = (SELECT chat_id FROM messages WHERE id = ?)
-        `).run(content, Date.now(), messageId);
+          WHERE id = ?
+        `).run(content, Date.now(), message.chat_id);
       }
-      return result.changes > 0;
+      return { success: result.changes > 0, chatId: message.chat_id };
     } catch (error) {
       console.error("[DB] Failed to update message:", error);
       throw error;
@@ -5390,6 +5419,8 @@ var IPC_EVENTS = {
   GET_CHATS: "sync:get-chats",
   MARK_MESSAGES_READ: "sync:mark-messages-read",
   SEND_MESSAGE: "sync:send-message",
+  UPDATE_MESSAGE: "sync:update-message",
+  DELETE_MESSAGE: "sync:delete-message",
   SEARCH_MESSAGES: "sync:search-messages",
   SEARCH_CHATS: "sync:search-chats",
   TOGGLE_REACTION: "sync:toggle-reaction",
@@ -5440,6 +5471,13 @@ var SendMessageSchema = external_exports.object({
     mimeType: external_exports.string(),
     type: external_exports.enum(["image", "file"])
   }).optional()
+});
+var UpdateMessageSchema = external_exports.object({
+  messageId: external_exports.string(),
+  content: external_exports.string().min(1)
+});
+var DeleteMessageSchema = external_exports.object({
+  messageId: external_exports.string()
 });
 var SearchMessagesSchema = external_exports.object({
   query: external_exports.string(),
@@ -5757,6 +5795,60 @@ function registerSyncIPCHandlers(syncQueries2) {
     } catch (error) {
       console.error("[IPC] Send message failed:", error);
       return { success: false, error: "Failed to send message" };
+    }
+  });
+  import_electron5.ipcMain.handle(IPC_EVENTS.UPDATE_MESSAGE, async (_event, rawPayload) => {
+    try {
+      const parsed = UpdateMessageSchema.safeParse(rawPayload);
+      if (!parsed.success) {
+        throw new Error("Invalid update message payload");
+      }
+      const content = parsed.data.content.trim();
+      if (!content) {
+        throw new Error("Message content is required");
+      }
+      const updated = await syncQueries2.updateMessage(parsed.data.messageId, content);
+      if (updated.success) {
+        SyncIPCEmitter.emitMessageUpdated(parsed.data.messageId, content);
+        if (updated.chatId) {
+          const chats = await syncQueries2.getAllChats();
+          const updatedChat = chats.find((chat) => chat.id === updated.chatId);
+          if (updatedChat) {
+            SyncIPCEmitter.emitChatUpdated(updatedChat);
+          }
+        }
+        SyncIPCEmitter.emitChatListUpdated();
+        return { success: true, data: { messageId: parsed.data.messageId, content } };
+      }
+      return { success: false, error: "Message not found" };
+    } catch (error) {
+      console.error("[IPC] Update message failed:", error);
+      return { success: false, error: "Failed to update message" };
+    }
+  });
+  import_electron5.ipcMain.handle(IPC_EVENTS.DELETE_MESSAGE, async (_event, rawPayload) => {
+    try {
+      const parsed = DeleteMessageSchema.safeParse(rawPayload);
+      if (!parsed.success) {
+        throw new Error("Invalid delete message payload");
+      }
+      const deleted = await syncQueries2.deleteMessage(parsed.data.messageId);
+      if (deleted.success) {
+        SyncIPCEmitter.emitMessageDeleted(parsed.data.messageId);
+        if (deleted.chatId) {
+          const chats = await syncQueries2.getAllChats();
+          const updatedChat = chats.find((chat) => chat.id === deleted.chatId);
+          if (updatedChat) {
+            SyncIPCEmitter.emitChatUpdated(updatedChat);
+          }
+        }
+        SyncIPCEmitter.emitChatListUpdated();
+        return { success: true, data: { messageId: parsed.data.messageId } };
+      }
+      return { success: false, error: "Message not found" };
+    } catch (error) {
+      console.error("[IPC] Delete message failed:", error);
+      return { success: false, error: "Failed to delete message" };
     }
   });
   import_electron5.ipcMain.handle(IPC_EVENTS.SEARCH_MESSAGES, async (_event, rawPayload) => {

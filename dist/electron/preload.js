@@ -4132,6 +4132,8 @@ var IPC_EVENTS = {
   GET_CHATS: "sync:get-chats",
   MARK_MESSAGES_READ: "sync:mark-messages-read",
   SEND_MESSAGE: "sync:send-message",
+  UPDATE_MESSAGE: "sync:update-message",
+  DELETE_MESSAGE: "sync:delete-message",
   SEARCH_MESSAGES: "sync:search-messages",
   SEARCH_CHATS: "sync:search-chats",
   TOGGLE_REACTION: "sync:toggle-reaction",
@@ -4182,6 +4184,13 @@ var SendMessageSchema = external_exports.object({
     mimeType: external_exports.string(),
     type: external_exports.enum(["image", "file"])
   }).optional()
+});
+var UpdateMessageSchema = external_exports.object({
+  messageId: external_exports.string(),
+  content: external_exports.string().min(1)
+});
+var DeleteMessageSchema = external_exports.object({
+  messageId: external_exports.string()
 });
 var SearchMessagesSchema = external_exports.object({
   query: external_exports.string(),
@@ -4294,6 +4303,29 @@ var syncApi = {
       recipient,
       attachment
     });
+  },
+  async updateMessage(messageId, content) {
+    const raw = await import_electron2.ipcRenderer.invoke(IPC_EVENTS.UPDATE_MESSAGE, { messageId, content });
+    const responseSchema = external_exports.object({
+      success: external_exports.boolean(),
+      data: external_exports.object({
+        messageId: external_exports.string(),
+        content: external_exports.string()
+      }).optional(),
+      error: external_exports.string().optional()
+    });
+    return responseSchema.parse(raw);
+  },
+  async deleteMessage(messageId) {
+    const raw = await import_electron2.ipcRenderer.invoke(IPC_EVENTS.DELETE_MESSAGE, { messageId });
+    const responseSchema = external_exports.object({
+      success: external_exports.boolean(),
+      data: external_exports.object({
+        messageId: external_exports.string()
+      }).optional(),
+      error: external_exports.string().optional()
+    });
+    return responseSchema.parse(raw);
   },
   async selectAttachment(currentUser) {
     const raw = await import_electron2.ipcRenderer.invoke(IPC_EVENTS.SELECT_ATTACHMENT, { currentUser });

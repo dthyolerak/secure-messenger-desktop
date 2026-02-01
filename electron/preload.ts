@@ -211,6 +211,53 @@ const syncApi = {
 
 
 
+  async updateMessage(messageId: string, content: string) {
+
+    const raw = await ipcRenderer.invoke(IPC_EVENTS.UPDATE_MESSAGE, { messageId, content });
+    const responseSchema = z.object({
+      success: z.boolean(),
+      data: z
+        .object({
+          messageId: z.string(),
+          content: z.string(),
+        })
+        .optional(),
+      error: z.string().optional(),
+    });
+
+    return responseSchema.parse(raw) as {
+      success: boolean;
+      data?: { messageId: string; content: string };
+      error?: string;
+    };
+
+  },
+
+
+
+  async deleteMessage(messageId: string) {
+
+    const raw = await ipcRenderer.invoke(IPC_EVENTS.DELETE_MESSAGE, { messageId });
+    const responseSchema = z.object({
+      success: z.boolean(),
+      data: z
+        .object({
+          messageId: z.string(),
+        })
+        .optional(),
+      error: z.string().optional(),
+    });
+
+    return responseSchema.parse(raw) as {
+      success: boolean;
+      data?: { messageId: string };
+      error?: string;
+    };
+
+  },
+
+
+
   async selectAttachment(currentUser?: string) {
 
     const raw = await ipcRenderer.invoke(IPC_EVENTS.SELECT_ATTACHMENT, { currentUser });

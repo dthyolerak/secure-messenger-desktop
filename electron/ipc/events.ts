@@ -28,6 +28,8 @@ export const IPC_EVENTS = {
   GET_CHATS: 'sync:get-chats',
   MARK_MESSAGES_READ: 'sync:mark-messages-read',
   SEND_MESSAGE: 'sync:send-message',
+  UPDATE_MESSAGE: 'sync:update-message',
+  DELETE_MESSAGE: 'sync:delete-message',
   SEARCH_MESSAGES: 'sync:search-messages',
   SEARCH_CHATS: 'sync:search-chats',
   TOGGLE_REACTION: 'sync:toggle-reaction',
@@ -85,6 +87,15 @@ const SendMessageSchema = z.object({
       type: z.enum(['image', 'file']),
     })
     .optional(),
+});
+
+const UpdateMessageSchema = z.object({
+  messageId: z.string(),
+  content: z.string().min(1),
+});
+
+const DeleteMessageSchema = z.object({
+  messageId: z.string(),
 });
 
 const SearchMessagesSchema = z.object({
@@ -500,6 +511,69 @@ export function registerSyncIPCHandlers(syncQueries: any): void {
     } catch (error) {
       console.error('[IPC] Send message failed:', error);
       return { success: false, error: 'Failed to send message' };
+    }
+  });
+
+  ipcMain.handle(IPC_EVENTS.UPDATE_MESSAGE, async (_event, rawPayload) => {
+    try {
+      const parsed = UpdateMessageSchema.safeParse(rawPayload);
+      if (!parsed.success) {
+        throw new Error('Invalid update message payload');
+      }
+
+      const content = parsed.data.content.trim();
+      if (!content) {
+        throw new Error('Message content is required');
+      }
+
+      const updated = await syncQueries.updateMessage(parsed.data.messageId, content);
+      if (updated.success) {
+        SyncIPCEmitter.emitMessageUpdated(parsed.data.messageId, content);
+
+        if (updated.chatId) {
+          const chats = await syncQueries.getAllChats();
+          const updatedChat = chats.find((chat: any) => chat.id === updated.chatId);
+          if (updatedChat) {
+            SyncIPCEmitter.emitChatUpdated(updatedChat);
+          }
+        }
+        SyncIPCEmitter.emitChatListUpdated();
+        return { success: true, data: { messageId: parsed.data.messageId, content } };
+      }
+
+      return { success: false, error: 'Message not found' };
+    } catch (error) {
+      console.error('[IPC] Update message failed:', error);
+      return { success: false, error: 'Failed to update message' };
+    }
+  });
+
+  ipcMain.handle(IPC_EVENTS.DELETE_MESSAGE, async (_event, rawPayload) => {
+    try {
+      const parsed = DeleteMessageSchema.safeParse(rawPayload);
+      if (!parsed.success) {
+        throw new Error('Invalid delete message payload');
+      }
+
+      const deleted = await syncQueries.deleteMessage(parsed.data.messageId);
+      if (deleted.success) {
+        SyncIPCEmitter.emitMessageDeleted(parsed.data.messageId);
+
+        if (deleted.chatId) {
+          const chats = await syncQueries.getAllChats();
+          const updatedChat = chats.find((chat: any) => chat.id === deleted.chatId);
+          if (updatedChat) {
+            SyncIPCEmitter.emitChatUpdated(updatedChat);
+          }
+        }
+        SyncIPCEmitter.emitChatListUpdated();
+        return { success: true, data: { messageId: parsed.data.messageId } };
+      }
+
+      return { success: false, error: 'Message not found' };
+    } catch (error) {
+      console.error('[IPC] Delete message failed:', error);
+      return { success: false, error: 'Failed to delete message' };
     }
   });
 

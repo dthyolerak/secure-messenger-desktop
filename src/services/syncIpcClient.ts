@@ -187,6 +187,30 @@ class SyncIpcClient {
   }
 
   /**
+   * Update message content
+   */
+  async updateMessage(messageId: string, content: string) {
+    try {
+      return await this.api.updateMessage(messageId, content);
+    } catch (error) {
+      console.error('Failed to update message:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete message
+   */
+  async deleteMessage(messageId: string) {
+    try {
+      return await this.api.deleteMessage(messageId);
+    } catch (error) {
+      console.error('Failed to delete message:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Select a local file attachment
    */
   async selectAttachment(
@@ -274,6 +298,20 @@ class SyncIpcClient {
    */
   onMessageInserted(callback: (message: any) => void): void {
     this.api.onMessageInserted(callback);
+  }
+
+  /**
+   * Subscribe to message update events
+   */
+  onMessageUpdated(callback: (payload: { messageId: string; content: string }) => void): void {
+    this.api.onMessageUpdated(callback);
+  }
+
+  /**
+   * Subscribe to message delete events
+   */
+  onMessageDeleted(callback: (payload: { messageId: string }) => void): void {
+    this.api.onMessageDeleted(callback);
   }
 
   /**

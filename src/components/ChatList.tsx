@@ -1,6 +1,7 @@
 // src/components/ChatList.tsx
-import React, { useMemo, useEffect, useCallback, useState } from 'react';
+import React, { useMemo, useEffect, useCallback, useState, useRef, CSSProperties } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { List } from 'react-window';
 import type { RootState, AppDispatch } from '../app/store';
 import { fetchChats } from '../app/slices/chatsSlice';
 import ChatItem from './ChatItem';
@@ -14,9 +15,43 @@ export interface ChatListProps {
   currentUserId?: string;
 }
 
+const CHAT_ITEM_HEIGHT = 72;
+
+// Row component for react-window v2
+interface ChatRowProps {
+  chats: ChatListItem[];
+  selectedChatId: string | null | undefined;
+  onSelectChat: ((chatId: string) => void) | undefined;
+}
+
+const ChatRow = ({
+  index,
+  style,
+  chats,
+  selectedChatId,
+  onSelectChat,
+}: {
+  index: number;
+  style: CSSProperties;
+  ariaAttributes: { 'aria-posinset': number; 'aria-setsize': number; role: 'listitem' };
+} & ChatRowProps) => {
+  const chat = chats[index];
+  if (!chat) return null;
+
+  return (
+    <div style={style}>
+      <ChatItem
+        chat={chat}
+        isSelected={selectedChatId === chat.id}
+        onClick={() => onSelectChat?.(chat.id)}
+      />
+    </div>
+  );
+};
+
 /**
  * Chat list panel with Teams-style layout.
- * Optimized for performance with memoization and efficient rendering.
+ * Optimized for performance with react-window virtualization.
  */
 const ChatList: React.FC<ChatListProps> = ({
   selectedChatId,
@@ -35,6 +70,7 @@ const ChatList: React.FC<ChatListProps> = ({
   const [searchResults, setSearchResults] = useState<ChatListItem[]>([]);
   const [searchTotal, setSearchTotal] = useState(0);
   const [searchLoading, setSearchLoading] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Fetch initial chats on mount
   useEffect(() => {
@@ -78,7 +114,7 @@ const ChatList: React.FC<ChatListProps> = ({
     };
   }, [searchQuery]);
 
-  // Sort chats by most recent activity (already done in SQL, but ensure consistency)
+  // Sort chats by most recent activity
   const sortedChats = useMemo(
     () => [...items].sort((a, b) => b.updatedAt - a.updatedAt),
     [items],
@@ -87,22 +123,22 @@ const ChatList: React.FC<ChatListProps> = ({
   const displayedChats = searchQuery.trim() ? searchResults : sortedChats;
   const displayTotal = searchQuery.trim() ? searchTotal : pagination.total;
 
-  // Handle infinite scroll
-  const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
+  // Handle infinite scroll via onRowsRendered
+  const handleRowsRendered = useCallback((
+    visibleRows: { startIndex: number; stopIndex: number },
+    allRows: { startIndex: number; stopIndex: number }
+  ) => {
     if (searchQuery.trim()) return;
     if (loading || !pagination.hasMore) return;
 
-    const element = event.currentTarget;
-    const { scrollTop, scrollHeight, clientHeight } = element;
-    const threshold = 200; // Load more when 200px from bottom
-
-    if (scrollTop + clientHeight >= scrollHeight - threshold) {
-      dispatch(fetchChats({ 
-        offset: pagination.offset, 
-        limit: 50 
+    // Load more when approaching bottom
+    if (allRows.stopIndex >= displayedChats.length - 5) {
+      dispatch(fetchChats({
+        offset: pagination.offset,
+        limit: 50
       }));
     }
-  }, [dispatch, loading, pagination.hasMore, pagination.offset, searchQuery]);
+  }, [dispatch, loading, pagination.hasMore, pagination.offset, searchQuery, displayedChats.length]);
 
   if (error) {
     return (
@@ -135,11 +171,8 @@ const ChatList: React.FC<ChatListProps> = ({
         />
       </header>
 
-      {/* Chat List */}
-      <div 
-        className="flex-1 overflow-y-auto"
-        onScroll={handleScroll}
-      >
+      {/* Virtualized Chat List */}
+      <div ref={containerRef} className="flex-1 overflow-hidden">
         {displayedChats.length === 0 && !loading && !searchLoading ? (
           <div className="flex items-center justify-center h-full text-gray-500">
             <div className="text-center">
@@ -154,17 +187,19 @@ const ChatList: React.FC<ChatListProps> = ({
             </div>
           </div>
         ) : (
-          <ul className="divide-y divide-gray-100">
-            {displayedChats.map((chat) => (
-              <li key={chat.id}>
-                <ChatItem
-                  chat={chat}
-                  isSelected={selectedChatId === chat.id}
-                  onClick={() => onSelectChat?.(chat.id)}
-                />
-              </li>
-            ))}
-          </ul>
+          <List
+            rowComponent={ChatRow}
+            rowProps={{
+              chats: displayedChats,
+              selectedChatId,
+              onSelectChat,
+            }}
+            rowCount={displayedChats.length}
+            rowHeight={CHAT_ITEM_HEIGHT}
+            onRowsRendered={handleRowsRendered}
+            overscanCount={5}
+            style={{ height: '100%', width: '100%' }}
+          />
         )}
       </div>
 
