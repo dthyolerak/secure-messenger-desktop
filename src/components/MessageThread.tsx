@@ -1,7 +1,7 @@
 // src/components/MessageThread.tsx
 import React, { useState, useEffect, useRef, useCallback, CSSProperties } from 'react';
 import { List, useDynamicRowHeight } from 'react-window';
-import { Search, MoreVertical, Phone, Video, Edit2, Trash2, Smile, X, Image, Settings, Trash, AlertCircle, RefreshCw } from 'lucide-react';
+import { Search, MoreVertical, Phone, Video, Edit2, Trash2, Smile, X, Image, Settings, Trash, AlertCircle, RefreshCw, Eraser } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../app/store';
 import type { MessageAttachmentPayload, MessageItem, MessageSearchResult } from '../domains/messages/messages.types';
@@ -320,6 +320,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
   const [searchLoading, setSearchLoading] = useState(false);
   const [showChatMenu, setShowChatMenu] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showClearMessagesConfirm, setShowClearMessagesConfirm] = useState(false);
   const [showMediaModal, setShowMediaModal] = useState(false);
   const [messageOffset, setMessageOffset] = useState(0);
   const [hasOlderMessages, setHasOlderMessages] = useState(true);
@@ -367,6 +368,8 @@ const MessageThread: React.FC<MessageThreadProps> = ({
   };
 
   // Load messages from SQLite when chat changes
+  // Note: We intentionally exclude `messages` from deps to avoid reloading when Redux updates
+  // New messages come via IPC events (onMessageInserted) which update localMessages directly
   useEffect(() => {
     if (chatId) {
       const loadMessages = async () => {
@@ -400,7 +403,6 @@ const MessageThread: React.FC<MessageThreadProps> = ({
           }
         } catch (error) {
           console.error('Failed to load messages:', error);
-          setLocalMessages(messages);
         }
       };
 
@@ -410,7 +412,8 @@ const MessageThread: React.FC<MessageThreadProps> = ({
       setMessageOffset(0);
       setHasOlderMessages(true);
     }
-  }, [chatId, messages, currentUser]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatId, currentUser]);
 
   // Load older messages handler
   const handleLoadOlderMessages = useCallback(async () => {
@@ -653,6 +656,24 @@ const MessageThread: React.FC<MessageThreadProps> = ({
     setShowChatMenu(false);
   }, [chatId, onDeleteChat]);
 
+  const handleClearMessages = useCallback(async () => {
+    if (!chatId) return;
+    try {
+      const result = await syncIpcClient.clearChatMessages(chatId);
+      if (result.success) {
+        // Clear local messages state
+        setLocalMessages([]);
+        setMessageOffset(0);
+        setHasOlderMessages(false);
+        console.log(`Cleared ${result.data?.deletedCount ?? 0} messages from chat`);
+      }
+    } catch (error) {
+      console.error('Failed to clear chat messages:', error);
+    }
+    setShowClearMessagesConfirm(false);
+    setShowChatMenu(false);
+  }, [chatId]);
+
   const handleViewMedia = useCallback(() => {
     if (!chatId) return;
     if (onViewMedia) {
@@ -864,6 +885,16 @@ const MessageThread: React.FC<MessageThreadProps> = ({
                   <hr className="my-1 border-gray-200" />
                   <button
                     onClick={() => {
+                      setShowClearMessagesConfirm(true);
+                      setShowChatMenu(false);
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-orange-600 hover:bg-orange-50 flex items-center gap-3"
+                  >
+                    <Eraser size={16} />
+                    <span>Clear messages</span>
+                  </button>
+                  <button
+                    onClick={() => {
                       setShowDeleteConfirm(true);
                       setShowChatMenu(false);
                     }}
@@ -1002,6 +1033,40 @@ const MessageThread: React.FC<MessageThreadProps> = ({
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
               >
                 Delete chat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clear Messages Confirmation Modal */}
+      {showClearMessagesConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                <Eraser size={24} className="text-orange-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-900">Clear messages?</h3>
+                <p className="mt-2 text-sm text-gray-600">
+                  Are you sure you want to clear all messages in this chat with <strong>{chatName}</strong>? 
+                  This will permanently remove all {localMessages.length} message{localMessages.length !== 1 ? 's' : ''} but keep the chat.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowClearMessagesConfirm(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleClearMessages}
+                className="px-4 py-2 text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors"
+              >
+                Clear messages
               </button>
             </div>
           </div>

@@ -110,21 +110,21 @@ export class MockSyncServer {
   private isMockingActive = false;
 
   /**
-   * Get random interval between 1-3 seconds (as per requirements)
+   * Get random interval between 2-5 minutes (120000-300000ms)
    */
   private getRandomInterval(): number {
-    return Math.floor(Math.random() * 2000) + 1000; // 1000-3000ms
+    return Math.floor(Math.random() * 180000) + 120000; // 2-5 minutes (120000-300000ms)
   }
 
   /**
-   * Start sending mock messages for testing (1-3 second intervals)
+   * Start sending mock messages for testing (2-5 minute intervals)
    */
   startMockMessages(): void {
     if (this.isMockingActive) return;
     
     this.isMockingActive = true;
     this.scheduleNextMockMessage();
-    console.log('[MOCK-SERVER] Started mock messages (1-3s intervals)');
+    console.log('[MOCK-SERVER] Started mock messages (2-5 minute intervals)');
   }
 
   /**
@@ -177,7 +177,8 @@ export class MockSyncServer {
       const randomEvent = mockEvents[eventIndex];
       this.broadcastEvent(randomEvent);
       
-      console.log(`[MOCK-SERVER] Sent mock event: ${randomEvent.type} (next in ${delay}ms)`);
+      const nextDelayMinutes = (delay / 60000).toFixed(1);
+      console.log(`[MOCK-SERVER] Sent mock event: ${randomEvent.type} (next in ${nextDelayMinutes} minutes)`);
       
       // Schedule next message
       this.scheduleNextMockMessage();

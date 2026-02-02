@@ -4135,6 +4135,7 @@ var IPC_EVENTS = {
   UPDATE_MESSAGE: "sync:update-message",
   DELETE_MESSAGE: "sync:delete-message",
   DELETE_CHAT: "sync:delete-chat",
+  CLEAR_CHAT_MESSAGES: "sync:clear-chat-messages",
   SEARCH_MESSAGES: "sync:search-messages",
   SEARCH_CHATS: "sync:search-chats",
   TOGGLE_REACTION: "sync:toggle-reaction",
@@ -4407,6 +4408,18 @@ var syncApi = {
   // Chats
   async getChats() {
     return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.GET_CHATS);
+  },
+  async clearChatMessages(chatId) {
+    const raw = await import_electron2.ipcRenderer.invoke(IPC_EVENTS.CLEAR_CHAT_MESSAGES, { chatId });
+    const responseSchema = external_exports.object({
+      success: external_exports.boolean(),
+      data: external_exports.object({
+        chatId: external_exports.string(),
+        deletedCount: external_exports.number()
+      }).optional(),
+      error: external_exports.string().optional()
+    });
+    return responseSchema.parse(raw);
   },
   async deleteChat(chatId) {
     const raw = await import_electron2.ipcRenderer.invoke(IPC_EVENTS.DELETE_CHAT, { chatId });

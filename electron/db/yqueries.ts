@@ -600,6 +600,42 @@ export class SyncQueries {
   /**
    * Delete chat and all its messages
    */
+  /**
+   * Clear all messages in a chat (but keep the chat itself)
+   */
+  async clearChatMessages(chatId: string): Promise<{ success: boolean; deletedCount: number }> {
+    try {
+      // Get message IDs for reaction cleanup
+      const messageIds = this.db.prepare(`
+        SELECT id FROM messages WHERE chat_id = ?
+      `).all(chatId) as Array<{ id: string }>;
+
+      // Delete reactions for all messages in this chat
+      if (messageIds.length > 0) {
+        const placeholders = messageIds.map(() => '?').join(', ');
+        this.db.prepare(`
+          DELETE FROM message_reactions WHERE message_id IN (${placeholders})
+        `).run(...messageIds.map(m => m.id));
+      }
+
+      // Delete all messages in the chat
+      const result = this.db.prepare(`
+        DELETE FROM messages WHERE chat_id = ?
+      `).run(chatId);
+
+      // Update chat to clear last message and reset unread count
+      this.db.prepare(`
+        UPDATE chats SET last_message = '', unread_count = 0, updated_at = ? WHERE id = ?
+      `).run(Date.now(), chatId);
+
+      console.log(`[DB] Cleared ${result.changes} messages from chat ${chatId}`);
+      return { success: true, deletedCount: result.changes };
+    } catch (error) {
+      console.error('[DB] Failed to clear chat messages:', error);
+      throw error;
+    }
+  }
+
   async deleteChat(chatId: string): Promise<{ success: boolean }> {
     try {
       // First delete all messages in the chat

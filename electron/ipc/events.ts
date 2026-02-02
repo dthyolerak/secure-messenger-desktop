@@ -31,6 +31,7 @@ export const IPC_EVENTS = {
   UPDATE_MESSAGE: 'sync:update-message',
   DELETE_MESSAGE: 'sync:delete-message',
   DELETE_CHAT: 'sync:delete-chat',
+  CLEAR_CHAT_MESSAGES: 'sync:clear-chat-messages',
   SEARCH_MESSAGES: 'sync:search-messages',
   SEARCH_CHATS: 'sync:search-chats',
   TOGGLE_REACTION: 'sync:toggle-reaction',
@@ -187,11 +188,16 @@ export class SyncIPCEmitter {
       const validated = MessageInsertedPayloadSchema.parse(message);
       
       // Send to all renderer windows
-      webContents.getAllWebContents().forEach(contents => {
-        contents.send(IPC_EVENTS.MESSAGE_INSERTED, validated);
+      const allContents = webContents.getAllWebContents();
+      console.log(`[IPC] Emitting message to ${allContents.length} renderer(s)`);
+      
+      allContents.forEach(contents => {
+        if (!contents.isDestroyed()) {
+          contents.send(IPC_EVENTS.MESSAGE_INSERTED, validated);
+        }
       });
       
-      console.log(`[IPC] Message inserted event sent: ${validated.id}`);
+      console.log(`[IPC] Message inserted event sent: ${validated.id} to chat: ${validated.chat_id}`);
     } catch (error) {
       // Log error message only to avoid circular reference issues
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -334,6 +340,9 @@ export class SyncIPCEmitter {
   ): void {
     try {
       const validated = MessageInsertedPayloadSchema.parse(message);
+      
+      console.log(`[Notification] Checking notification for message from ${validated.sender} to ${validated.recipient} (currentUser: ${currentUser})`);
+      
       const previewText =
         validated.content?.trim() ||
         (validated.type === 'image'
@@ -344,16 +353,31 @@ export class SyncIPCEmitter {
       
       // Only show notification for messages from other users to current user
       if (validated.recipient === currentUser && validated.sender !== currentUser) {
+        // Check if notifications are supported
+        if (!Notification.isSupported()) {
+          console.warn('[Notification] Desktop notifications are not supported on this platform');
+          return;
+        }
+
+        // Check if any window is focused - skip notification if user is actively using the app
+        const windows = BrowserWindow.getAllWindows();
+        const isAppFocused = windows.some(w => w.isFocused());
+        
+        if (isAppFocused) {
+          console.log(`[Notification] Skipping notification - app window is focused`);
+          return;
+        }
+        
         const notification = new Notification({
-          title: validated.sender,
-          body: previewText,
-          subtitle: chatName,
+          title: `${validated.sender} - ${chatName}`,
+          body: previewText || 'New message',
           silent: false,
+          urgency: 'normal',
+          timeoutType: 'default',
         });
 
         notification.on('click', () => {
           // Focus the main window and emit event to open the chat
-          const windows = BrowserWindow.getAllWindows();
           if (windows.length > 0) {
             const mainWindow = windows[0];
             if (mainWindow) {
@@ -367,11 +391,22 @@ export class SyncIPCEmitter {
           }
         });
 
+        notification.on('show', () => {
+          console.log(`[Notification] Notification displayed for message: ${validated.id}`);
+        });
+
+        notification.on('failed', (event, error) => {
+          console.error(`[Notification] Failed to display notification: ${error}`);
+        });
+
         notification.show();
-        console.log(`[Notification] Desktop notification sent for message: ${validated.id}`);
+        console.log(`[Notification] Desktop notification triggered for message: ${validated.id}`);
+      } else {
+        console.log(`[Notification] Skipping notification - message is from current user or not addressed to them`);
       }
     } catch (error) {
-      console.error('[Notification] Failed to show desktop notification:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[Notification] Failed to show desktop notification:', errorMessage);
     }
   }
 }
@@ -478,12 +513,14 @@ export function registerSyncIPCHandlers(syncQueries: any): void {
         content: content ?? '',
         timestamp,
         read_at: timestamp,
+        is_read: true,
         is_edited: false,
         type: messageType,
         file_path: attachment?.filePath ?? null,
         file_name: attachment?.fileName ?? null,
         file_size: attachment?.fileSize ?? null,
         mime_type: attachment?.mimeType ?? null,
+        reactions: [], // Initialize empty reactions array
       };
       
       // Security: Never log message content - only log metadata
@@ -587,6 +624,34 @@ export function registerSyncIPCHandlers(syncQueries: any): void {
     } catch (error) {
       console.error('[IPC] Delete message failed:', error);
       return { success: false, error: 'Failed to delete message' };
+    }
+  });
+
+  // Clear all messages in a chat (but keep the chat)
+  ipcMain.handle(IPC_EVENTS.CLEAR_CHAT_MESSAGES, async (_event, rawPayload) => {
+    try {
+      const parsed = z.object({ chatId: z.string() }).safeParse(rawPayload);
+      if (!parsed.success) {
+        throw new Error('Invalid clear chat messages payload');
+      }
+
+      const cleared = await syncQueries.clearChatMessages(parsed.data.chatId);
+      if (cleared.success) {
+        // Emit chat list updated to refresh UI
+        const chats = await syncQueries.getAllChats();
+        const updatedChat = chats.find((chat: any) => chat.id === parsed.data.chatId);
+        if (updatedChat) {
+          SyncIPCEmitter.emitChatUpdated(updatedChat);
+        }
+        SyncIPCEmitter.emitChatListUpdated();
+        console.log(`[IPC] Cleared ${cleared.deletedCount} messages from chat: ${parsed.data.chatId}`);
+        return { success: true, data: { chatId: parsed.data.chatId, deletedCount: cleared.deletedCount } };
+      }
+
+      return { success: false, error: 'Failed to clear chat messages' };
+    } catch (error) {
+      console.error('[IPC] Clear chat messages failed:', error);
+      return { success: false, error: 'Failed to clear chat messages' };
     }
   });
 

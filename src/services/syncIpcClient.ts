@@ -146,6 +146,18 @@ class SyncIpcClient {
   }
 
   /**
+   * Clear all messages in a chat (but keep the chat)
+   */
+  async clearChatMessages(chatId: string) {
+    try {
+      return await this.api.clearChatMessages(chatId);
+    } catch (error) {
+      console.error('Failed to clear chat messages:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Delete a chat and all its messages
    */
   async deleteChat(chatId: string) {

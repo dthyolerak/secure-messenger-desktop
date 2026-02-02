@@ -1,6 +1,11 @@
 // electron/main.ts
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, Notification } from 'electron';
 import path from 'node:path';
+
+// Set app user model ID for Windows notifications
+if (process.platform === 'win32') {
+  app.setAppUserModelId('com.secureamessenger.desktop');
+}
 import { registerAuthIpcHandlers } from '../src/domains/auth/auth.ipc';
 import { registerMessageIpc } from '../src/domains/messages/messages.ipc';
 import { registerSyncIpc } from '../src/domains/sync/sync.ipc';

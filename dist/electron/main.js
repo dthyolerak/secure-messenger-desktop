@@ -5284,6 +5284,33 @@ var SyncQueries = class {
   /**
    * Delete chat and all its messages
    */
+  /**
+   * Clear all messages in a chat (but keep the chat itself)
+   */
+  async clearChatMessages(chatId) {
+    try {
+      const messageIds = this.db.prepare(`
+        SELECT id FROM messages WHERE chat_id = ?
+      `).all(chatId);
+      if (messageIds.length > 0) {
+        const placeholders = messageIds.map(() => "?").join(", ");
+        this.db.prepare(`
+          DELETE FROM message_reactions WHERE message_id IN (${placeholders})
+        `).run(...messageIds.map((m) => m.id));
+      }
+      const result = this.db.prepare(`
+        DELETE FROM messages WHERE chat_id = ?
+      `).run(chatId);
+      this.db.prepare(`
+        UPDATE chats SET last_message = '', unread_count = 0, updated_at = ? WHERE id = ?
+      `).run(Date.now(), chatId);
+      console.log(`[DB] Cleared ${result.changes} messages from chat ${chatId}`);
+      return { success: true, deletedCount: result.changes };
+    } catch (error) {
+      console.error("[DB] Failed to clear chat messages:", error);
+      throw error;
+    }
+  }
   async deleteChat(chatId) {
     try {
       this.db.prepare(`
@@ -5592,6 +5619,7 @@ var IPC_EVENTS = {
   UPDATE_MESSAGE: "sync:update-message",
   DELETE_MESSAGE: "sync:delete-message",
   DELETE_CHAT: "sync:delete-chat",
+  CLEAR_CHAT_MESSAGES: "sync:clear-chat-messages",
   SEARCH_MESSAGES: "sync:search-messages",
   SEARCH_CHATS: "sync:search-chats",
   TOGGLE_REACTION: "sync:toggle-reaction",
@@ -5720,10 +5748,14 @@ var SyncIPCEmitter = class {
   static emitMessageInserted(message) {
     try {
       const validated = MessageInsertedPayloadSchema.parse(message);
-      import_electron5.webContents.getAllWebContents().forEach((contents) => {
-        contents.send(IPC_EVENTS.MESSAGE_INSERTED, validated);
+      const allContents = import_electron5.webContents.getAllWebContents();
+      console.log(`[IPC] Emitting message to ${allContents.length} renderer(s)`);
+      allContents.forEach((contents) => {
+        if (!contents.isDestroyed()) {
+          contents.send(IPC_EVENTS.MESSAGE_INSERTED, validated);
+        }
       });
-      console.log(`[IPC] Message inserted event sent: ${validated.id}`);
+      console.log(`[IPC] Message inserted event sent: ${validated.id} to chat: ${validated.chat_id}`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       console.error("[IPC] Failed to emit message inserted:", errorMessage);
@@ -5837,16 +5869,27 @@ var SyncIPCEmitter = class {
   static showDesktopNotification(message, chatName, currentUser = DEFAULT_CURRENT_USER3) {
     try {
       const validated = MessageInsertedPayloadSchema.parse(message);
+      console.log(`[Notification] Checking notification for message from ${validated.sender} to ${validated.recipient} (currentUser: ${currentUser})`);
       const previewText = validated.content?.trim() || (validated.type === "image" ? `\u{1F4F7} ${validated.file_name ?? "Image"}` : validated.type === "file" ? `\u{1F4CE} ${validated.file_name ?? "Attachment"}` : "");
       if (validated.recipient === currentUser && validated.sender !== currentUser) {
+        if (!import_electron5.Notification.isSupported()) {
+          console.warn("[Notification] Desktop notifications are not supported on this platform");
+          return;
+        }
+        const windows = import_electron5.BrowserWindow.getAllWindows();
+        const isAppFocused = windows.some((w) => w.isFocused());
+        if (isAppFocused) {
+          console.log(`[Notification] Skipping notification - app window is focused`);
+          return;
+        }
         const notification = new import_electron5.Notification({
-          title: validated.sender,
-          body: previewText,
-          subtitle: chatName,
-          silent: false
+          title: `${validated.sender} - ${chatName}`,
+          body: previewText || "New message",
+          silent: false,
+          urgency: "normal",
+          timeoutType: "default"
         });
         notification.on("click", () => {
-          const windows = import_electron5.BrowserWindow.getAllWindows();
           if (windows.length > 0) {
             const mainWindow = windows[0];
             if (mainWindow) {
@@ -5858,11 +5901,20 @@ var SyncIPCEmitter = class {
             }
           }
         });
+        notification.on("show", () => {
+          console.log(`[Notification] Notification displayed for message: ${validated.id}`);
+        });
+        notification.on("failed", (event, error) => {
+          console.error(`[Notification] Failed to display notification: ${error}`);
+        });
         notification.show();
-        console.log(`[Notification] Desktop notification sent for message: ${validated.id}`);
+        console.log(`[Notification] Desktop notification triggered for message: ${validated.id}`);
+      } else {
+        console.log(`[Notification] Skipping notification - message is from current user or not addressed to them`);
       }
     } catch (error) {
-      console.error("[Notification] Failed to show desktop notification:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error("[Notification] Failed to show desktop notification:", errorMessage);
     }
   }
 };
@@ -5941,12 +5993,15 @@ function registerSyncIPCHandlers(syncQueries2) {
         content: content ?? "",
         timestamp,
         read_at: timestamp,
+        is_read: true,
         is_edited: false,
         type: messageType,
         file_path: attachment?.filePath ?? null,
         file_name: attachment?.fileName ?? null,
         file_size: attachment?.fileSize ?? null,
-        mime_type: attachment?.mimeType ?? null
+        mime_type: attachment?.mimeType ?? null,
+        reactions: []
+        // Initialize empty reactions array
       };
       console.log("[IPC] Attempting to insert message:", { id: message.id, chat_id: message.chat_id, sender: message.sender, type: message.type });
       if (attachment) {
@@ -6028,6 +6083,29 @@ function registerSyncIPCHandlers(syncQueries2) {
     } catch (error) {
       console.error("[IPC] Delete message failed:", error);
       return { success: false, error: "Failed to delete message" };
+    }
+  });
+  import_electron5.ipcMain.handle(IPC_EVENTS.CLEAR_CHAT_MESSAGES, async (_event, rawPayload) => {
+    try {
+      const parsed = external_exports.object({ chatId: external_exports.string() }).safeParse(rawPayload);
+      if (!parsed.success) {
+        throw new Error("Invalid clear chat messages payload");
+      }
+      const cleared = await syncQueries2.clearChatMessages(parsed.data.chatId);
+      if (cleared.success) {
+        const chats = await syncQueries2.getAllChats();
+        const updatedChat = chats.find((chat) => chat.id === parsed.data.chatId);
+        if (updatedChat) {
+          SyncIPCEmitter.emitChatUpdated(updatedChat);
+        }
+        SyncIPCEmitter.emitChatListUpdated();
+        console.log(`[IPC] Cleared ${cleared.deletedCount} messages from chat: ${parsed.data.chatId}`);
+        return { success: true, data: { chatId: parsed.data.chatId, deletedCount: cleared.deletedCount } };
+      }
+      return { success: false, error: "Failed to clear chat messages" };
+    } catch (error) {
+      console.error("[IPC] Clear chat messages failed:", error);
+      return { success: false, error: "Failed to clear chat messages" };
     }
   });
   import_electron5.ipcMain.handle(IPC_EVENTS.DELETE_CHAT, async (_event, rawPayload) => {
@@ -6170,6 +6248,9 @@ function registerSyncIPCHandlers(syncQueries2) {
 }
 
 // electron/main.ts
+if (process.platform === "win32") {
+  import_electron6.app.setAppUserModelId("com.secureamessenger.desktop");
+}
 var db = null;
 var wsClient = null;
 var syncQueries = null;

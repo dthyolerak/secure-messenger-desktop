@@ -396,6 +396,26 @@ const syncApi = {
 
 
 
+  async clearChatMessages(chatId: string) {
+    const raw = await ipcRenderer.invoke(IPC_EVENTS.CLEAR_CHAT_MESSAGES, { chatId });
+    const responseSchema = z.object({
+      success: z.boolean(),
+      data: z
+        .object({
+          chatId: z.string(),
+          deletedCount: z.number(),
+        })
+        .optional(),
+      error: z.string().optional(),
+    });
+
+    return responseSchema.parse(raw) as {
+      success: boolean;
+      data?: { chatId: string; deletedCount: number };
+      error?: string;
+    };
+  },
+
   async deleteChat(chatId: string) {
 
     const raw = await ipcRenderer.invoke(IPC_EVENTS.DELETE_CHAT, { chatId });
