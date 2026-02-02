@@ -5034,57 +5034,22 @@ var SyncQueries = class {
     }
   }
   /**
-   * Check if FTS5 is available for fast search
-   */
-  isFTS5Available() {
-    try {
-      const result = this.db.prepare(`
-        SELECT name FROM sqlite_master 
-        WHERE type='table' AND name='messages_fts'
-      `).get();
-      return !!result;
-    } catch {
-      return false;
-    }
-  }
-  /**
-   * Search messages using FTS5 (fast full-text search)
-   * Falls back to LIKE queries if FTS5 is not available
+   * Search messages by content or file name (case-insensitive)
    */
   async searchMessages(query, currentUser = "You", limit = 50, offset = 0) {
     try {
-      const trimmedQuery = query.trim();
-      if (!trimmedQuery)
-        return [];
-      let messages;
-      if (this.isFTS5Available()) {
-        const ftsQuery = trimmedQuery.replace(/['"]/g, '""').split(/\s+/).filter((word) => word.length > 0).map((word) => `"${word}"*`).join(" OR ");
-        messages = this.db.prepare(`
-          SELECT m.*, c.name as chat_name, 
-                 bm25(messages_fts) as rank
-          FROM messages_fts fts
-          INNER JOIN messages m ON fts.id = m.id
-          INNER JOIN chats c ON m.chat_id = c.id
-          WHERE messages_fts MATCH ?
-          ORDER BY rank, m.timestamp DESC
-          LIMIT ? OFFSET ?
-        `).all(ftsQuery, limit, offset);
-        console.log(`[DB] FTS5 search for "${trimmedQuery}" found ${messages.length} results`);
-      } else {
-        const searchPattern = `%${trimmedQuery.toLowerCase()}%`;
-        messages = this.db.prepare(`
-          SELECT m.*, c.name as chat_name
-          FROM messages m
-          INNER JOIN chats c ON m.chat_id = c.id
-          WHERE (
-            LOWER(m.content) LIKE ?
-            OR LOWER(COALESCE(m.file_name, '')) LIKE ?
-          )
-          ORDER BY m.timestamp DESC
-          LIMIT ? OFFSET ?
-        `).all(searchPattern, searchPattern, limit, offset);
-        console.log(`[DB] LIKE search for "${trimmedQuery}" found ${messages.length} results`);
-      }
+      const searchPattern = `%${query.toLowerCase()}%`;
+      const messages = this.db.prepare(`
+        SELECT m.*, c.name as chat_name
+        FROM messages m
+        INNER JOIN chats c ON m.chat_id = c.id
+        WHERE (
+          LOWER(m.content) LIKE ?
+          OR LOWER(COALESCE(m.file_name, '')) LIKE ?
+        )
+        ORDER BY m.timestamp DESC
+        LIMIT ? OFFSET ?
+      `).all(searchPattern, searchPattern, limit, offset);
       const messageIds = messages.map((msg) => msg.id);
       const reactions = this.getMessageReactions(messageIds, currentUser);
       return messages.map((message) => ({
@@ -5093,52 +5058,6 @@ var SyncQueries = class {
       }));
     } catch (error) {
       console.error("[DB] Failed to search messages:", error);
-      throw error;
-    }
-  }
-  /**
-   * Search messages within a specific chat using FTS5
-   */
-  async searchMessagesInChat(chatId, query, currentUser = "You", limit = 50, offset = 0) {
-    try {
-      const trimmedQuery = query.trim();
-      if (!trimmedQuery)
-        return [];
-      let messages;
-      if (this.isFTS5Available()) {
-        const ftsQuery = trimmedQuery.replace(/['"]/g, '""').split(/\s+/).filter((word) => word.length > 0).map((word) => `"${word}"*`).join(" OR ");
-        messages = this.db.prepare(`
-          SELECT m.*, c.name as chat_name,
-                 bm25(messages_fts) as rank
-          FROM messages_fts fts
-          INNER JOIN messages m ON fts.id = m.id
-          INNER JOIN chats c ON m.chat_id = c.id
-          WHERE messages_fts MATCH ? AND fts.chat_id = ?
-          ORDER BY rank, m.timestamp DESC
-          LIMIT ? OFFSET ?
-        `).all(ftsQuery, chatId, limit, offset);
-      } else {
-        const searchPattern = `%${trimmedQuery.toLowerCase()}%`;
-        messages = this.db.prepare(`
-          SELECT m.*, c.name as chat_name
-          FROM messages m
-          INNER JOIN chats c ON m.chat_id = c.id
-          WHERE m.chat_id = ? AND (
-            LOWER(m.content) LIKE ?
-            OR LOWER(COALESCE(m.file_name, '')) LIKE ?
-          )
-          ORDER BY m.timestamp DESC
-          LIMIT ? OFFSET ?
-        `).all(chatId, searchPattern, searchPattern, limit, offset);
-      }
-      const messageIds = messages.map((msg) => msg.id);
-      const reactions = this.getMessageReactions(messageIds, currentUser);
-      return messages.map((message) => ({
-        ...message,
-        reactions: reactions[message.id] ?? []
-      }));
-    } catch (error) {
-      console.error("[DB] Failed to search messages in chat:", error);
       throw error;
     }
   }
@@ -5498,125 +5417,11 @@ var SyncQueries = class {
       this.db.exec("DELETE FROM messages");
       this.db.exec("DELETE FROM chats");
       this.db.exec("DELETE FROM message_reactions");
-      this.db.exec("DELETE FROM offline_queue");
       this.db.exec("COMMIT");
       console.log("[DB] All data cleared");
     } catch (error) {
       this.db.exec("ROLLBACK");
       console.error("[DB] Failed to clear data:", error);
-      throw error;
-    }
-  }
-  // ============================================================
-  // OFFLINE QUEUE OPERATIONS
-  // ============================================================
-  /**
-   * Add an item to the offline queue for later sync
-   */
-  async addToOfflineQueue(type, payload) {
-    try {
-      const id = `queue_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-      this.db.prepare(`
-        INSERT INTO offline_queue (id, type, payload, created_at, status)
-        VALUES (?, ?, ?, ?, 'pending')
-      `).run(id, type, JSON.stringify(payload), Date.now());
-      console.log(`[DB] Added to offline queue: ${type} (${id})`);
-      return id;
-    } catch (error) {
-      console.error("[DB] Failed to add to offline queue:", error);
-      throw error;
-    }
-  }
-  /**
-   * Get all pending items from the offline queue
-   */
-  async getPendingQueueItems(limit = 100) {
-    try {
-      const items = this.db.prepare(`
-        SELECT id, type, payload, created_at, retry_count, last_error
-        FROM offline_queue
-        WHERE status = 'pending'
-        ORDER BY created_at ASC
-        LIMIT ?
-      `).all(limit);
-      return items.map((item) => ({
-        ...item,
-        payload: JSON.parse(item.payload)
-      }));
-    } catch (error) {
-      console.error("[DB] Failed to get pending queue items:", error);
-      throw error;
-    }
-  }
-  /**
-   * Mark a queue item as completed (synced successfully)
-   */
-  async markQueueItemCompleted(id) {
-    try {
-      this.db.prepare(`
-        UPDATE offline_queue
-        SET status = 'completed'
-        WHERE id = ?
-      `).run(id);
-      console.log(`[DB] Queue item completed: ${id}`);
-    } catch (error) {
-      console.error("[DB] Failed to mark queue item as completed:", error);
-      throw error;
-    }
-  }
-  /**
-   * Mark a queue item as failed with error
-   */
-  async markQueueItemFailed(id, error) {
-    try {
-      this.db.prepare(`
-        UPDATE offline_queue
-        SET status = 'pending',
-            retry_count = retry_count + 1,
-            last_error = ?
-        WHERE id = ?
-      `).run(error, id);
-      console.log(`[DB] Queue item failed: ${id} - ${error}`);
-    } catch (error2) {
-      console.error("[DB] Failed to mark queue item as failed:", error2);
-      throw error2;
-    }
-  }
-  /**
-   * Remove completed and old failed items from queue
-   */
-  async cleanupOfflineQueue(maxAge = 7 * 24 * 60 * 60 * 1e3) {
-    try {
-      const cutoff = Date.now() - maxAge;
-      const result = this.db.prepare(`
-        DELETE FROM offline_queue
-        WHERE status = 'completed'
-           OR (status = 'failed' AND created_at < ?)
-           OR retry_count > 10
-      `).run(cutoff);
-      console.log(`[DB] Cleaned up ${result.changes} queue items`);
-      return result.changes;
-    } catch (error) {
-      console.error("[DB] Failed to cleanup offline queue:", error);
-      throw error;
-    }
-  }
-  /**
-   * Get offline queue statistics
-   */
-  async getOfflineQueueStats() {
-    try {
-      const stats = this.db.prepare(`
-        SELECT 
-          COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending,
-          COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
-          COUNT(CASE WHEN retry_count > 10 THEN 1 END) as failed,
-          COUNT(*) as total
-        FROM offline_queue
-      `).get();
-      return stats;
-    } catch (error) {
-      console.error("[DB] Failed to get offline queue stats:", error);
       throw error;
     }
   }
@@ -5640,80 +5445,12 @@ function ensureMessagesTable(db2) {
       file_name TEXT,
       file_size INTEGER,
       mime_type TEXT,
-      deleted_at INTEGER,
       FOREIGN KEY (chat_id) REFERENCES chats (id) ON DELETE CASCADE
     );
 
-    -- Primary index for chat message retrieval
     CREATE INDEX IF NOT EXISTS idx_messages_chat_timestamp
       ON messages(chat_id, timestamp DESC);
-    
-    -- Index for sender lookups (used in joins)
-    CREATE INDEX IF NOT EXISTS idx_messages_sender
-      ON messages(sender);
-    
-    -- Index for recipient lookups
-    CREATE INDEX IF NOT EXISTS idx_messages_recipient
-      ON messages(recipient);
-    
-    -- Index for soft-deleted messages
-    CREATE INDEX IF NOT EXISTS idx_messages_deleted_at
-      ON messages(deleted_at) WHERE deleted_at IS NOT NULL;
-    
-    -- Index for message type filtering
-    CREATE INDEX IF NOT EXISTS idx_messages_type
-      ON messages(type);
   `);
-}
-function ensureFTS5Table(db2) {
-  try {
-    const ftsExists = db2.prepare(`
-      SELECT name FROM sqlite_master 
-      WHERE type='table' AND name='messages_fts'
-    `).get();
-    if (!ftsExists) {
-      db2.exec(`
-        CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(
-          id UNINDEXED,
-          chat_id UNINDEXED,
-          sender,
-          content,
-          file_name,
-          content='messages',
-          content_rowid='rowid'
-        );
-      `);
-      db2.exec(`
-        -- Trigger to insert into FTS when a new message is added
-        CREATE TRIGGER IF NOT EXISTS messages_ai AFTER INSERT ON messages BEGIN
-          INSERT INTO messages_fts(rowid, id, chat_id, sender, content, file_name)
-          VALUES (NEW.rowid, NEW.id, NEW.chat_id, NEW.sender, NEW.content, COALESCE(NEW.file_name, ''));
-        END;
-        
-        -- Trigger to remove from FTS when a message is deleted
-        CREATE TRIGGER IF NOT EXISTS messages_ad AFTER DELETE ON messages BEGIN
-          INSERT INTO messages_fts(messages_fts, rowid, id, chat_id, sender, content, file_name)
-          VALUES ('delete', OLD.rowid, OLD.id, OLD.chat_id, OLD.sender, OLD.content, COALESCE(OLD.file_name, ''));
-        END;
-        
-        -- Trigger to update FTS when a message is updated
-        CREATE TRIGGER IF NOT EXISTS messages_au AFTER UPDATE ON messages BEGIN
-          INSERT INTO messages_fts(messages_fts, rowid, id, chat_id, sender, content, file_name)
-          VALUES ('delete', OLD.rowid, OLD.id, OLD.chat_id, OLD.sender, OLD.content, COALESCE(OLD.file_name, ''));
-          INSERT INTO messages_fts(rowid, id, chat_id, sender, content, file_name)
-          VALUES (NEW.rowid, NEW.id, NEW.chat_id, NEW.sender, NEW.content, COALESCE(NEW.file_name, ''));
-        END;
-      `);
-      db2.exec(`
-        INSERT INTO messages_fts(rowid, id, chat_id, sender, content, file_name)
-        SELECT rowid, id, chat_id, sender, content, COALESCE(file_name, '')
-        FROM messages;
-      `);
-      console.log("[DB] FTS5 table created and populated");
-    }
-  } catch (error) {
-    console.error("[DB] Failed to create FTS5 table:", error);
-  }
 }
 function ensureMessageReactionsTable(db2) {
   db2.exec(`
@@ -5822,49 +5559,10 @@ function migrateMessagesSchema(db2, currentUser = DEFAULT_CURRENT_USER2) {
   migrate();
   ensureMessageReactionsTable(db2);
 }
-function ensureOfflineQueueTable(db2) {
-  db2.exec(`
-    CREATE TABLE IF NOT EXISTS offline_queue (
-      id TEXT PRIMARY KEY,
-      type TEXT NOT NULL,
-      payload TEXT NOT NULL,
-      created_at INTEGER NOT NULL,
-      retry_count INTEGER DEFAULT 0,
-      last_error TEXT,
-      status TEXT NOT NULL DEFAULT 'pending'
-    );
-    
-    CREATE INDEX IF NOT EXISTS idx_offline_queue_status
-      ON offline_queue(status, created_at);
-  `);
-}
-function ensureChatParticipantsTable(db2) {
-  db2.exec(`
-    CREATE TABLE IF NOT EXISTS chat_participants (
-      id TEXT PRIMARY KEY,
-      chat_id TEXT NOT NULL,
-      user_id TEXT NOT NULL,
-      joined_at INTEGER NOT NULL,
-      role TEXT DEFAULT 'member',
-      FOREIGN KEY (chat_id) REFERENCES chats (id) ON DELETE CASCADE,
-      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-      UNIQUE(chat_id, user_id)
-    );
-    
-    CREATE INDEX IF NOT EXISTS idx_chat_participants_chat
-      ON chat_participants(chat_id);
-    
-    CREATE INDEX IF NOT EXISTS idx_chat_participants_user
-      ON chat_participants(user_id);
-  `);
-}
 function ensureMessageSchema(db2, currentUser = DEFAULT_CURRENT_USER2) {
   ensureMessagesTable(db2);
   migrateMessagesSchema(db2, currentUser);
   ensureMessageReactionsTable(db2);
-  ensureFTS5Table(db2);
-  ensureOfflineQueueTable(db2);
-  ensureChatParticipantsTable(db2);
 }
 
 // electron/ipc/events.ts
@@ -6027,7 +5725,8 @@ var SyncIPCEmitter = class {
       });
       console.log(`[IPC] Message inserted event sent: ${validated.id}`);
     } catch (error) {
-      console.error("[IPC] Failed to emit message inserted:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error("[IPC] Failed to emit message inserted:", errorMessage);
     }
   }
   /**
@@ -6627,7 +6326,8 @@ async function handleSyncEvent(event) {
         console.warn("[SYNC] Unknown sync event type:", event.type);
     }
   } catch (error) {
-    console.error("[SYNC] Failed to handle sync event:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("[SYNC] Failed to handle sync event:", errorMessage);
   }
 }
 function getConnectionStatus() {

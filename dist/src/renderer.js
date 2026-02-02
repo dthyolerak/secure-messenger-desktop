@@ -27626,56 +27626,16 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           }
         }
       },
-      setConnected(state) {
-        state.status = "connected";
-        state.lastConnected = Date.now();
-        state.reconnectAttempts = 0;
-        state.showNotification = true;
-        state.notificationMessage = "Connected to server";
-      },
-      setDisconnected(state) {
-        state.status = "offline";
-        state.showNotification = true;
-        state.notificationMessage = "Offline - Working in offline mode";
-      },
-      setReconnecting(state) {
-        state.status = "reconnecting";
-        state.showNotification = true;
-        state.notificationMessage = `Connection lost... Reconnecting (${state.reconnectAttempts})`;
-      },
-      incrementReconnectAttempts(state) {
-        state.reconnectAttempts += 1;
-        if (state.status === "reconnecting") {
-          state.notificationMessage = `Connection lost... Reconnecting (${state.reconnectAttempts})`;
-        }
-      },
-      resetReconnectAttempts(state) {
-        state.reconnectAttempts = 0;
-      },
-      showNotification(state, action) {
-        state.showNotification = true;
-        state.notificationMessage = action.payload;
-      },
       hideNotification(state) {
         state.showNotification = false;
         state.notificationMessage = void 0;
       },
-      resetConnection() {
+      resetConnection(state) {
         return { ...initialState3 };
       }
     }
   });
-  var {
-    setConnectionStatus,
-    setConnected,
-    setDisconnected,
-    setReconnecting,
-    incrementReconnectAttempts,
-    resetReconnectAttempts,
-    showNotification,
-    hideNotification,
-    resetConnection
-  } = connectionSlice.actions;
+  var { setConnectionStatus, hideNotification, resetConnection } = connectionSlice.actions;
   var connectionSlice_default = connectionSlice.reducer;
 
   // src/services/syncIpcClient.ts
@@ -39311,18 +39271,18 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var import_jsx_runtime14 = __toESM(require_jsx_runtime());
   var ConnectionStatusBar = () => {
     const dispatch = useDispatch();
-    const { status, showNotification: showNotification2, notificationMessage } = useSelector(
+    const { status, showNotification, notificationMessage } = useSelector(
       (state) => state.connection
     );
     (0, import_react30.useEffect)(() => {
-      if (status === "reconnecting" && showNotification2) {
+      if (status === "reconnecting" && showNotification) {
         const timeout = setTimeout(() => {
           dispatch(hideNotification());
         }, 5e3);
         return () => clearTimeout(timeout);
       }
-    }, [status, showNotification2, dispatch]);
-    if (!showNotification2) {
+    }, [status, showNotification, dispatch]);
+    if (!showNotification) {
       return null;
     }
     const getStatusIcon = () => {

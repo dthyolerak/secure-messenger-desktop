@@ -193,7 +193,9 @@ export class SyncIPCEmitter {
       
       console.log(`[IPC] Message inserted event sent: ${validated.id}`);
     } catch (error) {
-      console.error('[IPC] Failed to emit message inserted:', error);
+      // Log error message only to avoid circular reference issues
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[IPC] Failed to emit message inserted:', errorMessage);
     }
   }
 

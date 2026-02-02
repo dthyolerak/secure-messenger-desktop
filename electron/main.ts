@@ -219,7 +219,9 @@ async function handleSyncEvent(event: any): Promise<void> {
         console.warn('[SYNC] Unknown sync event type:', event.type);
     }
   } catch (error) {
-    console.error('[SYNC] Failed to handle sync event:', error);
+    // Log error message only to avoid circular reference issues
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[SYNC] Failed to handle sync event:', errorMessage);
   }
 }
 
