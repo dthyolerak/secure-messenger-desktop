@@ -26,38 +26,35 @@ Secure Messenger Desktop is a production-ready Electron application demonstratin
 
 <div align="center">
 
-### Login Screen
-![Login Screen](Screenshots/Screenshot%202026-01-29%20105433.png)
+### Login Page
+![Login Page](Screenshots/login%20page.png)
 
-### Main Chat Interface
-![Main Chat Interface](Screenshots/Screenshot%202026-02-02%20192257.png)
+### Create Account Page
+![Create Account Page](Screenshots/create%20account%20page.png)
 
-### Message Thread
-![Message Thread](Screenshots/Screenshot%202026-02-02%20192308.png)
+### Forgot Password Page
+![Forgot Password Page](Screenshots/forgot%20page.png)
 
-### Chat List with Unread Count
-![Chat List](Screenshots/Screenshot%202026-02-02%20192326.png)
+### Main Screen
+![Main Screen](Screenshots/Main%20screen.png)
 
-### Sending Messages
-![Sending Messages](Screenshots/Screenshot%202026-02-02%20192347.png)
+### Main Screen with Chat Open
+![Main Screen with Chat Open](Screenshots/Main%20screen%20plus%20chat%20open.png)
 
-### File Attachment
-![File Attachment](Screenshots/Screenshot%202026-02-02%20192359.png)
-
-### Emoji Picker
-![Emoji Picker](Screenshots/Screenshot%202026-02-02%20192411.png)
+### Chat Screen - Send Message
+![Chat Screen - Send Message](Screenshots/Chat%20screen%20to%20send%20message.png)
 
 ### Chat Menu Options
-![Chat Menu](Screenshots/Screenshot%202026-02-02%20192419.png)
+![Chat Menu Options](Screenshots/Chat%20three%20dots%20open.png)
 
-### Clear Messages Confirmation
-![Clear Messages](Screenshots/Screenshot%202026-02-02%20192429.png)
+### Person Icon Dropdown
+![Person Icon Dropdown](Screenshots/Person%20icon%20dropdwon.png)
 
-### Message Search
-![Message Search](Screenshots/Screenshot%202026-02-02%20192445.png)
+### Profile Page
+![Profile Page](Screenshots/profile%20page.png)
 
-### Profile Settings
-![Profile Settings](Screenshots/Screenshot%202026-02-02%20192502.png)
+### Settings Page
+![Settings Page](Screenshots/Settings%20page.png)
 
 </div>
 
