@@ -2391,9 +2391,9 @@
           if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === "function") {
             __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(new Error());
           }
-          var React15 = require_react();
+          var React16 = require_react();
           var Scheduler = require_scheduler();
-          var ReactSharedInternals = React15.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React16.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           var suppressWarning = false;
           function setSuppressWarning(newSuppressWarning) {
             {
@@ -3998,7 +3998,7 @@
             {
               if (props.value == null) {
                 if (typeof props.children === "object" && props.children !== null) {
-                  React15.Children.forEach(props.children, function(child) {
+                  React16.Children.forEach(props.children, function(child) {
                     if (child == null) {
                       return;
                     }
@@ -23569,7 +23569,7 @@
           return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React15 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React15.useSyncExternalStore, useRef8 = React15.useRef, useEffect14 = React15.useEffect, useMemo10 = React15.useMemo, useDebugValue2 = React15.useDebugValue;
+        var React16 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React16.useSyncExternalStore, useRef8 = React16.useRef, useEffect14 = React16.useEffect, useMemo10 = React16.useMemo, useDebugValue2 = React16.useDebugValue;
         exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
           var instRef = useRef8(null);
           if (null === instRef.current) {
@@ -23647,7 +23647,7 @@
       if (true) {
         (function() {
           "use strict";
-          var React15 = require_react();
+          var React16 = require_react();
           var REACT_ELEMENT_TYPE = Symbol.for("react.element");
           var REACT_PORTAL_TYPE = Symbol.for("react.portal");
           var REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
@@ -23673,7 +23673,7 @@
             }
             return null;
           }
-          var ReactSharedInternals = React15.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React16.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           function error(format) {
             {
               {
@@ -24546,7 +24546,7 @@
   });
 
   // src/index.tsx
-  var import_react36 = __toESM(require_react());
+  var import_react37 = __toESM(require_react());
   var import_client = __toESM(require_client());
 
   // node_modules/react-redux/dist/react-redux.mjs
@@ -27673,7 +27673,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         store.dispatch(setConnectionStatus({ status: "offline" }));
       });
       this.api.onMessageInserted((message) => {
-        console.log("[Sync] New message received:", message);
+        console.log("[Sync] New message received:", { id: message.id, chat_id: message.chat_id, sender: message.sender });
       });
       this.api.onChatUpdated((chatData) => {
         console.log("[Sync] Chat updated:", chatData);
@@ -27757,6 +27757,50 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       } catch (error) {
         console.error("Failed to get connection status:", error);
         return { status: "offline" };
+      }
+    }
+    /**
+     * Simulate connection drop for testing reconnection logic
+     */
+    async simulateDisconnect() {
+      try {
+        return await this.api.simulateDisconnect();
+      } catch (error) {
+        console.error("Failed to simulate disconnect:", error);
+        return { success: false };
+      }
+    }
+    /**
+     * Force immediate reconnection
+     */
+    async forceReconnect() {
+      try {
+        return await this.api.forceReconnect();
+      } catch (error) {
+        console.error("Failed to force reconnect:", error);
+        return { success: false };
+      }
+    }
+    /**
+     * Seed database with large dataset (200 chats, 20000 messages)
+     */
+    async seedLargeDataset() {
+      try {
+        return await this.api.seedLargeDataset();
+      } catch (error) {
+        console.error("Failed to seed dataset:", error);
+        return { success: false };
+      }
+    }
+    /**
+     * Clear all data from database
+     */
+    async clearAllData() {
+      try {
+        return await this.api.clearAllData();
+      } catch (error) {
+        console.error("Failed to clear data:", error);
+        return { success: false };
       }
     }
     /**
@@ -28085,7 +28129,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   });
 
   // src/App.tsx
-  var import_react35 = __toESM(require_react());
+  var import_react36 = __toESM(require_react());
 
   // src/pages/Login.tsx
   var import_react22 = __toESM(require_react());
@@ -36244,16 +36288,24 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   ];
   var Clock = createLucideIcon("clock", __iconNode6);
 
-  // node_modules/lucide-react/dist/esm/icons/ellipsis-vertical.js
+  // node_modules/lucide-react/dist/esm/icons/database.js
   var __iconNode7 = [
+    ["ellipse", { cx: "12", cy: "5", rx: "9", ry: "3", key: "msslwz" }],
+    ["path", { d: "M3 5V19A9 3 0 0 0 21 19V5", key: "1wlel7" }],
+    ["path", { d: "M3 12A9 3 0 0 0 21 12", key: "mv7ke4" }]
+  ];
+  var Database = createLucideIcon("database", __iconNode7);
+
+  // node_modules/lucide-react/dist/esm/icons/ellipsis-vertical.js
+  var __iconNode8 = [
     ["circle", { cx: "12", cy: "12", r: "1", key: "41hilf" }],
     ["circle", { cx: "12", cy: "5", r: "1", key: "gxeob9" }],
     ["circle", { cx: "12", cy: "19", r: "1", key: "lyex9k" }]
   ];
-  var EllipsisVertical = createLucideIcon("ellipsis-vertical", __iconNode7);
+  var EllipsisVertical = createLucideIcon("ellipsis-vertical", __iconNode8);
 
   // node_modules/lucide-react/dist/esm/icons/eye-off.js
-  var __iconNode8 = [
+  var __iconNode9 = [
     [
       "path",
       {
@@ -36271,10 +36323,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["path", { d: "m2 2 20 20", key: "1ooewy" }]
   ];
-  var EyeOff = createLucideIcon("eye-off", __iconNode8);
+  var EyeOff = createLucideIcon("eye-off", __iconNode9);
 
   // node_modules/lucide-react/dist/esm/icons/eye.js
-  var __iconNode9 = [
+  var __iconNode10 = [
     [
       "path",
       {
@@ -36284,10 +36336,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
   ];
-  var Eye = createLucideIcon("eye", __iconNode9);
+  var Eye = createLucideIcon("eye", __iconNode10);
 
   // node_modules/lucide-react/dist/esm/icons/file-text.js
-  var __iconNode10 = [
+  var __iconNode11 = [
     [
       "path",
       {
@@ -36300,10 +36352,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ["path", { d: "M16 13H8", key: "t4e002" }],
     ["path", { d: "M16 17H8", key: "z1uh3a" }]
   ];
-  var FileText = createLucideIcon("file-text", __iconNode10);
+  var FileText = createLucideIcon("file-text", __iconNode11);
 
   // node_modules/lucide-react/dist/esm/icons/hard-drive.js
-  var __iconNode11 = [
+  var __iconNode12 = [
     ["line", { x1: "22", x2: "2", y1: "12", y2: "12", key: "1y58io" }],
     [
       "path",
@@ -36315,18 +36367,18 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ["line", { x1: "6", x2: "6.01", y1: "16", y2: "16", key: "sgf278" }],
     ["line", { x1: "10", x2: "10.01", y1: "16", y2: "16", key: "1l4acy" }]
   ];
-  var HardDrive = createLucideIcon("hard-drive", __iconNode11);
+  var HardDrive = createLucideIcon("hard-drive", __iconNode12);
 
   // node_modules/lucide-react/dist/esm/icons/image.js
-  var __iconNode12 = [
+  var __iconNode13 = [
     ["rect", { width: "18", height: "18", x: "3", y: "3", rx: "2", ry: "2", key: "1m3agn" }],
     ["circle", { cx: "9", cy: "9", r: "2", key: "af1f0g" }],
     ["path", { d: "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21", key: "1xmnt7" }]
   ];
-  var Image = createLucideIcon("image", __iconNode12);
+  var Image = createLucideIcon("image", __iconNode13);
 
   // node_modules/lucide-react/dist/esm/icons/keyboard.js
-  var __iconNode13 = [
+  var __iconNode14 = [
     ["path", { d: "M10 8h.01", key: "1r9ogq" }],
     ["path", { d: "M12 12h.01", key: "1mp3jc" }],
     ["path", { d: "M14 8h.01", key: "1primd" }],
@@ -36337,36 +36389,36 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ["path", { d: "M8 12h.01", key: "czm47f" }],
     ["rect", { width: "20", height: "16", x: "2", y: "4", rx: "2", key: "18n3k1" }]
   ];
-  var Keyboard = createLucideIcon("keyboard", __iconNode13);
+  var Keyboard = createLucideIcon("keyboard", __iconNode14);
 
   // node_modules/lucide-react/dist/esm/icons/loader-circle.js
-  var __iconNode14 = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
-  var LoaderCircle = createLucideIcon("loader-circle", __iconNode14);
+  var __iconNode15 = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
+  var LoaderCircle = createLucideIcon("loader-circle", __iconNode15);
 
   // node_modules/lucide-react/dist/esm/icons/lock.js
-  var __iconNode15 = [
+  var __iconNode16 = [
     ["rect", { width: "18", height: "11", x: "3", y: "11", rx: "2", ry: "2", key: "1w4ew1" }],
     ["path", { d: "M7 11V7a5 5 0 0 1 10 0v4", key: "fwvmzm" }]
   ];
-  var Lock = createLucideIcon("lock", __iconNode15);
+  var Lock = createLucideIcon("lock", __iconNode16);
 
   // node_modules/lucide-react/dist/esm/icons/log-out.js
-  var __iconNode16 = [
+  var __iconNode17 = [
     ["path", { d: "m16 17 5-5-5-5", key: "1bji2h" }],
     ["path", { d: "M21 12H9", key: "dn1m92" }],
     ["path", { d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4", key: "1uf3rs" }]
   ];
-  var LogOut = createLucideIcon("log-out", __iconNode16);
+  var LogOut = createLucideIcon("log-out", __iconNode17);
 
   // node_modules/lucide-react/dist/esm/icons/mail.js
-  var __iconNode17 = [
+  var __iconNode18 = [
     ["path", { d: "m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7", key: "132q7q" }],
     ["rect", { x: "2", y: "4", width: "20", height: "16", rx: "2", key: "izxlao" }]
   ];
-  var Mail = createLucideIcon("mail", __iconNode17);
+  var Mail = createLucideIcon("mail", __iconNode18);
 
   // node_modules/lucide-react/dist/esm/icons/message-circle.js
-  var __iconNode18 = [
+  var __iconNode19 = [
     [
       "path",
       {
@@ -36375,10 +36427,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var MessageCircle = createLucideIcon("message-circle", __iconNode18);
+  var MessageCircle = createLucideIcon("message-circle", __iconNode19);
 
   // node_modules/lucide-react/dist/esm/icons/message-square.js
-  var __iconNode19 = [
+  var __iconNode20 = [
     [
       "path",
       {
@@ -36387,10 +36439,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var MessageSquare = createLucideIcon("message-square", __iconNode19);
+  var MessageSquare = createLucideIcon("message-square", __iconNode20);
 
   // node_modules/lucide-react/dist/esm/icons/paperclip.js
-  var __iconNode20 = [
+  var __iconNode21 = [
     [
       "path",
       {
@@ -36399,10 +36451,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var Paperclip = createLucideIcon("paperclip", __iconNode20);
+  var Paperclip = createLucideIcon("paperclip", __iconNode21);
 
   // node_modules/lucide-react/dist/esm/icons/pen.js
-  var __iconNode21 = [
+  var __iconNode22 = [
     [
       "path",
       {
@@ -36411,10 +36463,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var Pen = createLucideIcon("pen", __iconNode21);
+  var Pen = createLucideIcon("pen", __iconNode22);
 
   // node_modules/lucide-react/dist/esm/icons/phone.js
-  var __iconNode22 = [
+  var __iconNode23 = [
     [
       "path",
       {
@@ -36423,26 +36475,26 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var Phone = createLucideIcon("phone", __iconNode22);
+  var Phone = createLucideIcon("phone", __iconNode23);
 
   // node_modules/lucide-react/dist/esm/icons/refresh-cw.js
-  var __iconNode23 = [
+  var __iconNode24 = [
     ["path", { d: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8", key: "v9h5vc" }],
     ["path", { d: "M21 3v5h-5", key: "1q7to0" }],
     ["path", { d: "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16", key: "3uifl3" }],
     ["path", { d: "M8 16H3v5", key: "1cv678" }]
   ];
-  var RefreshCw = createLucideIcon("refresh-cw", __iconNode23);
+  var RefreshCw = createLucideIcon("refresh-cw", __iconNode24);
 
   // node_modules/lucide-react/dist/esm/icons/search.js
-  var __iconNode24 = [
+  var __iconNode25 = [
     ["path", { d: "m21 21-4.34-4.34", key: "14j7rj" }],
     ["circle", { cx: "11", cy: "11", r: "8", key: "4ej97u" }]
   ];
-  var Search = createLucideIcon("search", __iconNode24);
+  var Search = createLucideIcon("search", __iconNode25);
 
   // node_modules/lucide-react/dist/esm/icons/send.js
-  var __iconNode25 = [
+  var __iconNode26 = [
     [
       "path",
       {
@@ -36452,10 +36504,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["path", { d: "m21.854 2.147-10.94 10.939", key: "12cjpa" }]
   ];
-  var Send = createLucideIcon("send", __iconNode25);
+  var Send = createLucideIcon("send", __iconNode26);
 
   // node_modules/lucide-react/dist/esm/icons/settings.js
-  var __iconNode26 = [
+  var __iconNode27 = [
     [
       "path",
       {
@@ -36465,10 +36517,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
   ];
-  var Settings = createLucideIcon("settings", __iconNode26);
+  var Settings = createLucideIcon("settings", __iconNode27);
 
   // node_modules/lucide-react/dist/esm/icons/shield-check.js
-  var __iconNode27 = [
+  var __iconNode28 = [
     [
       "path",
       {
@@ -36478,44 +36530,44 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["path", { d: "m9 12 2 2 4-4", key: "dzmm74" }]
   ];
-  var ShieldCheck = createLucideIcon("shield-check", __iconNode27);
+  var ShieldCheck = createLucideIcon("shield-check", __iconNode28);
 
   // node_modules/lucide-react/dist/esm/icons/smile.js
-  var __iconNode28 = [
+  var __iconNode29 = [
     ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
     ["path", { d: "M8 14s1.5 2 4 2 4-2 4-2", key: "1y1vjs" }],
     ["line", { x1: "9", x2: "9.01", y1: "9", y2: "9", key: "yxxnd0" }],
     ["line", { x1: "15", x2: "15.01", y1: "9", y2: "9", key: "1p4y9e" }]
   ];
-  var Smile = createLucideIcon("smile", __iconNode28);
+  var Smile = createLucideIcon("smile", __iconNode29);
 
   // node_modules/lucide-react/dist/esm/icons/trash-2.js
-  var __iconNode29 = [
+  var __iconNode30 = [
     ["path", { d: "M10 11v6", key: "nco0om" }],
     ["path", { d: "M14 11v6", key: "outv1u" }],
     ["path", { d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", key: "miytrc" }],
     ["path", { d: "M3 6h18", key: "d0wm0j" }],
     ["path", { d: "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", key: "e791ji" }]
   ];
-  var Trash2 = createLucideIcon("trash-2", __iconNode29);
+  var Trash2 = createLucideIcon("trash-2", __iconNode30);
 
   // node_modules/lucide-react/dist/esm/icons/trash.js
-  var __iconNode30 = [
+  var __iconNode31 = [
     ["path", { d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", key: "miytrc" }],
     ["path", { d: "M3 6h18", key: "d0wm0j" }],
     ["path", { d: "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", key: "e791ji" }]
   ];
-  var Trash = createLucideIcon("trash", __iconNode30);
+  var Trash = createLucideIcon("trash", __iconNode31);
 
   // node_modules/lucide-react/dist/esm/icons/user.js
-  var __iconNode31 = [
+  var __iconNode32 = [
     ["path", { d: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2", key: "975kel" }],
     ["circle", { cx: "12", cy: "7", r: "4", key: "17ys0d" }]
   ];
-  var User = createLucideIcon("user", __iconNode31);
+  var User = createLucideIcon("user", __iconNode32);
 
   // node_modules/lucide-react/dist/esm/icons/video.js
-  var __iconNode32 = [
+  var __iconNode33 = [
     [
       "path",
       {
@@ -36525,10 +36577,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["rect", { x: "2", y: "6", width: "14", height: "12", rx: "2", key: "158x01" }]
   ];
-  var Video = createLucideIcon("video", __iconNode32);
+  var Video = createLucideIcon("video", __iconNode33);
 
   // node_modules/lucide-react/dist/esm/icons/volume-2.js
-  var __iconNode33 = [
+  var __iconNode34 = [
     [
       "path",
       {
@@ -36539,10 +36591,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ["path", { d: "M16 9a5 5 0 0 1 0 6", key: "1q6k2b" }],
     ["path", { d: "M19.364 18.364a9 9 0 0 0 0-12.728", key: "ijwkga" }]
   ];
-  var Volume2 = createLucideIcon("volume-2", __iconNode33);
+  var Volume2 = createLucideIcon("volume-2", __iconNode34);
 
   // node_modules/lucide-react/dist/esm/icons/wifi-off.js
-  var __iconNode34 = [
+  var __iconNode35 = [
     ["path", { d: "M12 20h.01", key: "zekei9" }],
     ["path", { d: "M8.5 16.429a5 5 0 0 1 7 0", key: "1bycff" }],
     ["path", { d: "M5 12.859a10 10 0 0 1 5.17-2.69", key: "1dl1wf" }],
@@ -36551,23 +36603,35 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ["path", { d: "M22 8.82a15 15 0 0 0-11.288-3.764", key: "z3jwby" }],
     ["path", { d: "m2 2 20 20", key: "1ooewy" }]
   ];
-  var WifiOff = createLucideIcon("wifi-off", __iconNode34);
+  var WifiOff = createLucideIcon("wifi-off", __iconNode35);
 
   // node_modules/lucide-react/dist/esm/icons/wifi.js
-  var __iconNode35 = [
+  var __iconNode36 = [
     ["path", { d: "M12 20h.01", key: "zekei9" }],
     ["path", { d: "M2 8.82a15 15 0 0 1 20 0", key: "dnpr2z" }],
     ["path", { d: "M5 12.859a10 10 0 0 1 14 0", key: "1x1e6c" }],
     ["path", { d: "M8.5 16.429a5 5 0 0 1 7 0", key: "1bycff" }]
   ];
-  var Wifi = createLucideIcon("wifi", __iconNode35);
+  var Wifi = createLucideIcon("wifi", __iconNode36);
+
+  // node_modules/lucide-react/dist/esm/icons/wrench.js
+  var __iconNode37 = [
+    [
+      "path",
+      {
+        d: "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z",
+        key: "1ngwbx"
+      }
+    ]
+  ];
+  var Wrench = createLucideIcon("wrench", __iconNode37);
 
   // node_modules/lucide-react/dist/esm/icons/x.js
-  var __iconNode36 = [
+  var __iconNode38 = [
     ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
     ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
   ];
-  var X = createLucideIcon("x", __iconNode36);
+  var X = createLucideIcon("x", __iconNode38);
 
   // src/pages/Login.tsx
   var import_jsx_runtime3 = __toESM(require_jsx_runtime());
@@ -37191,7 +37255,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var Welcome_default = Welcome;
 
   // src/layouts/MainLayout.tsx
-  var import_react32 = __toESM(require_react());
+  var import_react33 = __toESM(require_react());
 
   // src/components/Sidebar.tsx
   var import_jsx_runtime7 = __toESM(require_jsx_runtime());
@@ -37252,7 +37316,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var Sidebar_default = Sidebar;
 
   // src/components/ChatList.tsx
-  var import_react26 = __toESM(require_react());
+  var import_react27 = __toESM(require_react());
 
   // node_modules/react-window/dist/react-window.js
   var import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
@@ -37948,8 +38012,9 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   }
 
   // src/components/ChatItem.tsx
+  var import_react26 = __toESM(require_react());
   var import_jsx_runtime9 = __toESM(require_jsx_runtime());
-  var ChatItem = ({ chat, isSelected = false, onClick }) => {
+  var ChatItem = import_react26.default.memo(({ chat, isSelected = false, onClick }) => {
     const formatTime = (timestamp) => {
       const date = new Date(timestamp);
       const now2 = /* @__PURE__ */ new Date();
@@ -37985,7 +38050,8 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         ]
       }
     );
-  };
+  });
+  ChatItem.displayName = "ChatItem";
   var ChatItem_default = ChatItem;
 
   // src/services/chatSearchService.ts
@@ -38001,7 +38067,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   // src/components/ChatList.tsx
   var import_jsx_runtime10 = __toESM(require_jsx_runtime());
   var CHAT_ITEM_HEIGHT = 72;
-  var ChatRow = ({
+  var ChatRowInner = ({
     index,
     style,
     chats,
@@ -38020,6 +38086,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ) });
   };
+  var ChatRow = import_react27.default.memo(ChatRowInner);
   var ChatList = ({
     selectedChatId,
     onSelectChat,
@@ -38033,15 +38100,15 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       error,
       pagination
     } = useSelector((s) => s.chats);
-    const [searchQuery, setSearchQuery] = (0, import_react26.useState)("");
-    const [searchResults, setSearchResults] = (0, import_react26.useState)([]);
-    const [searchTotal, setSearchTotal] = (0, import_react26.useState)(0);
-    const [searchLoading, setSearchLoading] = (0, import_react26.useState)(false);
-    const containerRef = (0, import_react26.useRef)(null);
-    (0, import_react26.useEffect)(() => {
+    const [searchQuery, setSearchQuery] = (0, import_react27.useState)("");
+    const [searchResults, setSearchResults] = (0, import_react27.useState)([]);
+    const [searchTotal, setSearchTotal] = (0, import_react27.useState)(0);
+    const [searchLoading, setSearchLoading] = (0, import_react27.useState)(false);
+    const containerRef = (0, import_react27.useRef)(null);
+    (0, import_react27.useEffect)(() => {
       dispatch(fetchChats({ offset: 0, limit: 50 }));
     }, [dispatch]);
-    (0, import_react26.useEffect)(() => {
+    (0, import_react27.useEffect)(() => {
       const trimmed = searchQuery.trim();
       if (!trimmed) {
         setSearchResults([]);
@@ -38074,13 +38141,13 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         window.clearTimeout(timer);
       };
     }, [searchQuery]);
-    const sortedChats = (0, import_react26.useMemo)(
+    const sortedChats = (0, import_react27.useMemo)(
       () => [...items].sort((a, b) => b.updatedAt - a.updatedAt),
       [items]
     );
     const displayedChats = searchQuery.trim() ? searchResults : sortedChats;
     const displayTotal = searchQuery.trim() ? searchTotal : pagination.total;
-    const handleRowsRendered = (0, import_react26.useCallback)((visibleRows, allRows) => {
+    const handleRowsRendered = (0, import_react27.useCallback)((visibleRows, allRows) => {
       if (searchQuery.trim())
         return;
       if (loading || !pagination.hasMore)
@@ -38142,10 +38209,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var ChatList_default = ChatList;
 
   // src/components/MessageThread.tsx
-  var import_react28 = __toESM(require_react());
+  var import_react29 = __toESM(require_react());
 
   // src/components/MessageComposer.tsx
-  var import_react27 = __toESM(require_react());
+  var import_react28 = __toESM(require_react());
   var import_jsx_runtime11 = __toESM(require_jsx_runtime());
   var toFileUrl = (filePath) => {
     if (!filePath)
@@ -38162,13 +38229,13 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     placeholder = "Type a message...",
     disabled = false
   }) => {
-    const [message, setMessage] = (0, import_react27.useState)("");
-    const [attachment, setAttachment] = (0, import_react27.useState)(null);
-    const [showEmojiPicker, setShowEmojiPicker] = (0, import_react27.useState)(false);
-    const [rows, setRows] = (0, import_react27.useState)(1);
+    const [message, setMessage] = (0, import_react28.useState)("");
+    const [attachment, setAttachment] = (0, import_react28.useState)(null);
+    const [showEmojiPicker, setShowEmojiPicker] = (0, import_react28.useState)(false);
+    const [rows, setRows] = (0, import_react28.useState)(1);
     const emojiOptions = ["\u{1F600}", "\u{1F602}", "\u{1F60D}", "\u{1F44D}", "\u{1F389}", "\u{1F525}", "\u{1F622}", "\u{1F62E}", "\u{1F914}", "\u{1F64F}"];
     const currentUser = useSelector((s) => s.auth.user?.username || "You");
-    (0, import_react27.useEffect)(() => {
+    (0, import_react28.useEffect)(() => {
       const maxRows = 4;
       const lineBreaks = message.split("\n");
       const estimatedRows = lineBreaks.reduce((count, line) => {
@@ -38338,7 +38405,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     return encodeURI(`${prefix}${normalized}`);
   };
   var DEFAULT_ROW_HEIGHT = 80;
-  var MessageRow = ({
+  var MessageRowInner = ({
     index,
     style,
     messages,
@@ -38542,6 +38609,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ) }) });
   };
+  var MessageRow = import_react29.default.memo(MessageRowInner);
   var MessageThread = ({
     chatId,
     chatName,
@@ -38552,63 +38620,73 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     onViewMedia,
     onChatSettings
   }) => {
-    const [localMessages, setLocalMessages] = (0, import_react28.useState)([]);
-    const [editingMessage, setEditingMessage] = (0, import_react28.useState)(null);
-    const [editContent, setEditContent] = (0, import_react28.useState)("");
-    const [activeReactionMessageId, setActiveReactionMessageId] = (0, import_react28.useState)(null);
-    const [uploadProgressById, setUploadProgressById] = (0, import_react28.useState)({});
-    const [showSearch, setShowSearch] = (0, import_react28.useState)(false);
-    const [searchQuery, setSearchQuery] = (0, import_react28.useState)("");
-    const [searchResults, setSearchResults] = (0, import_react28.useState)([]);
-    const [searchLoading, setSearchLoading] = (0, import_react28.useState)(false);
-    const [showChatMenu, setShowChatMenu] = (0, import_react28.useState)(false);
-    const [showDeleteConfirm, setShowDeleteConfirm] = (0, import_react28.useState)(false);
-    const [showMediaModal, setShowMediaModal] = (0, import_react28.useState)(false);
-    const chatMenuRef = (0, import_react28.useRef)(null);
+    const [localMessages, setLocalMessages] = (0, import_react29.useState)([]);
+    const [editingMessage, setEditingMessage] = (0, import_react29.useState)(null);
+    const [editContent, setEditContent] = (0, import_react29.useState)("");
+    const [activeReactionMessageId, setActiveReactionMessageId] = (0, import_react29.useState)(null);
+    const [uploadProgressById, setUploadProgressById] = (0, import_react29.useState)({});
+    const [showSearch, setShowSearch] = (0, import_react29.useState)(false);
+    const [searchQuery, setSearchQuery] = (0, import_react29.useState)("");
+    const [searchResults, setSearchResults] = (0, import_react29.useState)([]);
+    const [searchLoading, setSearchLoading] = (0, import_react29.useState)(false);
+    const [showChatMenu, setShowChatMenu] = (0, import_react29.useState)(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = (0, import_react29.useState)(false);
+    const [showMediaModal, setShowMediaModal] = (0, import_react29.useState)(false);
+    const [messageOffset, setMessageOffset] = (0, import_react29.useState)(0);
+    const [hasOlderMessages, setHasOlderMessages] = (0, import_react29.useState)(true);
+    const [loadingOlder, setLoadingOlder] = (0, import_react29.useState)(false);
+    const chatMenuRef = (0, import_react29.useRef)(null);
     const currentUser = useSelector((s) => s.auth.user?.username || "You");
     const reactionOptions = ["\u{1F44D}", "\u2764\uFE0F", "\u{1F602}", "\u{1F62E}", "\u{1F389}", "\u{1F622}"];
-    const activeChatIdRef = (0, import_react28.useRef)(chatId);
-    const listRef = (0, import_react28.useRef)(null);
-    const lastScrollChatIdRef = (0, import_react28.useRef)(chatId);
-    const lastMessageCountRef = (0, import_react28.useRef)(0);
+    const activeChatIdRef = (0, import_react29.useRef)(chatId);
+    const listRef = (0, import_react29.useRef)(null);
+    const lastScrollChatIdRef = (0, import_react29.useRef)(chatId);
+    const lastMessageCountRef = (0, import_react29.useRef)(0);
     const dynamicRowHeight = ke({
       defaultRowHeight: DEFAULT_ROW_HEIGHT,
       key: chatId || "default"
     });
-    (0, import_react28.useEffect)(() => {
+    (0, import_react29.useEffect)(() => {
       activeChatIdRef.current = chatId;
     }, [chatId]);
-    (0, import_react28.useEffect)(() => {
+    const transformMessage = (msg) => {
+      const readAt = msg.read_at ?? (msg.is_read ? msg.timestamp : null);
+      const isRead = readAt !== null && readAt !== void 0;
+      return {
+        id: msg.id,
+        chatId: msg.chat_id,
+        sender: msg.sender,
+        recipient: msg.recipient,
+        content: msg.content,
+        timestamp: msg.timestamp,
+        read_at: readAt,
+        is_read: isRead,
+        is_edited: Boolean(msg.is_edited),
+        type: msg.type,
+        file_path: msg.file_path ?? null,
+        file_name: msg.file_name ?? null,
+        file_size: msg.file_size ?? null,
+        mime_type: msg.mime_type ?? null,
+        reactions: msg.reactions ?? []
+      };
+    };
+    (0, import_react29.useEffect)(() => {
       if (chatId) {
         const loadMessages = async () => {
           try {
+            setMessageOffset(0);
+            setHasOlderMessages(true);
             const response = await syncIpcClient.getMessages(chatId, 50, 0, currentUser);
             if (response.success && response.data) {
-              const transformedMessages = response.data.map((msg) => {
-                const readAt = msg.read_at ?? (msg.is_read ? msg.timestamp : null);
-                const isRead = readAt !== null && readAt !== void 0;
-                return {
-                  id: msg.id,
-                  chatId: msg.chat_id,
-                  sender: msg.sender,
-                  recipient: msg.recipient,
-                  content: msg.content,
-                  timestamp: msg.timestamp,
-                  read_at: readAt,
-                  is_read: isRead,
-                  is_edited: Boolean(msg.is_edited),
-                  type: msg.type,
-                  file_path: msg.file_path ?? null,
-                  file_name: msg.file_name ?? null,
-                  file_size: msg.file_size ?? null,
-                  mime_type: msg.mime_type ?? null,
-                  reactions: msg.reactions ?? []
-                };
-              });
+              const transformedMessages = response.data.map(transformMessage);
               const sortedMessages = [...transformedMessages].sort(
                 (a, b) => a.timestamp - b.timestamp
               );
               setLocalMessages(sortedMessages);
+              setMessageOffset(sortedMessages.length);
+              if (sortedMessages.length < 50) {
+                setHasOlderMessages(false);
+              }
               const unreadMessages = transformedMessages.filter(
                 (msg) => msg.recipient === currentUser && !msg.is_read
               );
@@ -38624,9 +38702,37 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         loadMessages();
       } else {
         setLocalMessages([]);
+        setMessageOffset(0);
+        setHasOlderMessages(true);
       }
     }, [chatId, messages, currentUser]);
-    (0, import_react28.useEffect)(() => {
+    const handleLoadOlderMessages = (0, import_react29.useCallback)(async () => {
+      if (!chatId || loadingOlder || !hasOlderMessages)
+        return;
+      setLoadingOlder(true);
+      try {
+        const response = await syncIpcClient.getMessages(chatId, 50, messageOffset, currentUser);
+        if (response.success && response.data && response.data.length > 0) {
+          const olderMessages = response.data.map(transformMessage);
+          setLocalMessages((prev) => {
+            const existingIds = new Set(prev.map((m) => m.id));
+            const newMessages = olderMessages.filter((m) => !existingIds.has(m.id));
+            return [...newMessages, ...prev].sort((a, b) => a.timestamp - b.timestamp);
+          });
+          setMessageOffset((prev) => prev + response.data.length);
+          if (response.data.length < 50) {
+            setHasOlderMessages(false);
+          }
+        } else {
+          setHasOlderMessages(false);
+        }
+      } catch (error) {
+        console.error("Failed to load older messages:", error);
+      } finally {
+        setLoadingOlder(false);
+      }
+    }, [chatId, loadingOlder, hasOlderMessages, messageOffset, currentUser]);
+    (0, import_react29.useEffect)(() => {
       const handleMessageInserted = (message) => {
         if (message.chat_id === activeChatIdRef.current) {
           const readAt = message.read_at ?? (message.is_read ? message.timestamp : null);
@@ -38658,7 +38764,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       };
       syncIpcClient.onMessageInserted(handleMessageInserted);
     }, []);
-    (0, import_react28.useEffect)(() => {
+    (0, import_react29.useEffect)(() => {
       const handleReactionsUpdated = (payload) => {
         setLocalMessages(
           (prev) => prev.map(
@@ -38668,13 +38774,13 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       };
       syncIpcClient.onMessageReactionsUpdated(handleReactionsUpdated);
     }, []);
-    (0, import_react28.useEffect)(() => {
+    (0, import_react29.useEffect)(() => {
       const handleProgress = (payload) => {
         setUploadProgressById((prev) => ({ ...prev, [payload.messageId]: payload.progress }));
       };
       syncIpcClient.onAttachmentUploadProgress(handleProgress);
     }, []);
-    (0, import_react28.useEffect)(() => {
+    (0, import_react29.useEffect)(() => {
       if (!chatId)
         return;
       const trimmed = searchQuery.trim();
@@ -38738,14 +38844,14 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         console.error("Failed to send message:", error);
       }
     };
-    const handleEditMessage = (0, import_react28.useCallback)((messageId) => {
+    const handleEditMessage = (0, import_react29.useCallback)((messageId) => {
       const message = localMessages.find((m) => m.id === messageId);
       if (message) {
         setEditingMessage(messageId);
         setEditContent(message.content);
       }
     }, [localMessages]);
-    const handleSaveEdit = (0, import_react28.useCallback)(async () => {
+    const handleSaveEdit = (0, import_react29.useCallback)(async () => {
       if (!editingMessage)
         return;
       const trimmed = editContent.trim();
@@ -38762,7 +38868,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         console.error("Failed to update message:", error);
       }
     }, [editingMessage, editContent]);
-    const handleDeleteMessage = (0, import_react28.useCallback)(async (messageId) => {
+    const handleDeleteMessage = (0, import_react29.useCallback)(async (messageId) => {
       try {
         const response = await syncIpcClient.deleteMessage(messageId);
         if (!response.success) {
@@ -38772,7 +38878,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         console.error("Failed to delete message:", error);
       }
     }, []);
-    const handleToggleReaction = (0, import_react28.useCallback)(async (messageId, emoji) => {
+    const handleToggleReaction = (0, import_react29.useCallback)(async (messageId, emoji) => {
       try {
         const reactions = await syncIpcClient.toggleReaction(messageId, currentUser, emoji);
         setLocalMessages(
@@ -38788,7 +38894,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const mediaMessages = localMessages.filter(
       (msg) => msg.type === "image" || msg.type === "file"
     );
-    (0, import_react28.useEffect)(() => {
+    (0, import_react29.useEffect)(() => {
       const handleClickOutside = (event) => {
         if (chatMenuRef.current && !chatMenuRef.current.contains(event.target)) {
           setShowChatMenu(false);
@@ -38801,7 +38907,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         document.removeEventListener("mousedown", handleClickOutside);
       };
     }, [showChatMenu]);
-    const handleDeleteChat = (0, import_react28.useCallback)(() => {
+    const handleDeleteChat = (0, import_react29.useCallback)(() => {
       if (!chatId)
         return;
       if (onDeleteChat) {
@@ -38810,7 +38916,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       setShowDeleteConfirm(false);
       setShowChatMenu(false);
     }, [chatId, onDeleteChat]);
-    const handleViewMedia = (0, import_react28.useCallback)(() => {
+    const handleViewMedia = (0, import_react29.useCallback)(() => {
       if (!chatId)
         return;
       if (onViewMedia) {
@@ -38820,7 +38926,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
       setShowChatMenu(false);
     }, [chatId, onViewMedia]);
-    const handleChatSettings = (0, import_react28.useCallback)(() => {
+    const handleChatSettings = (0, import_react29.useCallback)(() => {
       if (!chatId)
         return;
       if (onChatSettings) {
@@ -38828,7 +38934,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
       setShowChatMenu(false);
     }, [chatId, onChatSettings]);
-    const scrollToBottom = (0, import_react28.useCallback)(
+    const scrollToBottom = (0, import_react29.useCallback)(
       (behavior = "auto") => {
         if (!listRef.current)
           return;
@@ -38861,7 +38967,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       },
       [displayedMessages.length]
     );
-    (0, import_react28.useEffect)(() => {
+    (0, import_react29.useEffect)(() => {
       const handleMessageUpdated = (payload) => {
         setLocalMessages(
           (prev) => prev.map(
@@ -38881,7 +38987,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       syncIpcClient.onMessageUpdated(handleMessageUpdated);
       syncIpcClient.onMessageDeleted(handleMessageDeleted);
     }, []);
-    (0, import_react28.useEffect)(() => {
+    (0, import_react29.useEffect)(() => {
       if (!chatId || searchQuery.trim()) {
         lastScrollChatIdRef.current = chatId;
         lastMessageCountRef.current = displayedMessages.length;
@@ -39032,36 +39138,50 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("span", { className: "text-xs text-gray-500", children: searchLoading ? "Searching\u2026" : `${displayedMessages.length} results` })
         ] })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "flex-1 min-h-0", children: displayedMessages.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "flex items-center justify-center h-full text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "text-center", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { className: "text-sm", children: searchQuery.trim() ? "No messages match your search" : "No messages yet" }),
-        /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { className: "text-xs mt-1", children: searchQuery.trim() ? "Try another keyword" : "Start the conversation" })
-      ] }) }) : /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
-        Ae,
-        {
-          rowComponent: MessageRow,
-          listRef,
-          rowProps: {
-            messages: displayedMessages,
-            currentUser,
-            editingMessage,
-            editContent,
-            setEditContent,
-            handleSaveEdit,
-            setEditingMessage,
-            handleEditMessage,
-            handleDeleteMessage,
-            handleToggleReaction,
-            activeReactionMessageId,
-            setActiveReactionMessageId,
-            uploadProgressById,
-            reactionOptions
-          },
-          rowCount: displayedMessages.length,
-          rowHeight: dynamicRowHeight,
-          overscanCount: 5,
-          style: { height: "100%", width: "100%" }
-        }
-      ) }),
+      /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex-1 min-h-0 flex flex-col", children: [
+        displayedMessages.length > 0 && hasOlderMessages && !searchQuery.trim() && /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "flex-shrink-0 flex justify-center py-2 border-b border-gray-100", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+          "button",
+          {
+            onClick: handleLoadOlderMessages,
+            disabled: loadingOlder,
+            className: "px-4 py-2 text-sm text-primary hover:text-primary/80 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2",
+            children: loadingOlder ? /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)(import_jsx_runtime13.Fragment, { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(RefreshCw, { size: 14, className: "animate-spin" }),
+              "Loading..."
+            ] }) : "Load older messages"
+          }
+        ) }),
+        displayedMessages.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "flex items-center justify-center flex-1 text-gray-500", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "text-center", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { className: "text-sm", children: searchQuery.trim() ? "No messages match your search" : "No messages yet" }),
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { className: "text-xs mt-1", children: searchQuery.trim() ? "Try another keyword" : "Start the conversation" })
+        ] }) }) : /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "flex-1 min-h-0", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+          Ae,
+          {
+            rowComponent: MessageRow,
+            listRef,
+            rowProps: {
+              messages: displayedMessages,
+              currentUser,
+              editingMessage,
+              editContent,
+              setEditContent,
+              handleSaveEdit,
+              setEditingMessage,
+              handleEditMessage,
+              handleDeleteMessage,
+              handleToggleReaction,
+              activeReactionMessageId,
+              setActiveReactionMessageId,
+              uploadProgressById,
+              reactionOptions
+            },
+            rowCount: displayedMessages.length,
+            rowHeight: dynamicRowHeight,
+            overscanCount: 5,
+            style: { height: "100%", width: "100%" }
+          }
+        ) })
+      ] }),
       /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
         MessageComposer_default,
         {
@@ -39147,14 +39267,14 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var MessageThread_default = MessageThread;
 
   // src/components/ConnectionStatusBar.tsx
-  var import_react29 = __toESM(require_react());
+  var import_react30 = __toESM(require_react());
   var import_jsx_runtime14 = __toESM(require_jsx_runtime());
   var ConnectionStatusBar = () => {
     const dispatch = useDispatch();
     const { status, showNotification, notificationMessage } = useSelector(
       (state) => state.connection
     );
-    (0, import_react29.useEffect)(() => {
+    (0, import_react30.useEffect)(() => {
       if (status === "reconnecting" && showNotification) {
         const timeout = setTimeout(() => {
           dispatch(hideNotification());
@@ -39208,7 +39328,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var ConnectionStatusBar_default = ConnectionStatusBar;
 
   // src/pages/Profile.tsx
-  var import_react30 = __toESM(require_react());
+  var import_react31 = __toESM(require_react());
   var import_jsx_runtime15 = __toESM(require_jsx_runtime());
   var formatDateTime = (value) => {
     if (!value)
@@ -39220,19 +39340,19 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const user = useSelector((s) => s.auth.user);
     const authStatus = useSelector((s) => s.auth.status);
     const authError = useSelector((s) => s.auth.error);
-    const [displayName, setDisplayName] = (0, import_react30.useState)(user?.displayName ?? user?.username ?? "");
-    const [email, setEmail] = (0, import_react30.useState)(user?.email ?? "");
-    const [successMessage, setSuccessMessage] = (0, import_react30.useState)(null);
-    const [formError, setFormError] = (0, import_react30.useState)(null);
-    const initials = (0, import_react30.useMemo)(() => {
+    const [displayName, setDisplayName] = (0, import_react31.useState)(user?.displayName ?? user?.username ?? "");
+    const [email, setEmail] = (0, import_react31.useState)(user?.email ?? "");
+    const [successMessage, setSuccessMessage] = (0, import_react31.useState)(null);
+    const [formError, setFormError] = (0, import_react31.useState)(null);
+    const initials = (0, import_react31.useMemo)(() => {
       const source = user?.displayName || user?.username || "User";
       return source.charAt(0).toUpperCase();
     }, [user?.displayName, user?.username]);
-    (0, import_react30.useEffect)(() => {
+    (0, import_react31.useEffect)(() => {
       setDisplayName(user?.displayName ?? user?.username ?? "");
       setEmail(user?.email ?? "");
     }, [user?.displayName, user?.email, user?.username]);
-    (0, import_react30.useEffect)(() => {
+    (0, import_react31.useEffect)(() => {
       if (!successMessage)
         return;
       const timer = window.setTimeout(() => setSuccessMessage(null), 2500);
@@ -39371,7 +39491,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var Profile_default = Profile;
 
   // src/pages/Settings.tsx
-  var import_react31 = __toESM(require_react());
+  var import_react32 = __toESM(require_react());
   var import_jsx_runtime16 = __toESM(require_jsx_runtime());
   var SETTINGS_KEY = "smd.userSettings";
   var defaultSettings = {
@@ -39394,10 +39514,63 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ].every(Boolean);
   };
   var Settings2 = () => {
-    const [settings, setSettings] = (0, import_react31.useState)(defaultSettings);
-    const [isLoaded, setIsLoaded] = (0, import_react31.useState)(false);
-    const [savedAt, setSavedAt] = (0, import_react31.useState)(null);
-    (0, import_react31.useEffect)(() => {
+    const dispatch = useDispatch();
+    const [settings, setSettings] = (0, import_react32.useState)(defaultSettings);
+    const [isLoaded, setIsLoaded] = (0, import_react32.useState)(false);
+    const [savedAt, setSavedAt] = (0, import_react32.useState)(null);
+    const [isDisconnecting, setIsDisconnecting] = (0, import_react32.useState)(false);
+    const [isReconnecting, setIsReconnecting] = (0, import_react32.useState)(false);
+    const [isSeeding, setIsSeeding] = (0, import_react32.useState)(false);
+    const [isClearing, setIsClearing] = (0, import_react32.useState)(false);
+    const [seedResult, setSeedResult] = (0, import_react32.useState)(null);
+    const connectionStatus = useSelector((s) => s.connection.status);
+    const reconnectAttempts = useSelector((s) => s.connection.reconnectAttempts);
+    const handleSimulateDisconnect = async () => {
+      setIsDisconnecting(true);
+      try {
+        await syncIpcClient.simulateDisconnect();
+      } finally {
+        setTimeout(() => setIsDisconnecting(false), 1e3);
+      }
+    };
+    const handleForceReconnect = async () => {
+      setIsReconnecting(true);
+      try {
+        await syncIpcClient.forceReconnect();
+      } finally {
+        setTimeout(() => setIsReconnecting(false), 1e3);
+      }
+    };
+    const handleSeedDataset = async () => {
+      if (!confirm("This will add 200 chats and 20,000 messages. Continue?"))
+        return;
+      setIsSeeding(true);
+      setSeedResult(null);
+      try {
+        const result = await syncIpcClient.seedLargeDataset();
+        if (result.success && result.data) {
+          setSeedResult(result.data);
+          dispatch(resetPagination());
+          dispatch(fetchChats({ offset: 0, limit: 50 }));
+        }
+      } finally {
+        setIsSeeding(false);
+      }
+    };
+    const handleClearData = async () => {
+      if (!confirm("This will delete ALL chats and messages. This cannot be undone. Continue?"))
+        return;
+      setIsClearing(true);
+      setSeedResult(null);
+      try {
+        await syncIpcClient.clearAllData();
+        dispatch(resetPagination());
+        dispatch(fetchChats({ offset: 0, limit: 50 }));
+      } finally {
+        setIsClearing(false);
+      }
+    };
+    (0, import_react32.useEffect)(() => {
       try {
         const raw = window.localStorage.getItem(SETTINGS_KEY);
         if (!raw)
@@ -39411,7 +39584,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         setIsLoaded(true);
       }
     }, []);
-    (0, import_react31.useEffect)(() => {
+    (0, import_react32.useEffect)(() => {
       if (!isLoaded)
         return;
       try {
@@ -39420,7 +39593,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       } catch {
       }
     }, [isLoaded, settings]);
-    const lastSavedLabel = (0, import_react31.useMemo)(() => {
+    const lastSavedLabel = (0, import_react32.useMemo)(() => {
       if (!savedAt)
         return "Not saved yet";
       return `Saved ${new Date(savedAt).toLocaleTimeString()}`;
@@ -39541,6 +39714,95 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
               /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("li", { children: "- Disable auto-download when on public networks." }),
               /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("li", { children: "- Keep typing indicators on to improve team clarity." })
             ] })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-4", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "flex items-center gap-2 text-secondary", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Wrench, { size: 18 }),
+              /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("p", { className: "text-sm font-semibold", children: "Developer Tools" })
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "flex items-center gap-2 p-3 rounded-lg bg-gray-50", children: [
+              connectionStatus === "connected" && /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Wifi, { size: 16, className: "text-green-500" }),
+              connectionStatus === "reconnecting" && /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(RefreshCw, { size: 16, className: "text-yellow-500 animate-spin" }),
+              connectionStatus === "offline" && /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(WifiOff, { size: 16, className: "text-red-500" }),
+              /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "flex-1", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("p", { className: "text-sm font-medium capitalize", children: connectionStatus }),
+                reconnectAttempts > 0 && /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("p", { className: "text-xs text-gray-500", children: [
+                  "Attempt ",
+                  reconnectAttempts
+                ] })
+              ] })
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)(
+                "button",
+                {
+                  type: "button",
+                  onClick: handleSimulateDisconnect,
+                  disabled: isDisconnecting || connectionStatus === "offline",
+                  className: "w-full flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed",
+                  children: [
+                    /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(WifiOff, { size: 14 }),
+                    isDisconnecting ? "Disconnecting..." : "Simulate Connection Drop"
+                  ]
+                }
+              ),
+              /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)(
+                "button",
+                {
+                  type: "button",
+                  onClick: handleForceReconnect,
+                  disabled: isReconnecting || connectionStatus === "connected",
+                  className: "w-full flex items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed",
+                  children: [
+                    /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(RefreshCw, { size: 14, className: isReconnecting ? "animate-spin" : "" }),
+                    isReconnecting ? "Reconnecting..." : "Force Reconnect"
+                  ]
+                }
+              )
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("p", { className: "text-xs text-gray-500", children: "Use these tools to test connection recovery behavior." })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "rounded-2xl border border-gray-200 bg-white p-5 shadow-sm space-y-4", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "flex items-center gap-2 text-secondary", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Database, { size: 18 }),
+              /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("p", { className: "text-sm font-semibold", children: "Database Tools" })
+            ] }),
+            seedResult && /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "p-3 rounded-lg bg-green-50 text-green-700 text-sm", children: [
+              "Seeded ",
+              seedResult.chats,
+              " chats and ",
+              seedResult.messages,
+              " messages"
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)(
+                "button",
+                {
+                  type: "button",
+                  onClick: handleSeedDataset,
+                  disabled: isSeeding,
+                  className: "w-full flex items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed",
+                  children: [
+                    /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Database, { size: 14 }),
+                    isSeeding ? "Seeding (this may take a moment)..." : "Seed Large Dataset (200 chats, 20K msgs)"
+                  ]
+                }
+              ),
+              /* @__PURE__ */ (0, import_jsx_runtime16.jsxs)(
+                "button",
+                {
+                  type: "button",
+                  onClick: handleClearData,
+                  disabled: isClearing,
+                  className: "w-full flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed",
+                  children: [
+                    /* @__PURE__ */ (0, import_jsx_runtime16.jsx)(Trash2, { size: 14 }),
+                    isClearing ? "Clearing..." : "Clear All Data"
+                  ]
+                }
+              )
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime16.jsx)("p", { className: "text-xs text-gray-500", children: "Seed large dataset to test virtualization performance." })
           ] })
         ] })
       ] })
@@ -39556,8 +39818,8 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const chats = useSelector((s) => s.chats.items);
     const messagesByChat = useSelector((s) => s.messages.byChatId);
     const user = useSelector((s) => s.auth.user);
-    const [activeView, setActiveView] = import_react32.default.useState("chat");
-    const handleSelectChat = import_react32.default.useCallback(
+    const [activeView, setActiveView] = import_react33.default.useState("chat");
+    const handleSelectChat = import_react33.default.useCallback(
       (chatId) => {
         dispatch(selectChat(chatId));
         setActiveView("chat");
@@ -39572,7 +39834,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     );
     const selectedChat = chats.find((c) => c.id === selectedChatId);
     const selectedMessages = selectedChatId ? messagesByChat[selectedChatId] ?? [] : [];
-    const handleSendMessage = import_react32.default.useCallback(
+    const handleSendMessage = import_react33.default.useCallback(
       async (chatId, content, attachment) => {
         if (!user?.username)
           return;
@@ -39582,7 +39844,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       },
       [dispatch, user?.username, selectedChat?.userId, selectedChat?.name]
     );
-    const handleCreateChat = import_react32.default.useCallback(
+    const handleCreateChat = import_react33.default.useCallback(
       async (userId) => {
         try {
           const currentUserId = user?.id || "current_user";
@@ -39596,7 +39858,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       },
       [dispatch, user?.id]
     );
-    const handleDeleteChat = import_react32.default.useCallback(
+    const handleDeleteChat = import_react33.default.useCallback(
       async (chatId) => {
         try {
           const result = await syncIpcClient.deleteChat(chatId);
@@ -39609,10 +39871,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       },
       [dispatch]
     );
-    const handleChatSettings = import_react32.default.useCallback(() => {
+    const handleChatSettings = import_react33.default.useCallback(() => {
       setActiveView("settings");
     }, []);
-    const sidebarItems = import_react32.default.useMemo(
+    const sidebarItems = import_react33.default.useMemo(
       () => [
         {
           id: "chat",
@@ -39677,14 +39939,14 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var MainLayout_default = MainLayout;
 
   // src/components/TopNavbar.tsx
-  var import_react33 = __toESM(require_react());
+  var import_react34 = __toESM(require_react());
   var import_jsx_runtime18 = __toESM(require_jsx_runtime());
   var TopNavbar = ({ onProfileClick, onSettingsClick }) => {
     const dispatch = useDispatch();
     const user = useSelector((s) => s.auth.user);
-    const [dropdownOpen, setDropdownOpen] = (0, import_react33.useState)(false);
-    const dropdownRef = (0, import_react33.useRef)(null);
-    (0, import_react33.useEffect)(() => {
+    const [dropdownOpen, setDropdownOpen] = (0, import_react34.useState)(false);
+    const dropdownRef = (0, import_react34.useRef)(null);
+    (0, import_react34.useEffect)(() => {
       const handleClickOutside = (event) => {
         if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
           setDropdownOpen(false);
@@ -39784,10 +40046,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   var TopNavbar_default = TopNavbar;
 
   // src/hooks/useKeyboardShortcuts.ts
-  var import_react34 = __toESM(require_react());
+  var import_react35 = __toESM(require_react());
   function useKeyboardShortcuts(shortcuts) {
     const dispatch = useDispatch();
-    (0, import_react34.useEffect)(() => {
+    (0, import_react35.useEffect)(() => {
       const handleKeyDown = (event) => {
         for (const shortcut of shortcuts) {
           const {
@@ -39855,34 +40117,34 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const dispatch = useDispatch();
     const authStatus = useSelector((s) => s.auth.status);
     const authError = useSelector((s) => s.auth.error);
-    const initialFlag = (0, import_react35.useMemo)(
+    const initialFlag = (0, import_react36.useMemo)(
       () => typeof window !== "undefined" && window.localStorage.getItem(FIRST_LAUNCH_KEY) === "true",
       []
     );
-    const [hasCompletedWelcome, setHasCompletedWelcome] = (0, import_react35.useState)(initialFlag);
-    const [authView, setAuthView] = (0, import_react35.useState)("login");
-    (0, import_react35.useEffect)(() => {
+    const [hasCompletedWelcome, setHasCompletedWelcome] = (0, import_react36.useState)(initialFlag);
+    const [authView, setAuthView] = (0, import_react36.useState)("login");
+    (0, import_react36.useEffect)(() => {
       void dispatch(checkSession());
     }, [dispatch]);
-    const handleLogin = (0, import_react35.useCallback)(
+    const handleLogin = (0, import_react36.useCallback)(
       async (username, password) => {
         void dispatch(login({ username }));
       },
       [dispatch]
     );
-    const handleRegister = (0, import_react35.useCallback)(
+    const handleRegister = (0, import_react36.useCallback)(
       async (email, displayName, password) => {
         void dispatch(register({ email, displayName, password }));
       },
       [dispatch]
     );
-    const handleForgotPassword = (0, import_react35.useCallback)(
+    const handleForgotPassword = (0, import_react36.useCallback)(
       async (email) => {
         console.log("Password reset requested for:", email);
       },
       []
     );
-    const handleWelcomeContinue = (0, import_react35.useCallback)(() => {
+    const handleWelcomeContinue = (0, import_react36.useCallback)(() => {
       try {
         window.localStorage.setItem(FIRST_LAUNCH_KEY, "true");
         setHasCompletedWelcome(true);
@@ -39943,7 +40205,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   }
   var root = (0, import_client.createRoot)(container);
   root.render(
-    /* @__PURE__ */ (0, import_jsx_runtime21.jsx)(import_react36.default.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_runtime21.jsx)(Provider_default, { store, children: /* @__PURE__ */ (0, import_jsx_runtime21.jsx)(App_default, {}) }) })
+    /* @__PURE__ */ (0, import_jsx_runtime21.jsx)(import_react37.default.StrictMode, { children: /* @__PURE__ */ (0, import_jsx_runtime21.jsx)(Provider_default, { store, children: /* @__PURE__ */ (0, import_jsx_runtime21.jsx)(App_default, {}) }) })
   );
 })();
 /*! Bundled license information:
@@ -40121,6 +40383,14 @@ lucide-react/dist/esm/icons/circle-check-big.js:
    *)
 
 lucide-react/dist/esm/icons/clock.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/database.js:
   (**
    * @license lucide-react v0.563.0 - ISC
    *
@@ -40353,6 +40623,14 @@ lucide-react/dist/esm/icons/wifi-off.js:
    *)
 
 lucide-react/dist/esm/icons/wifi.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/wrench.js:
   (**
    * @license lucide-react v0.563.0 - ISC
    *

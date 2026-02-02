@@ -35,6 +35,10 @@ export const IPC_EVENTS = {
   SEARCH_CHATS: 'sync:search-chats',
   TOGGLE_REACTION: 'sync:toggle-reaction',
   SELECT_ATTACHMENT: 'sync:select-attachment',
+  SIMULATE_DISCONNECT: 'sync:simulate-disconnect',
+  FORCE_RECONNECT: 'sync:force-reconnect',
+  SEED_LARGE_DATASET: 'sync:seed-large-dataset',
+  CLEAR_ALL_DATA: 'sync:clear-all-data',
 } as const;
 
 // Event payload schemas for validation
@@ -480,7 +484,8 @@ export function registerSyncIPCHandlers(syncQueries: any): void {
         mime_type: attachment?.mimeType ?? null,
       };
       
-      console.log('[IPC] Attempting to insert message:', message);
+      // Security: Never log message content - only log metadata
+      console.log('[IPC] Attempting to insert message:', { id: message.id, chat_id: message.chat_id, sender: message.sender, type: message.type });
 
       if (attachment) {
         SyncIPCEmitter.emitAttachmentUploadProgress({ messageId: message.id, progress: 0 });
@@ -489,7 +494,8 @@ export function registerSyncIPCHandlers(syncQueries: any): void {
       // Insert into database
       const inserted = await syncQueries.insertMessage(message, sender);
       
-      console.log('[IPC] Message insert result:', inserted);
+      // Security: Log success/failure without content
+      console.log('[IPC] Message insert result:', inserted ? 'success' : 'failed');
       
       if (inserted) {
         // Emit to renderer
@@ -712,6 +718,30 @@ export function registerSyncIPCHandlers(syncQueries: any): void {
     } catch (error) {
       console.error('[IPC] Select attachment failed:', error);
       return { success: false, error: 'Failed to select attachment' };
+    }
+  });
+
+  // Handler for seeding large dataset (200 chats, 20000 messages)
+  ipcMain.handle(IPC_EVENTS.SEED_LARGE_DATASET, async () => {
+    try {
+      const result = await syncQueries.seedLargeDataset();
+      SyncIPCEmitter.emitChatListUpdated();
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('[IPC] Seed dataset failed:', error);
+      return { success: false, error: 'Failed to seed dataset' };
+    }
+  });
+
+  // Handler for clearing all data
+  ipcMain.handle(IPC_EVENTS.CLEAR_ALL_DATA, async () => {
+    try {
+      await syncQueries.clearAllData();
+      SyncIPCEmitter.emitChatListUpdated();
+      return { success: true };
+    } catch (error) {
+      console.error('[IPC] Clear data failed:', error);
+      return { success: false, error: 'Failed to clear data' };
     }
   });
 

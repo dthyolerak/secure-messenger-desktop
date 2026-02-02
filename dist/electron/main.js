@@ -4599,8 +4599,8 @@ var WebSocketClient = class extends import_events.EventEmitter {
     this.pongTimeout = null;
     this.config = {
       url: process.env.WS_URL || "ws://localhost:8080",
-      heartbeatInterval: 3e4,
-      // 30 seconds
+      heartbeatInterval: 1e4,
+      // 10 seconds (as per requirements)
       pongTimeout: 5e3,
       // 5 seconds
       reconnectBaseDelay: 1e3,
@@ -4783,6 +4783,31 @@ var WebSocketClient = class extends import_events.EventEmitter {
     this.updateStatus({ status: "offline", reconnectAttempts: 0 });
     console.log("[WS] Disconnected gracefully");
   }
+  /**
+   * Simulate connection drop for testing reconnection logic
+   * This will close the connection abruptly to trigger reconnection
+   */
+  async simulateDisconnect() {
+    console.log("[WS] Simulating connection drop...");
+    if (this.ws) {
+      this.ws.close(1006, "Simulated connection drop");
+      this.ws = null;
+    }
+    this.handleConnectionLost();
+  }
+  /**
+   * Force immediate reconnection attempt
+   */
+  async forceReconnect() {
+    console.log("[WS] Forcing reconnection...");
+    this.updateStatus({ reconnectAttempts: 0 });
+    this.cleanup();
+    if (this.ws) {
+      this.ws.close(1e3, "Forcing reconnect");
+      this.ws = null;
+    }
+    await this.connect();
+  }
 };
 
 // electron/db/yqueries.ts
@@ -4848,9 +4873,10 @@ var SyncQueries = class {
    */
   async insertMessage(message, currentUser = "You") {
     try {
-      console.log("[DB] Raw message received:", message);
+      const msgMeta = message;
+      console.log("[DB] Raw message received:", { id: msgMeta.id, chat_id: msgMeta.chat_id, sender: msgMeta.sender });
       const validated = MessageEventSchema.parse(message);
-      console.log("[DB] Message validated successfully:", validated);
+      console.log("[DB] Message validated successfully:", { id: validated.id, chat_id: validated.chat_id });
       const readAt = validated.read_at !== void 0 ? validated.read_at : validated.is_read ? validated.timestamp : validated.sender === currentUser ? validated.timestamp : null;
       const isEdited = validated.is_edited ? 1 : 0;
       const messageType = validated.type ?? "text";
@@ -5278,6 +5304,127 @@ var SyncQueries = class {
       throw error;
     }
   }
+  /**
+   * Seed database with large dataset for testing performance
+   * Creates 200 chats with 20,000+ messages distributed across them
+   */
+  async seedLargeDataset() {
+    console.log("[DB] Starting large dataset seed...");
+    const CHAT_COUNT = 200;
+    const MESSAGE_COUNT = 2e4;
+    const currentUser = "You";
+    const firstNames = ["Alice", "Bob", "Carol", "Dave", "Eve", "Frank", "Grace", "Henry", "Ivy", "Jack"];
+    const lastNames = ["Johnson", "Smith", "Williams", "Brown", "Jones", "Davis", "Miller", "Wilson", "Moore", "Taylor"];
+    const messageTemplates = [
+      "Hey, how are you?",
+      "Did you see the latest update?",
+      "Let me know when you're free",
+      "Great work on the project!",
+      "Can we schedule a meeting?",
+      "Thanks for your help!",
+      "I'll get back to you soon",
+      "That sounds good to me",
+      "Let's discuss this tomorrow",
+      "I have a question about the proposal",
+      "The deadline is approaching",
+      "Please review the document",
+      "I've updated the spreadsheet",
+      "Can you send me the file?",
+      "I'm working on it now",
+      "Let's sync up later today",
+      "Great progress so far!",
+      "I need more information",
+      "When is the next meeting?",
+      "I'll send the report by EOD"
+    ];
+    try {
+      const insertChat = this.db.prepare(`
+        INSERT OR REPLACE INTO chats (id, name, last_message, updated_at, unread_count)
+        VALUES (?, ?, ?, ?, ?)
+      `);
+      const insertMessage2 = this.db.prepare(`
+        INSERT OR REPLACE INTO messages (id, chat_id, sender, recipient, content, timestamp, read_at, is_edited, type)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'text')
+      `);
+      const startTime = Date.now();
+      const oneDay = 24 * 60 * 60 * 1e3;
+      const thirtyDaysAgo = startTime - 30 * oneDay;
+      const chats = [];
+      this.db.exec("BEGIN TRANSACTION");
+      for (let i = 1; i <= CHAT_COUNT; i++) {
+        const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+        const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+        const chatName = i <= 10 ? `${firstName} ${lastName}` : i <= 20 ? `Team ${String.fromCharCode(64 + (i - 10))}` : `Chat ${i}`;
+        const chatId = String(i);
+        const updatedAt = thirtyDaysAgo + Math.floor(Math.random() * (startTime - thirtyDaysAgo));
+        const unreadCount = Math.random() < 0.3 ? Math.floor(Math.random() * 10) : 0;
+        insertChat.run(chatId, chatName, "Loading messages...", updatedAt, unreadCount);
+        chats.push({ id: chatId, name: chatName });
+      }
+      console.log(`[DB] Created ${CHAT_COUNT} chats`);
+      let messagesCreated = 0;
+      for (let i = 0; i < MESSAGE_COUNT; i++) {
+        const chatIndex = Math.floor(Math.pow(Math.random(), 1.5) * CHAT_COUNT);
+        const chat = chats[chatIndex];
+        if (!chat)
+          continue;
+        const isOutgoing = Math.random() < 0.4;
+        const sender = isOutgoing ? currentUser : chat.name;
+        const recipient = isOutgoing ? chat.name : currentUser;
+        const messageId = `seed_msg_${i}_${Date.now()}`;
+        const content = messageTemplates[Math.floor(Math.random() * messageTemplates.length)];
+        const timestamp = thirtyDaysAgo + Math.floor(Math.random() * (startTime - thirtyDaysAgo));
+        const readAt = isOutgoing ? timestamp : Math.random() < 0.8 ? timestamp : null;
+        insertMessage2.run(messageId, chat.id, sender, recipient, content, timestamp, readAt);
+        messagesCreated++;
+        if (messagesCreated % 5e3 === 0) {
+          console.log(`[DB] Created ${messagesCreated} messages...`);
+        }
+      }
+      const updateLastMessage = this.db.prepare(`
+        UPDATE chats SET 
+          last_message = (
+            SELECT content FROM messages 
+            WHERE chat_id = chats.id 
+            ORDER BY timestamp DESC LIMIT 1
+          ),
+          updated_at = (
+            SELECT timestamp FROM messages 
+            WHERE chat_id = chats.id 
+            ORDER BY timestamp DESC LIMIT 1
+          )
+        WHERE id = ?
+      `);
+      for (const chat of chats) {
+        updateLastMessage.run(chat.id);
+      }
+      this.db.exec("COMMIT");
+      const duration = Date.now() - startTime;
+      console.log(`[DB] Seed complete: ${CHAT_COUNT} chats, ${messagesCreated} messages in ${duration}ms`);
+      return { chats: CHAT_COUNT, messages: messagesCreated };
+    } catch (error) {
+      this.db.exec("ROLLBACK");
+      console.error("[DB] Failed to seed dataset:", error);
+      throw error;
+    }
+  }
+  /**
+   * Clear all data (for testing)
+   */
+  async clearAllData() {
+    try {
+      this.db.exec("BEGIN TRANSACTION");
+      this.db.exec("DELETE FROM messages");
+      this.db.exec("DELETE FROM chats");
+      this.db.exec("DELETE FROM message_reactions");
+      this.db.exec("COMMIT");
+      console.log("[DB] All data cleared");
+    } catch (error) {
+      this.db.exec("ROLLBACK");
+      console.error("[DB] Failed to clear data:", error);
+      throw error;
+    }
+  }
 };
 
 // electron/db/migrations.ts
@@ -5448,7 +5595,11 @@ var IPC_EVENTS = {
   SEARCH_MESSAGES: "sync:search-messages",
   SEARCH_CHATS: "sync:search-chats",
   TOGGLE_REACTION: "sync:toggle-reaction",
-  SELECT_ATTACHMENT: "sync:select-attachment"
+  SELECT_ATTACHMENT: "sync:select-attachment",
+  SIMULATE_DISCONNECT: "sync:simulate-disconnect",
+  FORCE_RECONNECT: "sync:force-reconnect",
+  SEED_LARGE_DATASET: "sync:seed-large-dataset",
+  CLEAR_ALL_DATA: "sync:clear-all-data"
 };
 var MessageInsertedPayloadSchema = external_exports.object({
   id: external_exports.string(),
@@ -5796,12 +5947,12 @@ function registerSyncIPCHandlers(syncQueries2) {
         file_size: attachment?.fileSize ?? null,
         mime_type: attachment?.mimeType ?? null
       };
-      console.log("[IPC] Attempting to insert message:", message);
+      console.log("[IPC] Attempting to insert message:", { id: message.id, chat_id: message.chat_id, sender: message.sender, type: message.type });
       if (attachment) {
         SyncIPCEmitter.emitAttachmentUploadProgress({ messageId: message.id, progress: 0 });
       }
       const inserted = await syncQueries2.insertMessage(message, sender);
-      console.log("[IPC] Message insert result:", inserted);
+      console.log("[IPC] Message insert result:", inserted ? "success" : "failed");
       if (inserted) {
         SyncIPCEmitter.emitMessageInserted(message);
         if (attachment) {
@@ -5994,6 +6145,26 @@ function registerSyncIPCHandlers(syncQueries2) {
       return { success: false, error: "Failed to select attachment" };
     }
   });
+  import_electron5.ipcMain.handle(IPC_EVENTS.SEED_LARGE_DATASET, async () => {
+    try {
+      const result = await syncQueries2.seedLargeDataset();
+      SyncIPCEmitter.emitChatListUpdated();
+      return { success: true, data: result };
+    } catch (error) {
+      console.error("[IPC] Seed dataset failed:", error);
+      return { success: false, error: "Failed to seed dataset" };
+    }
+  });
+  import_electron5.ipcMain.handle(IPC_EVENTS.CLEAR_ALL_DATA, async () => {
+    try {
+      await syncQueries2.clearAllData();
+      SyncIPCEmitter.emitChatListUpdated();
+      return { success: true };
+    } catch (error) {
+      console.error("[IPC] Clear data failed:", error);
+      return { success: false, error: "Failed to clear data" };
+    }
+  });
   console.log("[IPC] Sync IPC handlers registered");
 }
 
@@ -6160,6 +6331,22 @@ async function handleSyncEvent(event) {
 function getConnectionStatus() {
   return wsClient?.getStatus() || { status: "offline" };
 }
+async function simulateDisconnect() {
+  if (!wsClient) {
+    return { success: false };
+  }
+  console.log("[SYNC] Simulating connection drop...");
+  await wsClient.simulateDisconnect();
+  return { success: true };
+}
+async function forceReconnect() {
+  if (!wsClient) {
+    return { success: false };
+  }
+  console.log("[SYNC] Forcing reconnect...");
+  await wsClient.forceReconnect();
+  return { success: true };
+}
 function createMainWindow() {
   const mainWindow = new import_electron6.BrowserWindow({
     width: 1200,
@@ -6204,6 +6391,12 @@ import_electron6.app.whenReady().then(async () => {
   }
   import_electron6.ipcMain.handle("sync:get-connection-status", () => {
     return getConnectionStatus();
+  });
+  import_electron6.ipcMain.handle("sync:simulate-disconnect", async () => {
+    return await simulateDisconnect();
+  });
+  import_electron6.ipcMain.handle("sync:force-reconnect", async () => {
+    return await forceReconnect();
   });
   createMainWindow();
   import_electron6.app.on("activate", () => {

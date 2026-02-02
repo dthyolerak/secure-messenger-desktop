@@ -42,7 +42,7 @@ export class WebSocketClient extends EventEmitter {
 
   private readonly config = {
     url: process.env.WS_URL || 'ws://localhost:8080',
-    heartbeatInterval: 30000, // 30 seconds
+    heartbeatInterval: 10000, // 10 seconds (as per requirements)
     pongTimeout: 5000, // 5 seconds
     reconnectBaseDelay: 1000, // 1 second
     reconnectMaxDelay: 30000, // 30 seconds
@@ -260,5 +260,42 @@ export class WebSocketClient extends EventEmitter {
 
     this.updateStatus({ status: 'offline', reconnectAttempts: 0 });
     console.log('[WS] Disconnected gracefully');
+  }
+
+  /**
+   * Simulate connection drop for testing reconnection logic
+   * This will close the connection abruptly to trigger reconnection
+   */
+  async simulateDisconnect(): Promise<void> {
+    console.log('[WS] Simulating connection drop...');
+    
+    if (this.ws) {
+      // Close with abnormal closure code to simulate network failure
+      this.ws.close(1006, 'Simulated connection drop');
+      this.ws = null;
+    }
+    
+    // Trigger reconnection logic
+    this.handleConnectionLost();
+  }
+
+  /**
+   * Force immediate reconnection attempt
+   */
+  async forceReconnect(): Promise<void> {
+    console.log('[WS] Forcing reconnection...');
+    
+    // Reset reconnect attempts
+    this.updateStatus({ reconnectAttempts: 0 });
+    
+    // Clean up existing connection
+    this.cleanup();
+    if (this.ws) {
+      this.ws.close(1000, 'Forcing reconnect');
+      this.ws = null;
+    }
+    
+    // Attempt to connect immediately
+    await this.connect();
   }
 }

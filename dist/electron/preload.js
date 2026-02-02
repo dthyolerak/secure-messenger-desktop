@@ -4138,7 +4138,11 @@ var IPC_EVENTS = {
   SEARCH_MESSAGES: "sync:search-messages",
   SEARCH_CHATS: "sync:search-chats",
   TOGGLE_REACTION: "sync:toggle-reaction",
-  SELECT_ATTACHMENT: "sync:select-attachment"
+  SELECT_ATTACHMENT: "sync:select-attachment",
+  SIMULATE_DISCONNECT: "sync:simulate-disconnect",
+  FORCE_RECONNECT: "sync:force-reconnect",
+  SEED_LARGE_DATASET: "sync:seed-large-dataset",
+  CLEAR_ALL_DATA: "sync:clear-all-data"
 };
 var MessageInsertedPayloadSchema = external_exports.object({
   id: external_exports.string(),
@@ -4294,6 +4298,18 @@ var syncApi = {
   // Connection status
   async getConnectionStatus() {
     return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.GET_CONNECTION_STATUS);
+  },
+  async simulateDisconnect() {
+    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.SIMULATE_DISCONNECT);
+  },
+  async forceReconnect() {
+    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.FORCE_RECONNECT);
+  },
+  async seedLargeDataset() {
+    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.SEED_LARGE_DATASET);
+  },
+  async clearAllData() {
+    return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.CLEAR_ALL_DATA);
   },
   // Messages
   async getMessages(chatId, limit, offset, currentUser) {

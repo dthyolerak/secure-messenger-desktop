@@ -24,17 +24,20 @@ interface ChatRowProps {
   onSelectChat: ((chatId: string) => void) | undefined;
 }
 
-const ChatRow = ({
+type ChatRowComponentProps = {
+  index: number;
+  style: CSSProperties;
+  ariaAttributes: { 'aria-posinset': number; 'aria-setsize': number; role: 'listitem' };
+} & ChatRowProps;
+
+// Memoized row component to prevent unnecessary re-renders
+const ChatRowInner = ({
   index,
   style,
   chats,
   selectedChatId,
   onSelectChat,
-}: {
-  index: number;
-  style: CSSProperties;
-  ariaAttributes: { 'aria-posinset': number; 'aria-setsize': number; role: 'listitem' };
-} & ChatRowProps) => {
+}: ChatRowComponentProps): React.ReactElement | null => {
   const chat = chats[index];
   if (!chat) return null;
 
@@ -48,6 +51,8 @@ const ChatRow = ({
     </div>
   );
 };
+
+const ChatRow = React.memo(ChatRowInner) as (props: ChatRowComponentProps) => React.ReactElement | null;
 
 /**
  * Chat list panel with Teams-style layout.

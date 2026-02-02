@@ -16,8 +16,9 @@ export interface ChatItemProps {
 /**
  * Individual chat item component with Teams-style layout.
  * Shows avatar, name, last message, timestamp, and unread badge.
+ * Memoized to prevent unnecessary re-renders in virtualized list.
  */
-const ChatItem: React.FC<ChatItemProps> = ({ chat, isSelected = false, onClick }) => {
+const ChatItem: React.FC<ChatItemProps> = React.memo(({ chat, isSelected = false, onClick }) => {
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -87,6 +88,8 @@ const ChatItem: React.FC<ChatItemProps> = ({ chat, isSelected = false, onClick }
       )}
     </button>
   );
-};
+});
+
+ChatItem.displayName = 'ChatItem';
 
 export default ChatItem;

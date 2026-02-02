@@ -106,76 +106,91 @@ export class MockSyncServer {
     });
   }
 
+  private messageCounter = 1;
+  private isMockingActive = false;
+
   /**
-   * Start sending mock messages for testing
+   * Get random interval between 1-3 seconds (as per requirements)
+   */
+  private getRandomInterval(): number {
+    return Math.floor(Math.random() * 2000) + 1000; // 1000-3000ms
+  }
+
+  /**
+   * Start sending mock messages for testing (1-3 second intervals)
    */
   startMockMessages(): void {
-    if (this.messageInterval) {
-      clearInterval(this.messageInterval);
-    }
-
-    let messageCounter = 1;
+    if (this.isMockingActive) return;
     
-    this.messageInterval = setInterval(() => {
+    this.isMockingActive = true;
+    this.scheduleNextMockMessage();
+    console.log('[MOCK-SERVER] Started mock messages (1-3s intervals)');
+  }
+
+  /**
+   * Schedule next mock message with random delay
+   */
+  private scheduleNextMockMessage(): void {
+    if (!this.isMockingActive) return;
+    
+    const delay = this.getRandomInterval();
+    
+    this.messageInterval = setTimeout(() => {
+      if (!this.isMockingActive) return;
+      
       const mockEvents = [
         {
           type: 'new_message',
           payload: {
-            id: `mock_msg_${Date.now()}_${messageCounter++}`,
-            chat_id: '1',
-            sender: 'Alice Johnson',
+            id: `mock_msg_${Date.now()}_${this.messageCounter++}`,
+            chat_id: ['1', '2', '3', '4', '5'][Math.floor(Math.random() * 5)],
+            sender: ['Alice Johnson', 'Bob Smith', 'Carol Davis', 'Dave Wilson'][Math.floor(Math.random() * 4)],
             recipient: 'You',
             content: [
               'How are you doing?',
               'Did you see the latest updates?',
               'Let me know when you\'re free',
               'Great to hear from you!',
-              'Looking forward to our chat'
-            ][Math.floor(Math.random() * 5)],
-            timestamp: Date.now(),
-          }
-        },
-        {
-          type: 'new_message',
-          payload: {
-            id: `mock_msg_${Date.now()}_${messageCounter++}`,
-            chat_id: '3',
-            sender: 'Carol',
-            recipient: 'You',
-            content: [
+              'Looking forward to our chat',
               'Team meeting reminder',
               'Don\'t forget the deadline',
               'Great work everyone!',
               'Updated project status',
               'New requirements added'
-            ][Math.floor(Math.random() * 5)],
+            ][Math.floor(Math.random() * 10)],
             timestamp: Date.now(),
           }
         },
         {
           type: 'chat_update',
           payload: {
-            chat_id: '2',
-            name: 'Bob Smith',
+            chat_id: ['1', '2', '3'][Math.floor(Math.random() * 3)],
+            name: ['Alice Johnson', 'Bob Smith', 'Team Chat'][Math.floor(Math.random() * 3)],
             unread_count: Math.floor(Math.random() * 3) + 1,
             updated_at: Date.now(),
           }
         }
       ];
 
-      const randomEvent = mockEvents[Math.floor(Math.random() * mockEvents.length)];
+      // 80% chance of new_message, 20% chance of chat_update
+      const eventIndex = Math.random() < 0.8 ? 0 : 1;
+      const randomEvent = mockEvents[eventIndex];
       this.broadcastEvent(randomEvent);
       
-      console.log(`[MOCK-SERVER] Sent mock event:`, randomEvent.type);
-    }, 15000); // Every 15 seconds
+      console.log(`[MOCK-SERVER] Sent mock event: ${randomEvent.type} (next in ${delay}ms)`);
+      
+      // Schedule next message
+      this.scheduleNextMockMessage();
+    }, delay) as any;
   }
 
   /**
    * Stop mock messages
    */
   stopMockMessages(): void {
+    this.isMockingActive = false;
     if (this.messageInterval) {
-      clearInterval(this.messageInterval);
+      clearTimeout(this.messageInterval as any);
       this.messageInterval = null;
       console.log('[MOCK-SERVER] Stopped mock messages');
     }

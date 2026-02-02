@@ -76,10 +76,12 @@ export class SyncQueries {
    */
   async insertMessage(message: unknown, currentUser: string = 'You'): Promise<boolean> {
     try {
-      console.log('[DB] Raw message received:', message);
+      // Security: Never log message content - only log metadata
+      const msgMeta = message as { id?: string; chat_id?: string; sender?: string };
+      console.log('[DB] Raw message received:', { id: msgMeta.id, chat_id: msgMeta.chat_id, sender: msgMeta.sender });
       
       const validated = MessageEventSchema.parse(message);
-      console.log('[DB] Message validated successfully:', validated);
+      console.log('[DB] Message validated successfully:', { id: validated.id, chat_id: validated.chat_id });
 
       const readAt =
         validated.read_at !== undefined
@@ -621,6 +623,161 @@ export class SyncQueries {
       return { success: result.changes > 0 };
     } catch (error) {
       console.error('[DB] Failed to delete chat:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Seed database with large dataset for testing performance
+   * Creates 200 chats with 20,000+ messages distributed across them
+   */
+  async seedLargeDataset(): Promise<{ chats: number; messages: number }> {
+    console.log('[DB] Starting large dataset seed...');
+    
+    const CHAT_COUNT = 200;
+    const MESSAGE_COUNT = 20000;
+    const currentUser = 'You';
+    
+    // Sample data for realistic content
+    const firstNames = ['Alice', 'Bob', 'Carol', 'Dave', 'Eve', 'Frank', 'Grace', 'Henry', 'Ivy', 'Jack'];
+    const lastNames = ['Johnson', 'Smith', 'Williams', 'Brown', 'Jones', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor'];
+    const messageTemplates = [
+      'Hey, how are you?',
+      'Did you see the latest update?',
+      'Let me know when you\'re free',
+      'Great work on the project!',
+      'Can we schedule a meeting?',
+      'Thanks for your help!',
+      'I\'ll get back to you soon',
+      'That sounds good to me',
+      'Let\'s discuss this tomorrow',
+      'I have a question about the proposal',
+      'The deadline is approaching',
+      'Please review the document',
+      'I\'ve updated the spreadsheet',
+      'Can you send me the file?',
+      'I\'m working on it now',
+      'Let\'s sync up later today',
+      'Great progress so far!',
+      'I need more information',
+      'When is the next meeting?',
+      'I\'ll send the report by EOD',
+    ];
+    
+    try {
+      // Use transaction for better performance
+      const insertChat = this.db.prepare(`
+        INSERT OR REPLACE INTO chats (id, name, last_message, updated_at, unread_count)
+        VALUES (?, ?, ?, ?, ?)
+      `);
+      
+      const insertMessage = this.db.prepare(`
+        INSERT OR REPLACE INTO messages (id, chat_id, sender, recipient, content, timestamp, read_at, is_edited, type)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'text')
+      `);
+      
+      const startTime = Date.now();
+      const oneDay = 24 * 60 * 60 * 1000;
+      const thirtyDaysAgo = startTime - (30 * oneDay);
+      
+      // Create chats
+      const chats: Array<{ id: string; name: string }> = [];
+      
+      this.db.exec('BEGIN TRANSACTION');
+      
+      for (let i = 1; i <= CHAT_COUNT; i++) {
+        const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+        const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+        const chatName = i <= 10 
+          ? `${firstName} ${lastName}` 
+          : i <= 20 
+            ? `Team ${String.fromCharCode(64 + (i - 10))}` // Team A, Team B, etc.
+            : `Chat ${i}`;
+        
+        const chatId = String(i);
+        const updatedAt = thirtyDaysAgo + Math.floor(Math.random() * (startTime - thirtyDaysAgo));
+        const unreadCount = Math.random() < 0.3 ? Math.floor(Math.random() * 10) : 0;
+        
+        insertChat.run(chatId, chatName, 'Loading messages...', updatedAt, unreadCount);
+        chats.push({ id: chatId, name: chatName });
+      }
+      
+      console.log(`[DB] Created ${CHAT_COUNT} chats`);
+      
+      // Distribute messages across chats (weighted towards first 50 chats)
+      let messagesCreated = 0;
+      
+      for (let i = 0; i < MESSAGE_COUNT; i++) {
+        // Weight message distribution - more messages in earlier chats
+        const chatIndex = Math.floor(Math.pow(Math.random(), 1.5) * CHAT_COUNT);
+        const chat = chats[chatIndex];
+        if (!chat) continue;
+        
+        const isOutgoing = Math.random() < 0.4; // 40% outgoing
+        const sender = isOutgoing ? currentUser : chat.name;
+        const recipient = isOutgoing ? chat.name : currentUser;
+        
+        const messageId = `seed_msg_${i}_${Date.now()}`;
+        const content = messageTemplates[Math.floor(Math.random() * messageTemplates.length)];
+        const timestamp = thirtyDaysAgo + Math.floor(Math.random() * (startTime - thirtyDaysAgo));
+        const readAt = isOutgoing ? timestamp : (Math.random() < 0.8 ? timestamp : null);
+        
+        insertMessage.run(messageId, chat.id, sender, recipient, content, timestamp, readAt);
+        messagesCreated++;
+        
+        // Log progress every 5000 messages
+        if (messagesCreated % 5000 === 0) {
+          console.log(`[DB] Created ${messagesCreated} messages...`);
+        }
+      }
+      
+      // Update each chat's last_message with the most recent message
+      const updateLastMessage = this.db.prepare(`
+        UPDATE chats SET 
+          last_message = (
+            SELECT content FROM messages 
+            WHERE chat_id = chats.id 
+            ORDER BY timestamp DESC LIMIT 1
+          ),
+          updated_at = (
+            SELECT timestamp FROM messages 
+            WHERE chat_id = chats.id 
+            ORDER BY timestamp DESC LIMIT 1
+          )
+        WHERE id = ?
+      `);
+      
+      for (const chat of chats) {
+        updateLastMessage.run(chat.id);
+      }
+      
+      this.db.exec('COMMIT');
+      
+      const duration = Date.now() - startTime;
+      console.log(`[DB] Seed complete: ${CHAT_COUNT} chats, ${messagesCreated} messages in ${duration}ms`);
+      
+      return { chats: CHAT_COUNT, messages: messagesCreated };
+    } catch (error) {
+      this.db.exec('ROLLBACK');
+      console.error('[DB] Failed to seed dataset:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Clear all data (for testing)
+   */
+  async clearAllData(): Promise<void> {
+    try {
+      this.db.exec('BEGIN TRANSACTION');
+      this.db.exec('DELETE FROM messages');
+      this.db.exec('DELETE FROM chats');
+      this.db.exec('DELETE FROM message_reactions');
+      this.db.exec('COMMIT');
+      console.log('[DB] All data cleared');
+    } catch (error) {
+      this.db.exec('ROLLBACK');
+      console.error('[DB] Failed to clear data:', error);
       throw error;
     }
   }

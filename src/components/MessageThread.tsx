@@ -1,7 +1,7 @@
 // src/components/MessageThread.tsx
 import React, { useState, useEffect, useRef, useCallback, CSSProperties } from 'react';
 import { List, useDynamicRowHeight } from 'react-window';
-import { Search, MoreVertical, Phone, Video, Edit2, Trash2, Smile, X, Image, Settings, Trash, AlertCircle } from 'lucide-react';
+import { Search, MoreVertical, Phone, Video, Edit2, Trash2, Smile, X, Image, Settings, Trash, AlertCircle, RefreshCw } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../app/store';
 import type { MessageAttachmentPayload, MessageItem, MessageSearchResult } from '../domains/messages/messages.types';
@@ -58,8 +58,14 @@ interface MessageRowProps {
   reactionOptions: string[];
 }
 
-// Message row component
-const MessageRow = ({
+type MessageRowComponentProps = {
+  index: number;
+  style: CSSProperties;
+  ariaAttributes: { 'aria-posinset': number; 'aria-setsize': number; role: 'listitem' };
+} & MessageRowProps;
+
+// Memoized message row component to prevent unnecessary re-renders
+const MessageRowInner = ({
   index,
   style,
   messages,
@@ -76,11 +82,7 @@ const MessageRow = ({
   setActiveReactionMessageId,
   uploadProgressById,
   reactionOptions,
-}: {
-  index: number;
-  style: CSSProperties;
-  ariaAttributes: { 'aria-posinset': number; 'aria-setsize': number; role: 'listitem' };
-} & MessageRowProps) => {
+}: MessageRowComponentProps): React.ReactElement | null => {
   const message = messages[index];
   if (!message) return null;
 
@@ -292,6 +294,8 @@ const MessageRow = ({
   );
 };
 
+const MessageRow = React.memo(MessageRowInner) as (props: MessageRowComponentProps) => React.ReactElement | null;
+
 /**
  * Message thread panel with Teams-style header, virtualized message list, and composer.
  */
@@ -317,6 +321,9 @@ const MessageThread: React.FC<MessageThreadProps> = ({
   const [showChatMenu, setShowChatMenu] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showMediaModal, setShowMediaModal] = useState(false);
+  const [messageOffset, setMessageOffset] = useState(0);
+  const [hasOlderMessages, setHasOlderMessages] = useState(true);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const chatMenuRef = useRef<HTMLDivElement>(null);
   const currentUser = useSelector((s: RootState) => s.auth.user?.username || 'You');
   const reactionOptions = ['👍', '❤️', '😂', '😮', '🎉', '😢'];
@@ -335,41 +342,54 @@ const MessageThread: React.FC<MessageThreadProps> = ({
     activeChatIdRef.current = chatId;
   }, [chatId]);
 
+  // Transform raw message data to MessageItem
+  const transformMessage = (msg: any): MessageItem => {
+    const readAt = msg.read_at ?? (msg.is_read ? msg.timestamp : null);
+    const isRead = readAt !== null && readAt !== undefined;
+
+    return {
+      id: msg.id,
+      chatId: msg.chat_id,
+      sender: msg.sender,
+      recipient: msg.recipient,
+      content: msg.content,
+      timestamp: msg.timestamp,
+      read_at: readAt,
+      is_read: isRead,
+      is_edited: Boolean(msg.is_edited),
+      type: msg.type,
+      file_path: msg.file_path ?? null,
+      file_name: msg.file_name ?? null,
+      file_size: msg.file_size ?? null,
+      mime_type: msg.mime_type ?? null,
+      reactions: msg.reactions ?? [],
+    };
+  };
+
   // Load messages from SQLite when chat changes
   useEffect(() => {
     if (chatId) {
       const loadMessages = async () => {
         try {
+          // Reset pagination state for new chat
+          setMessageOffset(0);
+          setHasOlderMessages(true);
+          
           const response = await syncIpcClient.getMessages(chatId, 50, 0, currentUser);
           if (response.success && response.data) {
-            const transformedMessages: MessageItem[] = response.data.map((msg: any) => {
-              const readAt = msg.read_at ?? (msg.is_read ? msg.timestamp : null);
-              const isRead = readAt !== null && readAt !== undefined;
-
-              return {
-                id: msg.id,
-                chatId: msg.chat_id,
-                sender: msg.sender,
-                recipient: msg.recipient,
-                content: msg.content,
-                timestamp: msg.timestamp,
-                read_at: readAt,
-                is_read: isRead,
-                is_edited: Boolean(msg.is_edited),
-                type: msg.type,
-                file_path: msg.file_path ?? null,
-                file_name: msg.file_name ?? null,
-                file_size: msg.file_size ?? null,
-                mime_type: msg.mime_type ?? null,
-                reactions: msg.reactions ?? [],
-              };
-            });
+            const transformedMessages: MessageItem[] = response.data.map(transformMessage);
 
             const sortedMessages = [...transformedMessages].sort(
               (a, b) => a.timestamp - b.timestamp,
             );
 
             setLocalMessages(sortedMessages);
+            setMessageOffset(sortedMessages.length);
+            
+            // If we got less than 50 messages, there are no older messages
+            if (sortedMessages.length < 50) {
+              setHasOlderMessages(false);
+            }
 
             const unreadMessages = transformedMessages.filter(
               (msg) => msg.recipient === currentUser && !msg.is_read,
@@ -387,8 +407,43 @@ const MessageThread: React.FC<MessageThreadProps> = ({
       loadMessages();
     } else {
       setLocalMessages([]);
+      setMessageOffset(0);
+      setHasOlderMessages(true);
     }
   }, [chatId, messages, currentUser]);
+
+  // Load older messages handler
+  const handleLoadOlderMessages = useCallback(async () => {
+    if (!chatId || loadingOlder || !hasOlderMessages) return;
+    
+    setLoadingOlder(true);
+    try {
+      const response = await syncIpcClient.getMessages(chatId, 50, messageOffset, currentUser);
+      if (response.success && response.data && response.data.length > 0) {
+        const olderMessages: MessageItem[] = response.data.map(transformMessage);
+        
+        // Merge with existing messages, avoiding duplicates
+        setLocalMessages((prev) => {
+          const existingIds = new Set(prev.map((m) => m.id));
+          const newMessages = olderMessages.filter((m) => !existingIds.has(m.id));
+          return [...newMessages, ...prev].sort((a, b) => a.timestamp - b.timestamp);
+        });
+        
+        setMessageOffset((prev) => prev + response.data.length);
+        
+        // If we got less than 50, no more older messages
+        if (response.data.length < 50) {
+          setHasOlderMessages(false);
+        }
+      } else {
+        setHasOlderMessages(false);
+      }
+    } catch (error) {
+      console.error('Failed to load older messages:', error);
+    } finally {
+      setLoadingOlder(false);
+    }
+  }, [chatId, loadingOlder, hasOlderMessages, messageOffset, currentUser]);
 
   // Listen for new messages via IPC events
   useEffect(() => {
@@ -851,9 +906,29 @@ const MessageThread: React.FC<MessageThreadProps> = ({
       </header>
 
       {/* Virtualized Message List */}
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 flex flex-col">
+        {/* Load Older Messages Button */}
+        {displayedMessages.length > 0 && hasOlderMessages && !searchQuery.trim() && (
+          <div className="flex-shrink-0 flex justify-center py-2 border-b border-gray-100">
+            <button
+              onClick={handleLoadOlderMessages}
+              disabled={loadingOlder}
+              className="px-4 py-2 text-sm text-primary hover:text-primary/80 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {loadingOlder ? (
+                <>
+                  <RefreshCw size={14} className="animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                'Load older messages'
+              )}
+            </button>
+          </div>
+        )}
+        
         {displayedMessages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="flex items-center justify-center flex-1 text-gray-500">
             <div className="text-center">
               <p className="text-sm">
                 {searchQuery.trim() ? 'No messages match your search' : 'No messages yet'}
@@ -864,30 +939,32 @@ const MessageThread: React.FC<MessageThreadProps> = ({
             </div>
           </div>
         ) : (
-          <List
-            rowComponent={MessageRow}
-            listRef={listRef}
-            rowProps={{
-              messages: displayedMessages,
-              currentUser,
-              editingMessage,
-              editContent,
-              setEditContent,
-              handleSaveEdit,
-              setEditingMessage,
-              handleEditMessage,
-              handleDeleteMessage,
-              handleToggleReaction,
-              activeReactionMessageId,
-              setActiveReactionMessageId,
-              uploadProgressById,
-              reactionOptions,
-            }}
-            rowCount={displayedMessages.length}
-            rowHeight={dynamicRowHeight}
-            overscanCount={5}
-            style={{ height: '100%', width: '100%' }}
-          />
+          <div className="flex-1 min-h-0">
+            <List
+              rowComponent={MessageRow}
+              listRef={listRef}
+              rowProps={{
+                messages: displayedMessages,
+                currentUser,
+                editingMessage,
+                editContent,
+                setEditContent,
+                handleSaveEdit,
+                setEditingMessage,
+                handleEditMessage,
+                handleDeleteMessage,
+                handleToggleReaction,
+                activeReactionMessageId,
+                setActiveReactionMessageId,
+                uploadProgressById,
+                reactionOptions,
+              }}
+              rowCount={displayedMessages.length}
+              rowHeight={dynamicRowHeight}
+              overscanCount={5}
+              style={{ height: '100%', width: '100%' }}
+            />
+          </div>
         )}
       </div>
 

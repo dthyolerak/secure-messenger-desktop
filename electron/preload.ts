@@ -181,6 +181,38 @@ const syncApi = {
 
 
 
+  async simulateDisconnect() {
+
+    return await ipcRenderer.invoke(IPC_EVENTS.SIMULATE_DISCONNECT);
+
+  },
+
+
+
+  async forceReconnect() {
+
+    return await ipcRenderer.invoke(IPC_EVENTS.FORCE_RECONNECT);
+
+  },
+
+
+
+  async seedLargeDataset() {
+
+    return await ipcRenderer.invoke(IPC_EVENTS.SEED_LARGE_DATASET);
+
+  },
+
+
+
+  async clearAllData() {
+
+    return await ipcRenderer.invoke(IPC_EVENTS.CLEAR_ALL_DATA);
+
+  },
+
+
+
   // Messages
 
   async getMessages(chatId: string, limit?: number, offset?: number, currentUser?: string) {

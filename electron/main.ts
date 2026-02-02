@@ -230,6 +230,32 @@ function getConnectionStatus() {
   return wsClient?.getStatus() || { status: 'offline' as const };
 }
 
+/**
+ * Simulate connection drop for testing reconnection logic
+ */
+async function simulateDisconnect(): Promise<{ success: boolean }> {
+  if (!wsClient) {
+    return { success: false };
+  }
+  
+  console.log('[SYNC] Simulating connection drop...');
+  await wsClient.simulateDisconnect();
+  return { success: true };
+}
+
+/**
+ * Force reconnect to WebSocket server
+ */
+async function forceReconnect(): Promise<{ success: boolean }> {
+  if (!wsClient) {
+    return { success: false };
+  }
+  
+  console.log('[SYNC] Forcing reconnect...');
+  await wsClient.forceReconnect();
+  return { success: true };
+}
+
 function createMainWindow(): void {
   const mainWindow = new BrowserWindow({
     width: 1200,
@@ -288,6 +314,16 @@ app.whenReady().then(async () => {
   // Override connection status handler to provide real-time status
   ipcMain.handle('sync:get-connection-status', () => {
     return getConnectionStatus();
+  });
+
+  // Handler for simulating connection drop (for testing)
+  ipcMain.handle('sync:simulate-disconnect', async () => {
+    return await simulateDisconnect();
+  });
+
+  // Handler for forcing reconnect
+  ipcMain.handle('sync:force-reconnect', async () => {
+    return await forceReconnect();
   });
 
   createMainWindow();

@@ -61,7 +61,8 @@ class SyncIpcClient {
 
     // Listen for message insertions
     this.api.onMessageInserted((message: any) => {
-      console.log('[Sync] New message received:', message);
+      // Security: Never log message content - only log metadata
+      console.log('[Sync] New message received:', { id: message.id, chat_id: message.chat_id, sender: message.sender });
       // Message thread component will handle this
     });
 
@@ -165,6 +166,54 @@ class SyncIpcClient {
     } catch (error) {
       console.error('Failed to get connection status:', error);
       return { status: 'offline' };
+    }
+  }
+
+  /**
+   * Simulate connection drop for testing reconnection logic
+   */
+  async simulateDisconnect() {
+    try {
+      return await this.api.simulateDisconnect();
+    } catch (error) {
+      console.error('Failed to simulate disconnect:', error);
+      return { success: false };
+    }
+  }
+
+  /**
+   * Force immediate reconnection
+   */
+  async forceReconnect() {
+    try {
+      return await this.api.forceReconnect();
+    } catch (error) {
+      console.error('Failed to force reconnect:', error);
+      return { success: false };
+    }
+  }
+
+  /**
+   * Seed database with large dataset (200 chats, 20000 messages)
+   */
+  async seedLargeDataset() {
+    try {
+      return await this.api.seedLargeDataset();
+    } catch (error) {
+      console.error('Failed to seed dataset:', error);
+      return { success: false };
+    }
+  }
+
+  /**
+   * Clear all data from database
+   */
+  async clearAllData() {
+    try {
+      return await this.api.clearAllData();
+    } catch (error) {
+      console.error('Failed to clear data:', error);
+      return { success: false };
     }
   }
 
