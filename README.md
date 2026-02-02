@@ -20,18 +20,6 @@
 
 Secure Messenger Desktop is a production-ready Electron application demonstrating enterprise-grade architecture patterns for secure messaging. Built with React, TypeScript, and SQLite, it showcases efficient data handling, real-time synchronization, and security best practices.
 
-### Project Score: 9.8/10
-
-| Category | Score | Highlights |
-|----------|-------|------------|
-| SQLite Usage | 10/10 | FTS5 search, proper indexing, SQL pagination |
-| Connection Health | 10/10 | State machine, exponential backoff, offline queue |
-| React Performance | 10/10 | Virtualization, memoization, lazy loading |
-| Architecture | 10/10 | Clean boundaries, typed IPC, domain separation |
-| Security | 9/10 | Encryption architecture, input validation, no data leaks |
-| Testing | 10/10 | 142 tests, 91%+ coverage, integration tests |
-
----
 
 ## Features
 
