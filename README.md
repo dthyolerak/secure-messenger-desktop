@@ -54,11 +54,13 @@ Secure Messenger Desktop is a production-ready Electron application demonstratin
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/secure-messenger-desktop.git
+git clone https://github.com/dthyolerak/secure-messenger-desktop.git
 cd secure-messenger-desktop
 
 # Install dependencies
 npm install
+# Build
+npm run build
 
 # Start development
 npm start
