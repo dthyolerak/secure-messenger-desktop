@@ -10,7 +10,7 @@
 
 **A high-performance, secure desktop messaging application**
 
-[Features](#features) • [Quick Start](#quick-start) • [Architecture](#architecture) • [Testing](#testing) • [Security](#security)
+[Screenshots](#screenshots) • [Features](#features) • [Quick Start](#quick-start) • [Architecture](#architecture) • [Testing](#testing) • [Security](#security)
 
 </div>
 
@@ -20,6 +20,48 @@
 
 Secure Messenger Desktop is a production-ready Electron application demonstrating enterprise-grade architecture patterns for secure messaging. Built with React, TypeScript, and SQLite, it showcases efficient data handling, real-time synchronization, and security best practices.
 
+---
+
+## Screenshots
+
+<div align="center">
+
+### Login Screen
+![Login Screen](Screenshots/Screenshot%202026-01-29%20105433.png)
+
+### Main Chat Interface
+![Main Chat Interface](Screenshots/Screenshot%202026-02-02%20192257.png)
+
+### Message Thread
+![Message Thread](Screenshots/Screenshot%202026-02-02%20192308.png)
+
+### Chat List with Unread Count
+![Chat List](Screenshots/Screenshot%202026-02-02%20192326.png)
+
+### Sending Messages
+![Sending Messages](Screenshots/Screenshot%202026-02-02%20192347.png)
+
+### File Attachment
+![File Attachment](Screenshots/Screenshot%202026-02-02%20192359.png)
+
+### Emoji Picker
+![Emoji Picker](Screenshots/Screenshot%202026-02-02%20192411.png)
+
+### Chat Menu Options
+![Chat Menu](Screenshots/Screenshot%202026-02-02%20192419.png)
+
+### Clear Messages Confirmation
+![Clear Messages](Screenshots/Screenshot%202026-02-02%20192429.png)
+
+### Message Search
+![Message Search](Screenshots/Screenshot%202026-02-02%20192445.png)
+
+### Profile Settings
+![Profile Settings](Screenshots/Screenshot%202026-02-02%20192502.png)
+
+</div>
+
+---
 
 ## Features
 
