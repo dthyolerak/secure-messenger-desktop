@@ -1100,11 +1100,11 @@
             var dispatcher = resolveDispatcher();
             return dispatcher.useReducer(reducer, initialArg, init);
           }
-          function useRef7(initialValue) {
+          function useRef8(initialValue) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useRef(initialValue);
           }
-          function useEffect13(create, deps) {
+          function useEffect14(create, deps) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useEffect(create, deps);
           }
@@ -1887,14 +1887,14 @@
           exports.useContext = useContext8;
           exports.useDebugValue = useDebugValue2;
           exports.useDeferredValue = useDeferredValue;
-          exports.useEffect = useEffect13;
+          exports.useEffect = useEffect14;
           exports.useId = useId2;
           exports.useImperativeHandle = useImperativeHandle;
           exports.useInsertionEffect = useInsertionEffect3;
           exports.useLayoutEffect = useLayoutEffect3;
           exports.useMemo = useMemo10;
           exports.useReducer = useReducer;
-          exports.useRef = useRef7;
+          exports.useRef = useRef8;
           exports.useState = useState11;
           exports.useSyncExternalStore = useSyncExternalStore2;
           exports.useTransition = useTransition;
@@ -23569,9 +23569,9 @@
           return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React15 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React15.useSyncExternalStore, useRef7 = React15.useRef, useEffect13 = React15.useEffect, useMemo10 = React15.useMemo, useDebugValue2 = React15.useDebugValue;
+        var React15 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React15.useSyncExternalStore, useRef8 = React15.useRef, useEffect14 = React15.useEffect, useMemo10 = React15.useMemo, useDebugValue2 = React15.useDebugValue;
         exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
-          var instRef = useRef7(null);
+          var instRef = useRef8(null);
           if (null === instRef.current) {
             var inst = { hasValue: false, value: null };
             instRef.current = inst;
@@ -23613,7 +23613,7 @@
             [getSnapshot, getServerSnapshot, selector, isEqual]
           );
           var value = useSyncExternalStore2(subscribe, instRef[0], instRef[1]);
-          useEffect13(
+          useEffect14(
             function() {
               inst.hasValue = true;
               inst.value = value;
@@ -27552,6 +27552,12 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           total: 0,
           hasMore: true
         };
+      },
+      removeChat(state, action) {
+        state.items = state.items.filter((chat) => chat.id !== action.payload);
+        if (state.selectedChatId === action.payload) {
+          state.selectedChatId = null;
+        }
       }
     },
     extraReducers: (builder) => {
@@ -27582,7 +27588,7 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       });
     }
   });
-  var { selectChat, setChats, addOrUpdateChat, resetPagination } = chatsSlice.actions;
+  var { selectChat, setChats, addOrUpdateChat, resetPagination, removeChat } = chatsSlice.actions;
   var chatsSlice_default = chatsSlice.reducer;
 
   // src/app/slices/connectionSlice.ts
@@ -27728,6 +27734,17 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         };
       } catch (error) {
         console.error("Failed to get or create direct chat:", error);
+        throw error;
+      }
+    }
+    /**
+     * Delete a chat and all its messages
+     */
+    async deleteChat(chatId) {
+      try {
+        return await this.api.deleteChat(chatId);
+      } catch (error) {
+        console.error("Failed to delete chat:", error);
         throw error;
       }
     }
@@ -36300,8 +36317,16 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   ];
   var HardDrive = createLucideIcon("hard-drive", __iconNode11);
 
-  // node_modules/lucide-react/dist/esm/icons/keyboard.js
+  // node_modules/lucide-react/dist/esm/icons/image.js
   var __iconNode12 = [
+    ["rect", { width: "18", height: "18", x: "3", y: "3", rx: "2", ry: "2", key: "1m3agn" }],
+    ["circle", { cx: "9", cy: "9", r: "2", key: "af1f0g" }],
+    ["path", { d: "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21", key: "1xmnt7" }]
+  ];
+  var Image = createLucideIcon("image", __iconNode12);
+
+  // node_modules/lucide-react/dist/esm/icons/keyboard.js
+  var __iconNode13 = [
     ["path", { d: "M10 8h.01", key: "1r9ogq" }],
     ["path", { d: "M12 12h.01", key: "1mp3jc" }],
     ["path", { d: "M14 8h.01", key: "1primd" }],
@@ -36312,36 +36337,36 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ["path", { d: "M8 12h.01", key: "czm47f" }],
     ["rect", { width: "20", height: "16", x: "2", y: "4", rx: "2", key: "18n3k1" }]
   ];
-  var Keyboard = createLucideIcon("keyboard", __iconNode12);
+  var Keyboard = createLucideIcon("keyboard", __iconNode13);
 
   // node_modules/lucide-react/dist/esm/icons/loader-circle.js
-  var __iconNode13 = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
-  var LoaderCircle = createLucideIcon("loader-circle", __iconNode13);
+  var __iconNode14 = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
+  var LoaderCircle = createLucideIcon("loader-circle", __iconNode14);
 
   // node_modules/lucide-react/dist/esm/icons/lock.js
-  var __iconNode14 = [
+  var __iconNode15 = [
     ["rect", { width: "18", height: "11", x: "3", y: "11", rx: "2", ry: "2", key: "1w4ew1" }],
     ["path", { d: "M7 11V7a5 5 0 0 1 10 0v4", key: "fwvmzm" }]
   ];
-  var Lock = createLucideIcon("lock", __iconNode14);
+  var Lock = createLucideIcon("lock", __iconNode15);
 
   // node_modules/lucide-react/dist/esm/icons/log-out.js
-  var __iconNode15 = [
+  var __iconNode16 = [
     ["path", { d: "m16 17 5-5-5-5", key: "1bji2h" }],
     ["path", { d: "M21 12H9", key: "dn1m92" }],
     ["path", { d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4", key: "1uf3rs" }]
   ];
-  var LogOut = createLucideIcon("log-out", __iconNode15);
+  var LogOut = createLucideIcon("log-out", __iconNode16);
 
   // node_modules/lucide-react/dist/esm/icons/mail.js
-  var __iconNode16 = [
+  var __iconNode17 = [
     ["path", { d: "m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7", key: "132q7q" }],
     ["rect", { x: "2", y: "4", width: "20", height: "16", rx: "2", key: "izxlao" }]
   ];
-  var Mail = createLucideIcon("mail", __iconNode16);
+  var Mail = createLucideIcon("mail", __iconNode17);
 
   // node_modules/lucide-react/dist/esm/icons/message-circle.js
-  var __iconNode17 = [
+  var __iconNode18 = [
     [
       "path",
       {
@@ -36350,10 +36375,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var MessageCircle = createLucideIcon("message-circle", __iconNode17);
+  var MessageCircle = createLucideIcon("message-circle", __iconNode18);
 
   // node_modules/lucide-react/dist/esm/icons/message-square.js
-  var __iconNode18 = [
+  var __iconNode19 = [
     [
       "path",
       {
@@ -36362,10 +36387,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var MessageSquare = createLucideIcon("message-square", __iconNode18);
+  var MessageSquare = createLucideIcon("message-square", __iconNode19);
 
   // node_modules/lucide-react/dist/esm/icons/paperclip.js
-  var __iconNode19 = [
+  var __iconNode20 = [
     [
       "path",
       {
@@ -36374,10 +36399,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var Paperclip = createLucideIcon("paperclip", __iconNode19);
+  var Paperclip = createLucideIcon("paperclip", __iconNode20);
 
   // node_modules/lucide-react/dist/esm/icons/pen.js
-  var __iconNode20 = [
+  var __iconNode21 = [
     [
       "path",
       {
@@ -36386,10 +36411,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var Pen = createLucideIcon("pen", __iconNode20);
+  var Pen = createLucideIcon("pen", __iconNode21);
 
   // node_modules/lucide-react/dist/esm/icons/phone.js
-  var __iconNode21 = [
+  var __iconNode22 = [
     [
       "path",
       {
@@ -36398,26 +36423,26 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     ]
   ];
-  var Phone = createLucideIcon("phone", __iconNode21);
+  var Phone = createLucideIcon("phone", __iconNode22);
 
   // node_modules/lucide-react/dist/esm/icons/refresh-cw.js
-  var __iconNode22 = [
+  var __iconNode23 = [
     ["path", { d: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8", key: "v9h5vc" }],
     ["path", { d: "M21 3v5h-5", key: "1q7to0" }],
     ["path", { d: "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16", key: "3uifl3" }],
     ["path", { d: "M8 16H3v5", key: "1cv678" }]
   ];
-  var RefreshCw = createLucideIcon("refresh-cw", __iconNode22);
+  var RefreshCw = createLucideIcon("refresh-cw", __iconNode23);
 
   // node_modules/lucide-react/dist/esm/icons/search.js
-  var __iconNode23 = [
+  var __iconNode24 = [
     ["path", { d: "m21 21-4.34-4.34", key: "14j7rj" }],
     ["circle", { cx: "11", cy: "11", r: "8", key: "4ej97u" }]
   ];
-  var Search = createLucideIcon("search", __iconNode23);
+  var Search = createLucideIcon("search", __iconNode24);
 
   // node_modules/lucide-react/dist/esm/icons/send.js
-  var __iconNode24 = [
+  var __iconNode25 = [
     [
       "path",
       {
@@ -36427,10 +36452,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["path", { d: "m21.854 2.147-10.94 10.939", key: "12cjpa" }]
   ];
-  var Send = createLucideIcon("send", __iconNode24);
+  var Send = createLucideIcon("send", __iconNode25);
 
   // node_modules/lucide-react/dist/esm/icons/settings.js
-  var __iconNode25 = [
+  var __iconNode26 = [
     [
       "path",
       {
@@ -36440,10 +36465,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
   ];
-  var Settings = createLucideIcon("settings", __iconNode25);
+  var Settings = createLucideIcon("settings", __iconNode26);
 
   // node_modules/lucide-react/dist/esm/icons/shield-check.js
-  var __iconNode26 = [
+  var __iconNode27 = [
     [
       "path",
       {
@@ -36453,36 +36478,44 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["path", { d: "m9 12 2 2 4-4", key: "dzmm74" }]
   ];
-  var ShieldCheck = createLucideIcon("shield-check", __iconNode26);
+  var ShieldCheck = createLucideIcon("shield-check", __iconNode27);
 
   // node_modules/lucide-react/dist/esm/icons/smile.js
-  var __iconNode27 = [
+  var __iconNode28 = [
     ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
     ["path", { d: "M8 14s1.5 2 4 2 4-2 4-2", key: "1y1vjs" }],
     ["line", { x1: "9", x2: "9.01", y1: "9", y2: "9", key: "yxxnd0" }],
     ["line", { x1: "15", x2: "15.01", y1: "9", y2: "9", key: "1p4y9e" }]
   ];
-  var Smile = createLucideIcon("smile", __iconNode27);
+  var Smile = createLucideIcon("smile", __iconNode28);
 
   // node_modules/lucide-react/dist/esm/icons/trash-2.js
-  var __iconNode28 = [
+  var __iconNode29 = [
     ["path", { d: "M10 11v6", key: "nco0om" }],
     ["path", { d: "M14 11v6", key: "outv1u" }],
     ["path", { d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", key: "miytrc" }],
     ["path", { d: "M3 6h18", key: "d0wm0j" }],
     ["path", { d: "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", key: "e791ji" }]
   ];
-  var Trash2 = createLucideIcon("trash-2", __iconNode28);
+  var Trash2 = createLucideIcon("trash-2", __iconNode29);
+
+  // node_modules/lucide-react/dist/esm/icons/trash.js
+  var __iconNode30 = [
+    ["path", { d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6", key: "miytrc" }],
+    ["path", { d: "M3 6h18", key: "d0wm0j" }],
+    ["path", { d: "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2", key: "e791ji" }]
+  ];
+  var Trash = createLucideIcon("trash", __iconNode30);
 
   // node_modules/lucide-react/dist/esm/icons/user.js
-  var __iconNode29 = [
+  var __iconNode31 = [
     ["path", { d: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2", key: "975kel" }],
     ["circle", { cx: "12", cy: "7", r: "4", key: "17ys0d" }]
   ];
-  var User = createLucideIcon("user", __iconNode29);
+  var User = createLucideIcon("user", __iconNode31);
 
   // node_modules/lucide-react/dist/esm/icons/video.js
-  var __iconNode30 = [
+  var __iconNode32 = [
     [
       "path",
       {
@@ -36492,10 +36525,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ],
     ["rect", { x: "2", y: "6", width: "14", height: "12", rx: "2", key: "158x01" }]
   ];
-  var Video = createLucideIcon("video", __iconNode30);
+  var Video = createLucideIcon("video", __iconNode32);
 
   // node_modules/lucide-react/dist/esm/icons/volume-2.js
-  var __iconNode31 = [
+  var __iconNode33 = [
     [
       "path",
       {
@@ -36506,10 +36539,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ["path", { d: "M16 9a5 5 0 0 1 0 6", key: "1q6k2b" }],
     ["path", { d: "M19.364 18.364a9 9 0 0 0 0-12.728", key: "ijwkga" }]
   ];
-  var Volume2 = createLucideIcon("volume-2", __iconNode31);
+  var Volume2 = createLucideIcon("volume-2", __iconNode33);
 
   // node_modules/lucide-react/dist/esm/icons/wifi-off.js
-  var __iconNode32 = [
+  var __iconNode34 = [
     ["path", { d: "M12 20h.01", key: "zekei9" }],
     ["path", { d: "M8.5 16.429a5 5 0 0 1 7 0", key: "1bycff" }],
     ["path", { d: "M5 12.859a10 10 0 0 1 5.17-2.69", key: "1dl1wf" }],
@@ -36518,23 +36551,23 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     ["path", { d: "M22 8.82a15 15 0 0 0-11.288-3.764", key: "z3jwby" }],
     ["path", { d: "m2 2 20 20", key: "1ooewy" }]
   ];
-  var WifiOff = createLucideIcon("wifi-off", __iconNode32);
+  var WifiOff = createLucideIcon("wifi-off", __iconNode34);
 
   // node_modules/lucide-react/dist/esm/icons/wifi.js
-  var __iconNode33 = [
+  var __iconNode35 = [
     ["path", { d: "M12 20h.01", key: "zekei9" }],
     ["path", { d: "M2 8.82a15 15 0 0 1 20 0", key: "dnpr2z" }],
     ["path", { d: "M5 12.859a10 10 0 0 1 14 0", key: "1x1e6c" }],
     ["path", { d: "M8.5 16.429a5 5 0 0 1 7 0", key: "1bycff" }]
   ];
-  var Wifi = createLucideIcon("wifi", __iconNode33);
+  var Wifi = createLucideIcon("wifi", __iconNode35);
 
   // node_modules/lucide-react/dist/esm/icons/x.js
-  var __iconNode34 = [
+  var __iconNode36 = [
     ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
     ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
   ];
-  var X = createLucideIcon("x", __iconNode34);
+  var X = createLucideIcon("x", __iconNode36);
 
   // src/pages/Login.tsx
   var import_jsx_runtime3 = __toESM(require_jsx_runtime());
@@ -37162,9 +37195,9 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
 
   // src/components/Sidebar.tsx
   var import_jsx_runtime7 = __toESM(require_jsx_runtime());
-  var Sidebar = ({ items = [] }) => {
+  var Sidebar = ({ items = [], onProfileClick }) => {
     const user = useSelector((s) => s.auth.user);
-    const connectionStatus = "connected";
+    const connectionStatus = useSelector((s) => s.connection.status);
     const defaultItems = [
       { id: "chat", icon: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(MessageSquare, { size: 20 }), label: "Chat", active: true },
       { id: "settings", icon: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Settings, { size: 20 }), label: "Settings" }
@@ -37204,10 +37237,13 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
         }
       ) }),
       /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "flex items-center justify-center", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
-        "div",
+        "button",
         {
-          className: "w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-white font-semibold text-sm",
-          title: user?.username || "Guest",
+          type: "button",
+          onClick: onProfileClick,
+          className: "w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-white font-semibold text-sm hover:bg-gray-500 transition-colors cursor-pointer",
+          title: `${user?.username || "Guest"} - Click for profile`,
+          "aria-label": "View profile",
           children: user?.username?.charAt(0).toUpperCase() || /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(User, { size: 20 })
         }
       ) })
@@ -38511,7 +38547,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     chatName,
     messages = [],
     isLoading = false,
-    onSendMessage
+    onSendMessage,
+    onDeleteChat,
+    onViewMedia,
+    onChatSettings
   }) => {
     const [localMessages, setLocalMessages] = (0, import_react28.useState)([]);
     const [editingMessage, setEditingMessage] = (0, import_react28.useState)(null);
@@ -38522,6 +38561,10 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
     const [searchQuery, setSearchQuery] = (0, import_react28.useState)("");
     const [searchResults, setSearchResults] = (0, import_react28.useState)([]);
     const [searchLoading, setSearchLoading] = (0, import_react28.useState)(false);
+    const [showChatMenu, setShowChatMenu] = (0, import_react28.useState)(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = (0, import_react28.useState)(false);
+    const [showMediaModal, setShowMediaModal] = (0, import_react28.useState)(false);
+    const chatMenuRef = (0, import_react28.useRef)(null);
     const currentUser = useSelector((s) => s.auth.user?.username || "You");
     const reactionOptions = ["\u{1F44D}", "\u2764\uFE0F", "\u{1F602}", "\u{1F62E}", "\u{1F389}", "\u{1F622}"];
     const activeChatIdRef = (0, import_react28.useRef)(chatId);
@@ -38742,14 +38785,79 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       }
     }, [currentUser]);
     const displayedMessages = searchQuery.trim() ? searchResults : localMessages;
+    const mediaMessages = localMessages.filter(
+      (msg) => msg.type === "image" || msg.type === "file"
+    );
+    (0, import_react28.useEffect)(() => {
+      const handleClickOutside = (event) => {
+        if (chatMenuRef.current && !chatMenuRef.current.contains(event.target)) {
+          setShowChatMenu(false);
+        }
+      };
+      if (showChatMenu) {
+        document.addEventListener("mousedown", handleClickOutside);
+      }
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [showChatMenu]);
+    const handleDeleteChat = (0, import_react28.useCallback)(() => {
+      if (!chatId)
+        return;
+      if (onDeleteChat) {
+        onDeleteChat(chatId);
+      }
+      setShowDeleteConfirm(false);
+      setShowChatMenu(false);
+    }, [chatId, onDeleteChat]);
+    const handleViewMedia = (0, import_react28.useCallback)(() => {
+      if (!chatId)
+        return;
+      if (onViewMedia) {
+        onViewMedia(chatId);
+      } else {
+        setShowMediaModal(true);
+      }
+      setShowChatMenu(false);
+    }, [chatId, onViewMedia]);
+    const handleChatSettings = (0, import_react28.useCallback)(() => {
+      if (!chatId)
+        return;
+      if (onChatSettings) {
+        onChatSettings(chatId);
+      }
+      setShowChatMenu(false);
+    }, [chatId, onChatSettings]);
     const scrollToBottom = (0, import_react28.useCallback)(
       (behavior = "auto") => {
         if (!listRef.current)
           return;
-        const lastIndex = displayedMessages.length - 1;
-        if (lastIndex < 0)
+        const messageCount = displayedMessages.length;
+        if (messageCount === 0)
           return;
-        listRef.current.scrollToRow({ index: lastIndex, align: "end", behavior });
+        const lastIndex = messageCount - 1;
+        const safeScroll = () => {
+          if (!listRef.current)
+            return;
+          try {
+            listRef.current.scrollToRow({ index: lastIndex, align: "end", behavior });
+          } catch (e) {
+            if (listRef.current.element) {
+              listRef.current.element.scrollTop = listRef.current.element.scrollHeight;
+            }
+          }
+          if (listRef.current.element) {
+            const element = listRef.current.element;
+            element.scrollTop = element.scrollHeight;
+          }
+        };
+        safeScroll();
+        requestAnimationFrame(() => {
+          safeScroll();
+          [50, 100, 200, 400].forEach((delay2) => {
+            setTimeout(safeScroll, delay2);
+          });
+        });
       },
       [displayedMessages.length]
     );
@@ -38790,7 +38898,15 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       const isNewChat = chatId !== lastScrollChatIdRef.current;
       const hasNewMessages = displayedMessages.length > lastMessageCountRef.current;
       if (isNewChat || hasNewMessages) {
-        scrollToBottom(isNewChat ? "auto" : "smooth");
+        const scrollBehavior = isNewChat ? "auto" : "smooth";
+        requestAnimationFrame(() => {
+          scrollToBottom(scrollBehavior);
+          [100, 250, 500, 800].forEach((delay2) => {
+            setTimeout(() => {
+              scrollToBottom(scrollBehavior);
+            }, delay2);
+          });
+        });
       }
       lastScrollChatIdRef.current = chatId;
       lastMessageCountRef.current = displayedMessages.length;
@@ -38837,15 +38953,58 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
                 children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Search, { size: 18 })
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
-              "button",
-              {
-                className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
-                "aria-label": "More options",
-                title: "More options",
-                children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(EllipsisVertical, { size: 18 })
-              }
-            )
+            /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "relative", ref: chatMenuRef, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+                "button",
+                {
+                  className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
+                  "aria-label": "More options",
+                  title: "More options",
+                  onClick: () => setShowChatMenu((prev) => !prev),
+                  children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(EllipsisVertical, { size: 18 })
+                }
+              ),
+              showChatMenu && /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)(
+                  "button",
+                  {
+                    onClick: handleViewMedia,
+                    className: "w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3",
+                    children: [
+                      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Image, { size: 16, className: "text-gray-500" }),
+                      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("span", { children: "View media" }),
+                      mediaMessages.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("span", { className: "ml-auto text-xs text-gray-400", children: mediaMessages.length })
+                    ]
+                  }
+                ),
+                /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)(
+                  "button",
+                  {
+                    onClick: handleChatSettings,
+                    className: "w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3",
+                    children: [
+                      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Settings, { size: 16, className: "text-gray-500" }),
+                      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("span", { children: "Chat settings" })
+                    ]
+                  }
+                ),
+                /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("hr", { className: "my-1 border-gray-200" }),
+                /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)(
+                  "button",
+                  {
+                    onClick: () => {
+                      setShowDeleteConfirm(true);
+                      setShowChatMenu(false);
+                    },
+                    className: "w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3",
+                    children: [
+                      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Trash, { size: 16 }),
+                      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("span", { children: "Delete chat" })
+                    ]
+                  }
+                )
+              ] })
+            ] })
           ] })
         ] }),
         (showSearch || searchQuery.trim()) && /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "mt-3 flex items-center gap-2", children: [
@@ -38909,7 +39068,80 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           onSendMessage: handleSendMessage,
           disabled: isLoading
         }
-      )
+      ),
+      showDeleteConfirm && /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "fixed inset-0 bg-black/50 flex items-center justify-center z-50", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex items-start gap-4", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(CircleAlert, { size: 24, className: "text-red-600" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex-1", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("h3", { className: "text-lg font-semibold text-gray-900", children: "Delete chat?" }),
+            /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("p", { className: "mt-2 text-sm text-gray-600", children: [
+              "Are you sure you want to delete this chat with ",
+              /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("strong", { children: chatName }),
+              "? This will permanently remove all messages and cannot be undone."
+            ] })
+          ] })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex justify-end gap-3 mt-6", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+            "button",
+            {
+              onClick: () => setShowDeleteConfirm(false),
+              className: "px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors",
+              children: "Cancel"
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+            "button",
+            {
+              onClick: handleDeleteChat,
+              className: "px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors",
+              children: "Delete chat"
+            }
+          )
+        ] })
+      ] }) }),
+      showMediaModal && /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "fixed inset-0 bg-black/50 flex items-center justify-center z-50", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "bg-white rounded-xl shadow-xl max-w-3xl w-full mx-4 max-h-[80vh] flex flex-col", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex items-center justify-between px-6 py-4 border-b border-gray-200", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("h3", { className: "text-lg font-semibold text-gray-900", children: [
+            "Media in ",
+            chatName
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+            "button",
+            {
+              onClick: () => setShowMediaModal(false),
+              className: "p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors",
+              children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(X, { size: 20 })
+            }
+          )
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "flex-1 overflow-auto p-6", children: mediaMessages.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "flex flex-col items-center justify-center py-12 text-gray-500", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Image, { size: 48, className: "mb-4 text-gray-300" }),
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { className: "text-sm", children: "No media shared in this chat yet" })
+        ] }) : /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("div", { className: "grid grid-cols-3 gap-3", children: mediaMessages.map((msg) => /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+          "div",
+          {
+            className: "aspect-square rounded-lg overflow-hidden bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity",
+            onClick: () => {
+              if (msg.file_path) {
+                window.open(toFileUrl2(msg.file_path), "_blank");
+              }
+            },
+            children: msg.type === "image" && msg.file_path ? /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(
+              "img",
+              {
+                src: toFileUrl2(msg.file_path),
+                alt: msg.file_name ?? "Image",
+                className: "w-full h-full object-cover"
+              }
+            ) : /* @__PURE__ */ (0, import_jsx_runtime13.jsxs)("div", { className: "w-full h-full flex flex-col items-center justify-center p-2", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("svg", { className: "w-8 h-8 text-gray-400", fill: "currentColor", viewBox: "0 0 20 20", children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("path", { fillRule: "evenodd", d: "M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z", clipRule: "evenodd" }) }),
+              /* @__PURE__ */ (0, import_jsx_runtime13.jsx)("p", { className: "mt-2 text-xs text-gray-500 truncate max-w-full px-1", children: msg.file_name ?? "File" })
+            ] })
+          },
+          msg.id
+        )) }) })
+      ] }) })
     ] });
   };
   var MessageThread_default = MessageThread;
@@ -39364,6 +39596,22 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
       },
       [dispatch, user?.id]
     );
+    const handleDeleteChat = import_react32.default.useCallback(
+      async (chatId) => {
+        try {
+          const result = await syncIpcClient.deleteChat(chatId);
+          if (result.success) {
+            dispatch(removeChat(chatId));
+          }
+        } catch (error) {
+          console.error("Failed to delete chat:", error);
+        }
+      },
+      [dispatch]
+    );
+    const handleChatSettings = import_react32.default.useCallback(() => {
+      setActiveView("settings");
+    }, []);
     const sidebarItems = import_react32.default.useMemo(
       () => [
         {
@@ -39403,13 +39651,15 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           chatId: selectedChatId,
           chatName: selectedChat?.name,
           messages: selectedMessages,
-          onSendMessage: handleSendMessage
+          onSendMessage: handleSendMessage,
+          onDeleteChat: handleDeleteChat,
+          onChatSettings: handleChatSettings
         }
       );
     };
     return /* @__PURE__ */ (0, import_jsx_runtime17.jsxs)("div", { className: "flex flex-1 min-h-0 bg-gray-light", children: [
       /* @__PURE__ */ (0, import_jsx_runtime17.jsxs)("div", { className: "flex flex-1 min-h-0", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(Sidebar_default, { items: sidebarItems }),
+        /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(Sidebar_default, { items: sidebarItems, onProfileClick: () => setActiveView("profile") }),
         activeView === "chat" && /* @__PURE__ */ (0, import_jsx_runtime17.jsx)("aside", { className: "w-80 bg-white border-r border-gray-200 flex flex-col min-h-0", children: /* @__PURE__ */ (0, import_jsx_runtime17.jsx)(
           ChatList_default,
           {
@@ -39429,17 +39679,39 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
   // src/components/TopNavbar.tsx
   var import_react33 = __toESM(require_react());
   var import_jsx_runtime18 = __toESM(require_jsx_runtime());
-  var TopNavbar = () => {
+  var TopNavbar = ({ onProfileClick, onSettingsClick }) => {
     const dispatch = useDispatch();
     const user = useSelector((s) => s.auth.user);
     const [dropdownOpen, setDropdownOpen] = (0, import_react33.useState)(false);
+    const dropdownRef = (0, import_react33.useRef)(null);
+    (0, import_react33.useEffect)(() => {
+      const handleClickOutside = (event) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+          setDropdownOpen(false);
+        }
+      };
+      if (dropdownOpen) {
+        document.addEventListener("mousedown", handleClickOutside);
+      }
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [dropdownOpen]);
     const handleLogout = () => {
       setDropdownOpen(false);
       void dispatch(logout());
     };
+    const handleProfileClick = () => {
+      setDropdownOpen(false);
+      onProfileClick?.();
+    };
+    const handleSettingsClick = () => {
+      setDropdownOpen(false);
+      onSettingsClick?.();
+    };
     return /* @__PURE__ */ (0, import_jsx_runtime18.jsxs)("header", { className: "top-navbar", children: [
       /* @__PURE__ */ (0, import_jsx_runtime18.jsx)("div", { className: "top-navbar-left", children: /* @__PURE__ */ (0, import_jsx_runtime18.jsx)("h1", { className: "top-navbar-title", children: "Secure Messenger" }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime18.jsxs)("div", { className: "top-navbar-right", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime18.jsxs)("div", { className: "top-navbar-right", ref: dropdownRef, children: [
         /* @__PURE__ */ (0, import_jsx_runtime18.jsxs)(
           "button",
           {
@@ -39457,10 +39729,41 @@ Take a look at the reducer(s) handling this action type: ${action.type}.
           }
         ),
         dropdownOpen && /* @__PURE__ */ (0, import_jsx_runtime18.jsxs)("div", { className: "top-navbar-dropdown", role: "menu", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime18.jsxs)("div", { className: "top-navbar-dropdown-item", role: "menuitem", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(User, { size: 16 }),
-            /* @__PURE__ */ (0, import_jsx_runtime18.jsx)("span", { children: user?.username })
+          /* @__PURE__ */ (0, import_jsx_runtime18.jsxs)("div", { className: "top-navbar-dropdown-header", role: "menuitem", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime18.jsx)("div", { className: "top-navbar-dropdown-avatar", children: user?.username?.charAt(0).toUpperCase() || "U" }),
+            /* @__PURE__ */ (0, import_jsx_runtime18.jsxs)("div", { className: "top-navbar-dropdown-info", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime18.jsx)("span", { className: "top-navbar-dropdown-name", children: user?.displayName || user?.username }),
+              /* @__PURE__ */ (0, import_jsx_runtime18.jsx)("span", { className: "top-navbar-dropdown-email", children: user?.email || "No email" })
+            ] })
           ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime18.jsx)("hr", { className: "top-navbar-dropdown-divider" }),
+          /* @__PURE__ */ (0, import_jsx_runtime18.jsxs)(
+            "button",
+            {
+              type: "button",
+              className: "top-navbar-dropdown-item",
+              onClick: handleProfileClick,
+              role: "menuitem",
+              children: [
+                /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(User, { size: 16 }),
+                /* @__PURE__ */ (0, import_jsx_runtime18.jsx)("span", { children: "My Profile" })
+              ]
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime18.jsxs)(
+            "button",
+            {
+              type: "button",
+              className: "top-navbar-dropdown-item",
+              onClick: handleSettingsClick,
+              role: "menuitem",
+              children: [
+                /* @__PURE__ */ (0, import_jsx_runtime18.jsx)(Settings, { size: 16 }),
+                /* @__PURE__ */ (0, import_jsx_runtime18.jsx)("span", { children: "Settings" })
+              ]
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime18.jsx)("hr", { className: "top-navbar-dropdown-divider" }),
           /* @__PURE__ */ (0, import_jsx_runtime18.jsxs)(
             "button",
             {
@@ -39865,6 +40168,14 @@ lucide-react/dist/esm/icons/hard-drive.js:
    * See the LICENSE file in the root directory of this source tree.
    *)
 
+lucide-react/dist/esm/icons/image.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
 lucide-react/dist/esm/icons/keyboard.js:
   (**
    * @license lucide-react v0.563.0 - ISC
@@ -39994,6 +40305,14 @@ lucide-react/dist/esm/icons/smile.js:
    *)
 
 lucide-react/dist/esm/icons/trash-2.js:
+  (**
+   * @license lucide-react v0.563.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   *)
+
+lucide-react/dist/esm/icons/trash.js:
   (**
    * @license lucide-react v0.563.0 - ISC
    *

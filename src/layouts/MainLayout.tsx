@@ -7,7 +7,7 @@ import MessageThread from '../components/MessageThread';
 import ConnectionStatusBar from '../components/ConnectionStatusBar';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState, AppDispatch } from '../app/store';
-import { selectChat } from '../app/slices/chatsSlice';
+import { selectChat, removeChat } from '../app/slices/chatsSlice';
 import { sendMessage } from '../app/slices/messagesSlice';
 import type { MessageAttachmentPayload } from '../domains/messages/messages.types';
 import { syncIpcClient } from '../services/syncIpcClient';
@@ -75,6 +75,26 @@ const MainLayout: React.FC = () => {
     [dispatch, user?.id],
   );
 
+  const handleDeleteChat = React.useCallback(
+    async (chatId: string) => {
+      try {
+        const result = await syncIpcClient.deleteChat(chatId);
+        if (result.success) {
+          // Remove chat from Redux state
+          dispatch(removeChat(chatId));
+        }
+      } catch (error) {
+        console.error('Failed to delete chat:', error);
+      }
+    },
+    [dispatch],
+  );
+
+  const handleChatSettings = React.useCallback(() => {
+    // Navigate to settings with chat context
+    setActiveView('settings');
+  }, []);
+
   const sidebarItems = React.useMemo(
     () => [
       {
@@ -117,6 +137,8 @@ const MainLayout: React.FC = () => {
         chatName={selectedChat?.name}
         messages={selectedMessages}
         onSendMessage={handleSendMessage}
+        onDeleteChat={handleDeleteChat}
+        onChatSettings={handleChatSettings}
       />
     );
   };
@@ -125,7 +147,7 @@ const MainLayout: React.FC = () => {
     <div className="flex flex-1 min-h-0 bg-gray-light">
       <div className="flex flex-1 min-h-0">
         {/* Left Sidebar - Fixed narrow column */}
-        <Sidebar items={sidebarItems} />
+        <Sidebar items={sidebarItems} onProfileClick={() => setActiveView('profile')} />
 
         {activeView === 'chat' && (
           <aside className="w-80 bg-white border-r border-gray-200 flex flex-col min-h-0">

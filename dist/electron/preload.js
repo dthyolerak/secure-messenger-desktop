@@ -4134,6 +4134,7 @@ var IPC_EVENTS = {
   SEND_MESSAGE: "sync:send-message",
   UPDATE_MESSAGE: "sync:update-message",
   DELETE_MESSAGE: "sync:delete-message",
+  DELETE_CHAT: "sync:delete-chat",
   SEARCH_MESSAGES: "sync:search-messages",
   SEARCH_CHATS: "sync:search-chats",
   TOGGLE_REACTION: "sync:toggle-reaction",
@@ -4191,6 +4192,9 @@ var UpdateMessageSchema = external_exports.object({
 });
 var DeleteMessageSchema = external_exports.object({
   messageId: external_exports.string()
+});
+var DeleteChatSchema = external_exports.object({
+  chatId: external_exports.string()
 });
 var SearchMessagesSchema = external_exports.object({
   query: external_exports.string(),
@@ -4387,6 +4391,17 @@ var syncApi = {
   // Chats
   async getChats() {
     return await import_electron2.ipcRenderer.invoke(IPC_EVENTS.GET_CHATS);
+  },
+  async deleteChat(chatId) {
+    const raw = await import_electron2.ipcRenderer.invoke(IPC_EVENTS.DELETE_CHAT, { chatId });
+    const responseSchema = external_exports.object({
+      success: external_exports.boolean(),
+      data: external_exports.object({
+        chatId: external_exports.string()
+      }).optional(),
+      error: external_exports.string().optional()
+    });
+    return responseSchema.parse(raw);
   },
   // Users (mock implementation for now)
   users: {

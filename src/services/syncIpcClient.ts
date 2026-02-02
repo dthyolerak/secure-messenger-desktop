@@ -145,6 +145,18 @@ class SyncIpcClient {
   }
 
   /**
+   * Delete a chat and all its messages
+   */
+  async deleteChat(chatId: string) {
+    try {
+      return await this.api.deleteChat(chatId);
+    } catch (error) {
+      console.error('Failed to delete chat:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get current connection status
    */
   async getConnectionStatus() {

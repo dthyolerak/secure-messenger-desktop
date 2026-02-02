@@ -364,6 +364,29 @@ const syncApi = {
 
 
 
+  async deleteChat(chatId: string) {
+
+    const raw = await ipcRenderer.invoke(IPC_EVENTS.DELETE_CHAT, { chatId });
+    const responseSchema = z.object({
+      success: z.boolean(),
+      data: z
+        .object({
+          chatId: z.string(),
+        })
+        .optional(),
+      error: z.string().optional(),
+    });
+
+    return responseSchema.parse(raw) as {
+      success: boolean;
+      data?: { chatId: string };
+      error?: string;
+    };
+
+  },
+
+
+
   // Users (mock implementation for now)
 
   users: {

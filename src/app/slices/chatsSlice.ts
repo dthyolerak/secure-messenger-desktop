@@ -102,6 +102,13 @@ const chatsSlice = createSlice({
         hasMore: true,
       };
     },
+    removeChat(state, action: PayloadAction<string>) {
+      state.items = state.items.filter((chat) => chat.id !== action.payload);
+      // Clear selection if the deleted chat was selected
+      if (state.selectedChatId === action.payload) {
+        state.selectedChatId = null;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -140,5 +147,5 @@ const chatsSlice = createSlice({
   },
 });
 
-export const { selectChat, setChats, addOrUpdateChat, resetPagination } = chatsSlice.actions;
+export const { selectChat, setChats, addOrUpdateChat, resetPagination, removeChat } = chatsSlice.actions;
 export default chatsSlice.reducer;

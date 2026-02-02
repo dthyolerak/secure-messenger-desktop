@@ -1,7 +1,7 @@
 // src/components/MessageThread.tsx
 import React, { useState, useEffect, useRef, useCallback, CSSProperties } from 'react';
 import { List, useDynamicRowHeight } from 'react-window';
-import { Search, MoreVertical, Phone, Video, Edit2, Trash2, Smile, X } from 'lucide-react';
+import { Search, MoreVertical, Phone, Video, Edit2, Trash2, Smile, X, Image, Settings, Trash, AlertCircle } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../app/store';
 import type { MessageAttachmentPayload, MessageItem, MessageSearchResult } from '../domains/messages/messages.types';
@@ -24,6 +24,9 @@ export interface MessageThreadProps {
   messages?: MessageItem[];
   isLoading?: boolean;
   onSendMessage?: (chatId: string, content: string, attachment?: MessageAttachmentPayload) => void;
+  onDeleteChat?: (chatId: string) => void;
+  onViewMedia?: (chatId: string) => void;
+  onChatSettings?: (chatId: string) => void;
 }
 
 const DEFAULT_ROW_HEIGHT = 80;
@@ -298,6 +301,9 @@ const MessageThread: React.FC<MessageThreadProps> = ({
   messages = [],
   isLoading = false,
   onSendMessage,
+  onDeleteChat,
+  onViewMedia,
+  onChatSettings,
 }) => {
   const [localMessages, setLocalMessages] = useState<MessageItem[]>([]);
   const [editingMessage, setEditingMessage] = useState<string | null>(null);
@@ -308,6 +314,10 @@ const MessageThread: React.FC<MessageThreadProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<MessageItem[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [showChatMenu, setShowChatMenu] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showMediaModal, setShowMediaModal] = useState(false);
+  const chatMenuRef = useRef<HTMLDivElement>(null);
   const currentUser = useSelector((s: RootState) => s.auth.user?.username || 'You');
   const reactionOptions = ['👍', '❤️', '😂', '😮', '🎉', '😢'];
   const activeChatIdRef = useRef<string | null | undefined>(chatId);
@@ -406,6 +416,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
         setLocalMessages((prev) => {
           const exists = prev.some((msg) => msg.id === newMessage.id);
           if (!exists) {
+            // Just update state - scrolling is handled by the useEffect that watches displayedMessages
             return [...prev, newMessage].sort((a, b) => a.timestamp - b.timestamp);
           }
           return prev;
@@ -556,12 +567,96 @@ const MessageThread: React.FC<MessageThreadProps> = ({
 
   const displayedMessages = searchQuery.trim() ? searchResults : localMessages;
 
+  // Get media messages (images and files)
+  const mediaMessages = localMessages.filter(
+    (msg) => msg.type === 'image' || msg.type === 'file'
+  );
+
+  // Close chat menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (chatMenuRef.current && !chatMenuRef.current.contains(event.target as Node)) {
+        setShowChatMenu(false);
+      }
+    };
+
+    if (showChatMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showChatMenu]);
+
+  const handleDeleteChat = useCallback(() => {
+    if (!chatId) return;
+    if (onDeleteChat) {
+      onDeleteChat(chatId);
+    }
+    setShowDeleteConfirm(false);
+    setShowChatMenu(false);
+  }, [chatId, onDeleteChat]);
+
+  const handleViewMedia = useCallback(() => {
+    if (!chatId) return;
+    if (onViewMedia) {
+      onViewMedia(chatId);
+    } else {
+      // Show built-in media modal if no external handler
+      setShowMediaModal(true);
+    }
+    setShowChatMenu(false);
+  }, [chatId, onViewMedia]);
+
+  const handleChatSettings = useCallback(() => {
+    if (!chatId) return;
+    if (onChatSettings) {
+      onChatSettings(chatId);
+    }
+    setShowChatMenu(false);
+  }, [chatId, onChatSettings]);
+
   const scrollToBottom = useCallback(
     (behavior: ScrollBehavior = 'auto') => {
       if (!listRef.current) return;
-      const lastIndex = displayedMessages.length - 1;
-      if (lastIndex < 0) return;
-      listRef.current.scrollToRow({ index: lastIndex, align: 'end', behavior });
+      const messageCount = displayedMessages.length;
+      if (messageCount === 0) return;
+      
+      const lastIndex = messageCount - 1;
+      
+      // Safe scroll function with bounds checking
+      const safeScroll = () => {
+        if (!listRef.current) return;
+        
+        // Use scrollToRow for the virtual list
+        try {
+          listRef.current.scrollToRow({ index: lastIndex, align: 'end', behavior });
+        } catch (e) {
+          // Fallback: scroll the container element directly to the bottom
+          if (listRef.current.element) {
+            listRef.current.element.scrollTop = listRef.current.element.scrollHeight;
+          }
+        }
+        
+        // Also try to scroll the container element to absolute bottom for 100% scroll
+        if (listRef.current.element) {
+          const element = listRef.current.element;
+          element.scrollTop = element.scrollHeight;
+        }
+      };
+      
+      // First scroll immediately
+      safeScroll();
+      
+      // Then scroll again after delays to handle dynamic row height calculations
+      requestAnimationFrame(() => {
+        safeScroll();
+        // Additional scrolls after longer delays for messages with attachments/images
+        [50, 100, 200, 400].forEach((delay) => {
+          setTimeout(safeScroll, delay);
+        });
+      });
     },
     [displayedMessages.length],
   );
@@ -614,7 +709,23 @@ const MessageThread: React.FC<MessageThreadProps> = ({
     const hasNewMessages = displayedMessages.length > lastMessageCountRef.current;
 
     if (isNewChat || hasNewMessages) {
-      scrollToBottom(isNewChat ? 'auto' : 'smooth');
+      // For new chats, scroll immediately with 'auto' behavior
+      // For new messages, use 'smooth' animation
+      const scrollBehavior = isNewChat ? 'auto' : 'smooth';
+      
+      // Use requestAnimationFrame to ensure the DOM has updated with new rowCount
+      requestAnimationFrame(() => {
+        scrollToBottom(scrollBehavior);
+        
+        // Additional delayed scrolls to handle dynamic content rendering
+        // This is especially important for messages with images or attachments
+        // Use longer delays to ensure the virtual list has fully updated
+        [100, 250, 500, 800].forEach((delay) => {
+          setTimeout(() => {
+            scrollToBottom(scrollBehavior);
+          }, delay);
+        });
+      });
     }
 
     lastScrollChatIdRef.current = chatId;
@@ -663,13 +774,52 @@ const MessageThread: React.FC<MessageThreadProps> = ({
             >
               <Search size={18} />
             </button>
-            <button
-              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="More options"
-              title="More options"
-            >
-              <MoreVertical size={18} />
-            </button>
+            <div className="relative" ref={chatMenuRef}>
+              <button
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label="More options"
+                title="More options"
+                onClick={() => setShowChatMenu((prev) => !prev)}
+              >
+                <MoreVertical size={18} />
+              </button>
+              
+              {/* Chat Options Dropdown Menu */}
+              {showChatMenu && (
+                <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                  <button
+                    onClick={handleViewMedia}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                  >
+                    <Image size={16} className="text-gray-500" />
+                    <span>View media</span>
+                    {mediaMessages.length > 0 && (
+                      <span className="ml-auto text-xs text-gray-400">
+                        {mediaMessages.length}
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    onClick={handleChatSettings}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                  >
+                    <Settings size={16} className="text-gray-500" />
+                    <span>Chat settings</span>
+                  </button>
+                  <hr className="my-1 border-gray-200" />
+                  <button
+                    onClick={() => {
+                      setShowDeleteConfirm(true);
+                      setShowChatMenu(false);
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3"
+                  >
+                    <Trash size={16} />
+                    <span>Delete chat</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -746,6 +896,98 @@ const MessageThread: React.FC<MessageThreadProps> = ({
         onSendMessage={handleSendMessage}
         disabled={isLoading}
       />
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <AlertCircle size={24} className="text-red-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-900">Delete chat?</h3>
+                <p className="mt-2 text-sm text-gray-600">
+                  Are you sure you want to delete this chat with <strong>{chatName}</strong>? 
+                  This will permanently remove all messages and cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteChat}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+              >
+                Delete chat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Media Gallery Modal */}
+      {showMediaModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full mx-4 max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Media in {chatName}
+              </h3>
+              <button
+                onClick={() => setShowMediaModal(false)}
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-6">
+              {mediaMessages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+                  <Image size={48} className="mb-4 text-gray-300" />
+                  <p className="text-sm">No media shared in this chat yet</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-3">
+                  {mediaMessages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className="aspect-square rounded-lg overflow-hidden bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => {
+                        if (msg.file_path) {
+                          window.open(toFileUrl(msg.file_path), '_blank');
+                        }
+                      }}
+                    >
+                      {msg.type === 'image' && msg.file_path ? (
+                        <img
+                          src={toFileUrl(msg.file_path)}
+                          alt={msg.file_name ?? 'Image'}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center p-2">
+                          <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                          </svg>
+                          <p className="mt-2 text-xs text-gray-500 truncate max-w-full px-1">
+                            {msg.file_name ?? 'File'}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };

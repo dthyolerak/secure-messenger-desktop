@@ -30,6 +30,7 @@ export const IPC_EVENTS = {
   SEND_MESSAGE: 'sync:send-message',
   UPDATE_MESSAGE: 'sync:update-message',
   DELETE_MESSAGE: 'sync:delete-message',
+  DELETE_CHAT: 'sync:delete-chat',
   SEARCH_MESSAGES: 'sync:search-messages',
   SEARCH_CHATS: 'sync:search-chats',
   TOGGLE_REACTION: 'sync:toggle-reaction',
@@ -96,6 +97,10 @@ const UpdateMessageSchema = z.object({
 
 const DeleteMessageSchema = z.object({
   messageId: z.string(),
+});
+
+const DeleteChatSchema = z.object({
+  chatId: z.string(),
 });
 
 const SearchMessagesSchema = z.object({
@@ -574,6 +579,26 @@ export function registerSyncIPCHandlers(syncQueries: any): void {
     } catch (error) {
       console.error('[IPC] Delete message failed:', error);
       return { success: false, error: 'Failed to delete message' };
+    }
+  });
+
+  ipcMain.handle(IPC_EVENTS.DELETE_CHAT, async (_event, rawPayload) => {
+    try {
+      const parsed = DeleteChatSchema.safeParse(rawPayload);
+      if (!parsed.success) {
+        throw new Error('Invalid delete chat payload');
+      }
+
+      const deleted = await syncQueries.deleteChat(parsed.data.chatId);
+      if (deleted.success) {
+        SyncIPCEmitter.emitChatListUpdated();
+        return { success: true, data: { chatId: parsed.data.chatId } };
+      }
+
+      return { success: false, error: 'Chat not found' };
+    } catch (error) {
+      console.error('[IPC] Delete chat failed:', error);
+      return { success: false, error: 'Failed to delete chat' };
     }
   });
 

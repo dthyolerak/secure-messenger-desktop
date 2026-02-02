@@ -5255,6 +5255,29 @@ var SyncQueries = class {
       throw error;
     }
   }
+  /**
+   * Delete chat and all its messages
+   */
+  async deleteChat(chatId) {
+    try {
+      this.db.prepare(`
+        DELETE FROM messages WHERE chat_id = ?
+      `).run(chatId);
+      this.db.prepare(`
+        DELETE FROM message_reactions WHERE message_id IN (
+          SELECT id FROM messages WHERE chat_id = ?
+        )
+      `).run(chatId);
+      const result = this.db.prepare(`
+        DELETE FROM chats WHERE id = ?
+      `).run(chatId);
+      console.log(`[DB] Deleted chat ${chatId}: ${result.changes > 0 ? "success" : "not found"}`);
+      return { success: result.changes > 0 };
+    } catch (error) {
+      console.error("[DB] Failed to delete chat:", error);
+      throw error;
+    }
+  }
 };
 
 // electron/db/migrations.ts
@@ -5421,6 +5444,7 @@ var IPC_EVENTS = {
   SEND_MESSAGE: "sync:send-message",
   UPDATE_MESSAGE: "sync:update-message",
   DELETE_MESSAGE: "sync:delete-message",
+  DELETE_CHAT: "sync:delete-chat",
   SEARCH_MESSAGES: "sync:search-messages",
   SEARCH_CHATS: "sync:search-chats",
   TOGGLE_REACTION: "sync:toggle-reaction",
@@ -5478,6 +5502,9 @@ var UpdateMessageSchema = external_exports.object({
 });
 var DeleteMessageSchema = external_exports.object({
   messageId: external_exports.string()
+});
+var DeleteChatSchema = external_exports.object({
+  chatId: external_exports.string()
 });
 var SearchMessagesSchema = external_exports.object({
   query: external_exports.string(),
@@ -5849,6 +5876,23 @@ function registerSyncIPCHandlers(syncQueries2) {
     } catch (error) {
       console.error("[IPC] Delete message failed:", error);
       return { success: false, error: "Failed to delete message" };
+    }
+  });
+  import_electron5.ipcMain.handle(IPC_EVENTS.DELETE_CHAT, async (_event, rawPayload) => {
+    try {
+      const parsed = DeleteChatSchema.safeParse(rawPayload);
+      if (!parsed.success) {
+        throw new Error("Invalid delete chat payload");
+      }
+      const deleted = await syncQueries2.deleteChat(parsed.data.chatId);
+      if (deleted.success) {
+        SyncIPCEmitter.emitChatListUpdated();
+        return { success: true, data: { chatId: parsed.data.chatId } };
+      }
+      return { success: false, error: "Chat not found" };
+    } catch (error) {
+      console.error("[IPC] Delete chat failed:", error);
+      return { success: false, error: "Failed to delete chat" };
     }
   });
   import_electron5.ipcMain.handle(IPC_EVENTS.SEARCH_MESSAGES, async (_event, rawPayload) => {

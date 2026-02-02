@@ -594,4 +594,34 @@ export class SyncQueries {
       throw error;
     }
   }
+
+  /**
+   * Delete chat and all its messages
+   */
+  async deleteChat(chatId: string): Promise<{ success: boolean }> {
+    try {
+      // First delete all messages in the chat
+      this.db.prepare(`
+        DELETE FROM messages WHERE chat_id = ?
+      `).run(chatId);
+
+      // Delete all reactions for messages in this chat
+      this.db.prepare(`
+        DELETE FROM message_reactions WHERE message_id IN (
+          SELECT id FROM messages WHERE chat_id = ?
+        )
+      `).run(chatId);
+
+      // Then delete the chat itself
+      const result = this.db.prepare(`
+        DELETE FROM chats WHERE id = ?
+      `).run(chatId);
+
+      console.log(`[DB] Deleted chat ${chatId}: ${result.changes > 0 ? 'success' : 'not found'}`);
+      return { success: result.changes > 0 };
+    } catch (error) {
+      console.error('[DB] Failed to delete chat:', error);
+      throw error;
+    }
+  }
 }
